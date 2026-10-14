@@ -1,3 +1,5 @@
+import SystemStatus from './components/SystemStatus.jsx';
+
 function App() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
@@ -6,6 +8,7 @@ function App() {
         <p className="mt-2 text-slate-600">
           Gym membership, class management and workout tracking.
         </p>
+        <SystemStatus />
       </div>
     </main>
   );
