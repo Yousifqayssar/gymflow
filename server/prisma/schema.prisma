@@ -1,0 +1,11 @@
+// Prisma schema: describes the database tables (models) for GymFlow.
+// Models are added from Stage 1 onwards, starting with users and roles.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
