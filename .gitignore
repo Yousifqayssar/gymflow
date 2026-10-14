@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment files (real secrets never go into git; only .env.example is committed)
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+coverage/
+
+# Test reports (Playwright, later)
+playwright-report/
+test-results/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.claude/
+.DS_Store
+Thumbs.db
