@@ -1,5 +1,4 @@
 // Prisma schema: describes the database tables (models) for GymFlow.
-// Models are added from Stage 1 onwards, starting with users and roles.
 
 generator client {
   provider = "prisma-client"
@@ -8,4 +7,23 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// The three kinds of users in the system.
+enum Role {
+  ADMIN
+  TRAINER
+  MEMBER
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  // Only the bcrypt hash is stored, never the real password.
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         Role     @default(MEMBER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
