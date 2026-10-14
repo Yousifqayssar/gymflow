@@ -1,16 +1,28 @@
-import SystemStatus from './components/SystemStatus.jsx';
+import { Navigate, Route, Routes } from 'react-router';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
+import GuestRoute from './components/GuestRoute.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import RegisterPage from './pages/RegisterPage.jsx';
+import HomePage from './pages/HomePage.jsx';
 
+// Which page is shown for which URL.
 function App() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-md">
-        <h1 className="text-3xl font-bold text-slate-900">GymFlow</h1>
-        <p className="mt-2 text-slate-600">
-          Gym membership, class management and workout tracking.
-        </p>
-        <SystemStatus />
-      </div>
-    </main>
+    <Routes>
+      {/* Only for visitors who are NOT logged in */}
+      <Route element={<GuestRoute />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+      </Route>
+
+      {/* Only for logged-in users */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/" element={<HomePage />} />
+      </Route>
+
+      {/* Any unknown URL goes to the home page */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
