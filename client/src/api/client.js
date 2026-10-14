@@ -1,0 +1,80 @@
+// One place for all requests to our API.
+// It adds the login token, sends/reads JSON, and turns error responses into ApiError.
+
+const TOKEN_KEY = 'gymflow_token';
+
+// Saves the login token in the browser, so the user stays logged in after a page reload.
+// localStorage can be blocked (e.g. some private windows), so every access is guarded.
+export const tokenStorage = {
+  get() {
+    try {
+      return localStorage.getItem(TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  },
+  set(token) {
+    try {
+      localStorage.setItem(TOKEN_KEY, token);
+    } catch {
+      // Not saved: the user will simply need to log in again after a reload.
+    }
+  },
+  clear() {
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+    } catch {
+      // Nothing to clear.
+    }
+  },
+};
+
+// An error answer from the API, e.g. 401 "Invalid email or password".
+// `details` holds per-field validation errors: [{ field, message }].
+export class ApiError extends Error {
+  constructor(status, message, details = []) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.details = details;
+  }
+}
+
+// Sends a request to /api/<path> and returns the JSON body.
+// Example: await apiRequest('/auth/login', { method: 'POST', body: { email, password } })
+export async function apiRequest(path, { method = 'GET', body } = {}) {
+  const headers = {};
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  const token = tokenStorage.get();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  let response;
+  try {
+    response = await fetch(`/api${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  } catch {
+    // fetch only throws when there is no answer at all (server down, no network).
+    throw new ApiError(0, 'Cannot reach the server. Please try again later.');
+  }
+
+  // Some answers may have no JSON body; treat them as empty.
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new ApiError(
+      response.status,
+      data?.error?.message ?? 'Something went wrong. Please try again.',
+      data?.error?.details,
+    );
+  }
+
+  return data;
+}
