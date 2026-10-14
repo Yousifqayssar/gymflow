@@ -1,10 +1,15 @@
 import { env } from '../config/env.js';
 
 // Central error handler: every error thrown in a route ends up here
-// and is turned into the same JSON shape.
+// and is turned into the same JSON shape: { error: { message, details? } }
 // Express recognises an error handler by its 4 parameters, so `next` must stay
 // even though we don't use it.
 export function errorHandler(err, req, res, next) {
+  // Request body is not valid JSON (thrown by express.json()).
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: { message: 'Request body must be valid JSON' } });
+  }
+
   const statusCode = err.statusCode || 500;
 
   if (statusCode >= 500) {
@@ -13,9 +18,12 @@ export function errorHandler(err, req, res, next) {
 
   // Never leak internal details (stack traces, SQL errors) to clients in production.
   const message =
-    statusCode >= 500 && env.NODE_ENV === 'production'
-      ? 'Internal server error'
-      : err.message;
+    statusCode >= 500 && env.NODE_ENV === 'production' ? 'Internal server error' : err.message;
 
-  res.status(statusCode).json({ error: { message } });
+  const body = { error: { message } };
+  if (err.details) {
+    body.error.details = err.details;
+  }
+
+  res.status(statusCode).json(body);
 }
