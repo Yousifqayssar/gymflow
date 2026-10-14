@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { env } from './config/env.js';
 import healthRoutes from './routes/health.routes.js';
+import authRoutes from './routes/auth.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -15,6 +16,7 @@ app.use(express.json());
 
 // 2. Routes
 app.use('/api/health', healthRoutes);
+app.use('/api/auth', authRoutes);
 
 // 3. Fallbacks (must come after all routes)
 app.use(notFound);
