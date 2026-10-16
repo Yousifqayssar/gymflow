@@ -27,23 +27,26 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  memberships Membership[]
+  memberships   Membership[]
+  // Classes this user teaches (trainers) and classes this user booked (members).
+  taughtClasses GymClass[]   @relation("ClassTrainer")
+  bookings      Booking[]
 }
 
 // A product the gym sells, e.g. "3 Months – 2500 TRY".
 // Plans are never deleted once used; they are deactivated (isActive = false).
 model MembershipPlan {
-  id             Int          @id @default(autoincrement())
-  name           String       @unique
+  id             Int      @id @default(autoincrement())
+  name           String   @unique
   // What the plan includes, shown to members (may be empty for older plans).
-  description    String       @default("")
+  description    String   @default("")
   // Must be > 0 (database check constraint in the migration).
   durationMonths Int
   // Exact decimal for money, never a floating-point number. Must be > 0.
-  price          Decimal      @db.Decimal(10, 2)
-  isActive       Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  price          Decimal  @db.Decimal(10, 2)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   memberships Membership[]
 }
@@ -66,4 +69,81 @@ model Membership {
   createdAt DateTime       @default(now())
 
   @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Classes (group activities) and bookings
+// ---------------------------------------------------------------------------
+
+// The kind of activity; decides the icon and colour in the app.
+enum ClassCategory {
+  RUNNING
+  YOGA
+  HIIT
+  CYCLING
+  PILATES
+  BOXING
+  STRENGTH
+  MOBILITY
+}
+
+enum ClassLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ALL_LEVELS
+}
+
+enum ClassIntensity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+// One session of a group class, e.g. "Running Club" on Saturday 24 October at 08:00.
+// Everything a member needs to decide whether to book is stored here.
+model GymClass {
+  id              Int            @id @default(autoincrement())
+  title           String
+  category        ClassCategory
+  // What happens in the class, in plain language.
+  description     String
+  // Where to meet, e.g. "Studio 2" or "Bebek Park, main entrance".
+  location        String
+  // The exact moment the class starts (stored with time zone).
+  startsAt        DateTime       @db.Timestamptz(3)
+  // 15–300 minutes (database check constraint in the migration).
+  durationMinutes Int
+  // Maximum number of bookings; > 0 (database check constraint).
+  capacity        Int
+  level           ClassLevel
+  intensity       ClassIntensity
+  whatToBring     String         @default("")
+  // Who should be careful or not join, e.g. "Not suitable for knee injuries".
+  healthNotes     String         @default("")
+  // A class with bookings is cancelled, never deleted, so members can see what happened.
+  isCancelled     Boolean        @default(false)
+  trainerId       Int
+  // A trainer who still has classes cannot be deleted (RESTRICT).
+  trainer         User           @relation("ClassTrainer", fields: [trainerId], references: [id], onDelete: Restrict)
+  bookings        Booking[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([startsAt])
+  @@index([trainerId])
+}
+
+// A member's spot in a class.
+model Booking {
+  id        Int      @id @default(autoincrement())
+  classId   Int
+  gymClass  GymClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  memberId  Int
+  member    User     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  // Business rule "a member cannot book the same class twice", enforced by the database.
+  @@unique([classId, memberId])
+  @@index([memberId])
 }
