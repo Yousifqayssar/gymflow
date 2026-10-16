@@ -1,18 +1,30 @@
 import { useEffect, useState } from 'react';
+import { CalendarClock } from 'lucide-react';
 import { getMyMembership } from '../api/me.js';
+import { useAuth } from '../auth/useAuth.js';
 import ErrorMessage from './ErrorMessage.jsx';
 import MembershipStatusBadge from './MembershipStatusBadge.jsx';
-import { formatDate } from '../utils/format.js';
+import Logo from './ui/Logo.jsx';
+import { formatDate, formatMemberNumber } from '../utils/format.js';
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 // A hint for the member, depending on their status.
 const HINTS = {
   EXPIRING_SOON: 'Your membership ends soon. Ask at the front desk to renew it.',
   EXPIRED: 'Your membership has ended. Ask at the front desk to renew it.',
   NONE: 'You don’t have a membership yet. Ask at the front desk to choose a plan.',
+  UPCOMING: 'Your membership hasn’t started yet.',
 };
 
-// The logged-in member's membership: status, plan, dates and days left.
+// Length of a membership in days (both dates inclusive), from "YYYY-MM-DD" strings.
+function totalDays(membership) {
+  return Math.round((new Date(membership.endDate) - new Date(membership.startDate)) / MS_PER_DAY) + 1;
+}
+
+// The logged-in member's membership, designed like a physical gym membership card.
 function MyMembershipCard() {
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
 
@@ -31,55 +43,94 @@ function MyMembershipCard() {
   }, []);
 
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
-  if (!data) return <p className="text-slate-500">Loading your membership…</p>;
+  if (!data) return <div className="h-56 animate-pulse rounded-2xl bg-slate-200" aria-label="Loading your membership" />;
 
   const { status, currentMembership: current, memberships } = data;
+  const isValidToday = status === 'ACTIVE' || status === 'EXPIRING_SOON';
   // A renewal that starts after the current membership.
   const next = memberships.find((m) => m.status === 'UPCOMING' && m.id !== current?.id);
-  const isValidToday = status === 'ACTIVE' || status === 'EXPIRING_SOON';
+
+  // Share of the membership already used, for the progress bar (0–100).
+  const usedPercent = isValidToday
+    ? Math.round(((totalDays(current) - current.daysRemaining) / totalDays(current)) * 100)
+    : 0;
 
   return (
-    <section className="rounded-2xl bg-white p-6 shadow-md">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold text-slate-900">My membership</h2>
-        <MembershipStatusBadge status={status} />
-      </div>
+    <div className="space-y-3">
+      <section
+        className={`relative overflow-hidden rounded-2xl p-6 text-white shadow-lg ${
+          isValidToday ? 'bg-gradient-to-br from-brand-600 to-brand-900' : 'bg-gradient-to-br from-slate-600 to-slate-800'
+        }`}
+      >
+        {/* Decorative circles, like on a printed card */}
+        <div aria-hidden="true" className="absolute -top-16 -right-16 size-56 rounded-full bg-white/10" />
+        <div aria-hidden="true" className="absolute -bottom-20 left-1/3 size-48 rounded-full bg-white/5" />
 
-      {current && (
-        <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+        <div className="relative flex items-start justify-between gap-4">
+          <Logo inverted />
+          <MembershipStatusBadge status={status} />
+        </div>
+
+        <div className="relative mt-8 flex flex-wrap items-end justify-between gap-6">
           <div>
-            <p className="text-xl font-bold text-slate-900">{current.plan.name}</p>
-            <p className="text-slate-600">
-              {formatDate(current.startDate)} – {formatDate(current.endDate)}
-            </p>
+            <p className="text-sm text-white/70">Plan</p>
+            <p className="text-2xl font-bold">{current ? current.plan.name : 'No membership'}</p>
+            {current && (
+              <p className="mt-1 text-sm text-white/80">
+                {formatDate(current.startDate)} – {formatDate(current.endDate)}
+              </p>
+            )}
           </div>
           {isValidToday && (
             <div className="text-right">
-              <p className={`text-4xl font-bold ${status === 'EXPIRING_SOON' ? 'text-amber-600' : 'text-slate-900'}`}>
-                {current.daysRemaining}
-              </p>
-              <p className="text-sm text-slate-500">{current.daysRemaining === 1 ? 'day left' : 'days left'}</p>
+              <p className="text-5xl font-bold leading-none">{current.daysRemaining}</p>
+              <p className="mt-1 text-sm text-white/80">{current.daysRemaining === 1 ? 'day left' : 'days left'}</p>
             </div>
           )}
         </div>
-      )}
+
+        {isValidToday && (
+          <div
+            className="relative mt-5 h-1.5 overflow-hidden rounded-full bg-white/20"
+            role="progressbar"
+            aria-valuenow={usedPercent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Part of the membership already used"
+          >
+            <div className="h-full rounded-full bg-white" style={{ width: `${usedPercent}%` }} />
+          </div>
+        )}
+
+        <div className="relative mt-5 flex justify-between border-t border-white/15 pt-4 text-sm">
+          <span className="font-medium">
+            {user.firstName} {user.lastName}
+          </span>
+          <span className="font-mono tracking-wider text-white/80">{formatMemberNumber(user.id)}</span>
+        </div>
+      </section>
 
       {next && (
-        <p className="mt-4 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-800">
-          Renewed: <strong>{next.plan.name}</strong> starts on {formatDate(next.startDate)}.
+        <p className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          <CalendarClock className="size-4 shrink-0" aria-hidden="true" />
+          <span>
+            Renewed: <strong>{next.plan.name}</strong> starts on {formatDate(next.startDate)}.
+          </span>
         </p>
       )}
 
       {HINTS[status] && !next && (
         <p
-          className={`mt-4 rounded-lg px-3 py-2 text-sm ${
-            status === 'NONE' ? 'bg-slate-50 text-slate-700' : 'bg-amber-50 text-amber-800'
+          className={`rounded-xl border px-4 py-3 text-sm ${
+            status === 'EXPIRING_SOON' || status === 'EXPIRED'
+              ? 'border-amber-200 bg-amber-50 text-amber-800'
+              : 'border-slate-200 bg-white text-slate-600'
           }`}
         >
           {HINTS[status]}
         </p>
       )}
-    </section>
+    </div>
   );
 }
 

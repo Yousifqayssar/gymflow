@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { createUser, listUsers } from '../api/users.js';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import MembershipStatusBadge from '../components/MembershipStatusBadge.jsx';
@@ -27,8 +27,13 @@ const SEARCH_DELAY_MS = 300;
 // Admin page: list members (with membership status) or trainers, search and filter them,
 // and create new accounts.
 function MembersPage() {
+  // A filter can come from the URL, e.g. /people?status=expiring (used by the admin home page).
+  const [searchParams] = useSearchParams();
+  const statusFromUrl = searchParams.get('status');
+  const initialStatus = STATUS_FILTERS.some((f) => f.value === statusFromUrl) ? statusFromUrl : '';
+
   const [role, setRole] = useState('MEMBER');
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState(initialStatus);
   const [search, setSearch] = useState('');
   const [users, setUsers] = useState(null); // null = loading
   const [counts, setCounts] = useState(null);

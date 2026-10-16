@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import { fetchHealth } from '../api/health.js';
+import Card from './ui/Card.jsx';
 
-// One line of the status card, e.g. "API  ✓ Online".
+// One line of the status card, e.g. "API  ● Online".
 function StatusRow({ label, isUp }) {
   return (
     <div className="flex items-center justify-between py-2">
-      <span className="font-medium text-slate-700">{label}</span>
-      <span className={isUp ? 'text-green-600' : 'text-red-600'}>
-        {isUp ? '✓ Online' : '✗ Offline'}
+      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className={`flex items-center gap-2 text-sm font-medium ${isUp ? 'text-brand-700' : 'text-red-600'}`}>
+        <span className={`size-2 rounded-full ${isUp ? 'bg-brand-500' : 'bg-red-500'}`} aria-hidden="true" />
+        {isUp ? 'Online' : 'Offline'}
       </span>
     </div>
   );
@@ -37,28 +40,29 @@ function SystemStatus() {
   }
 
   return (
-    <section className="mt-6 rounded-xl border border-slate-200 p-4 text-left">
-      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-        System status
-      </h2>
-
+    <Card
+      title="System status"
+      actions={
+        <button
+          type="button"
+          onClick={handleCheckAgain}
+          aria-label="Check again"
+          title="Check again"
+          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+        >
+          <RefreshCw className="size-4" />
+        </button>
+      }
+    >
       {health === null ? (
-        <p className="py-2 text-slate-500">Checking…</p>
+        <p className="py-2 text-sm text-slate-500">Checking…</p>
       ) : (
-        <div className="divide-y divide-slate-100">
+        <div className="-my-2 divide-y divide-slate-100">
           <StatusRow label="API" isUp={health.api} />
           <StatusRow label="Database" isUp={health.database} />
         </div>
       )}
-
-      <button
-        type="button"
-        onClick={handleCheckAgain}
-        className="mt-3 w-full rounded-lg bg-slate-900 px-4 py-2 text-white hover:bg-slate-700"
-      >
-        Check again
-      </button>
-    </section>
+    </Card>
   );
 }
 
