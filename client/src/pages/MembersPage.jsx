@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { createUser, listUsers } from '../api/users.js';
 import ErrorMessage from '../components/ErrorMessage.jsx';
+import MembershipStatusBadge from '../components/MembershipStatusBadge.jsx';
+import MembershipSummary from '../components/MembershipSummary.jsx';
 import UserForm from '../components/UserForm.jsx';
 import { formatDate } from '../utils/format.js';
 
@@ -10,26 +12,41 @@ const TABS = [
   { role: 'TRAINER', label: 'Trainers' },
 ];
 
+// Membership filters for the Members tab ('' = all). "Active" includes "Expiring soon".
+const STATUS_FILTERS = [
+  { value: '', countKey: 'all', label: 'All' },
+  { value: 'active', countKey: 'active', label: 'Active' },
+  { value: 'expiring', countKey: 'expiring', label: 'Expiring soon' },
+  { value: 'expired', countKey: 'expired', label: 'Expired' },
+  { value: 'none', countKey: 'none', label: 'No membership' },
+];
+
 // Wait this long after the last key press before searching, so we don't send a request per letter.
 const SEARCH_DELAY_MS = 300;
 
-// Admin page: list members or trainers, search them, and create new accounts.
+// Admin page: list members (with membership status) or trainers, search and filter them,
+// and create new accounts.
 function MembersPage() {
   const [role, setRole] = useState('MEMBER');
+  const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
   const [users, setUsers] = useState(null); // null = loading
+  const [counts, setCounts] = useState(null);
   const [error, setError] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [reloadCount, setReloadCount] = useState(0); // increase to load the list again
 
-  // Load the list whenever the tab, the search text or reloadCount changes.
+  const isMemberTab = role === 'MEMBER';
+
+  // Load the list whenever the tab, filter, search text or reloadCount changes.
   useEffect(() => {
     let ignore = false;
     const timer = setTimeout(() => {
-      listUsers({ role, search: search.trim() })
+      listUsers({ role, status: role === 'MEMBER' ? status : '', search: search.trim() })
         .then((data) => {
           if (!ignore) {
             setUsers(data.users);
+            setCounts(data.counts ?? null);
             setError('');
           }
         })
@@ -43,10 +60,16 @@ function MembersPage() {
       ignore = true;
       clearTimeout(timer);
     };
-  }, [role, search, reloadCount]);
+  }, [role, status, search, reloadCount]);
 
   function handleTabChange(newRole) {
     setRole(newRole);
+    setStatus('');
+    setUsers(null);
+  }
+
+  function handleStatusChange(newStatus) {
+    setStatus(newStatus);
     setUsers(null);
   }
 
@@ -55,6 +78,7 @@ function MembersPage() {
     setIsCreating(false);
     // Show the tab of the new account, then reload the list.
     setRole(newUser.role);
+    setStatus('');
     setReloadCount((count) => count + 1);
   }
 
@@ -111,6 +135,27 @@ function MembersPage() {
         />
       </div>
 
+      {isMemberTab && (
+        <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Filter by membership status">
+          {STATUS_FILTERS.map((filter) => (
+            <button
+              key={filter.value}
+              type="button"
+              aria-pressed={status === filter.value}
+              onClick={() => handleStatusChange(filter.value)}
+              className={`whitespace-nowrap rounded-full border px-3 py-1 text-sm font-medium ${
+                status === filter.value
+                  ? 'border-slate-900 bg-slate-900 text-white'
+                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              {filter.label}
+              {counts && <span className="ml-1.5 opacity-70">{counts[filter.countKey]}</span>}
+            </button>
+          ))}
+        </div>
+      )}
+
       <ErrorMessage>{error}</ErrorMessage>
 
       <section className="rounded-2xl bg-white shadow-md">
@@ -118,7 +163,7 @@ function MembersPage() {
 
         {users?.length === 0 && (
           <p className="p-5 text-slate-500">
-            {search ? 'Nobody matches your search.' : `No ${role === 'MEMBER' ? 'members' : 'trainers'} yet.`}
+            {search || status ? 'Nobody matches these filters.' : `No ${isMemberTab ? 'members' : 'trainers'} yet.`}
           </p>
         )}
 
@@ -127,7 +172,7 @@ function MembersPage() {
             <li key={user.id}>
               <Link
                 to={`/people/${user.id}`}
-                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 p-4 hover:bg-slate-50 sm:px-5"
+                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 p-4 hover:bg-slate-50 sm:px-5"
               >
                 <div className="min-w-0">
                   <p className="font-semibold text-slate-900">
@@ -135,7 +180,18 @@ function MembersPage() {
                   </p>
                   <p className="truncate text-sm text-slate-500">{user.email}</p>
                 </div>
-                <p className="text-sm text-slate-500">Joined {formatDate(user.createdAt)}</p>
+
+                {user.membership ? (
+                  // Phones: always below the name. Wider screens: on the right.
+                  <div className="flex w-full flex-col items-start gap-1 sm:w-auto sm:items-end">
+                    <MembershipStatusBadge status={user.membership.status} />
+                    <p className="text-sm text-slate-500">
+                      <MembershipSummary membership={user.membership} />
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500">Joined {formatDate(user.createdAt)}</p>
+                )}
               </Link>
             </li>
           ))}
