@@ -14,7 +14,9 @@ try {
     console.log(`Removed ${removedUsers} demo accounts.`);
   } else {
     const result = await seedDemoData(prisma);
-    console.log(`Demo data ready: ${result.plans} plans, ${result.trainers} trainers, ${result.members} members.`);
+    console.log(
+      `Demo data ready: ${result.plans} plans, ${result.trainers} trainers, ${result.members} members, ${result.classes} classes.`,
+    );
     console.log(`Log in as any demo user, e.g. elif@${DEMO_EMAIL_DOMAIN} / ${DEMO_PASSWORD}`);
   }
 } catch (error) {

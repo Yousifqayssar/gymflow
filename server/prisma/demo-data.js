@@ -5,6 +5,7 @@
 // demo accounts; real data (other users, their memberships) is never changed.
 import { addDays, calculateEndDate, todayInGym } from '../src/utils/dates.js';
 import { hashPassword } from '../src/utils/password.js';
+import { seedDemoClasses } from './demo-classes.js';
 
 export const DEMO_EMAIL_DOMAIN = 'demo.gymflow.local';
 // Every demo account uses this password, so you can log in as any of them.
@@ -117,15 +118,18 @@ function periodFor(spec, plan, today) {
   return { startDate: startDateForEnd(end, plan.durationMonths), endDate: end };
 }
 
-// Deletes all demo accounts (their memberships are deleted with them by the database).
+// Deletes all demo accounts and the classes of demo trainers.
+// Order matters: a trainer who still has classes cannot be deleted (RESTRICT), so classes go first.
+// Memberships and bookings of demo members are deleted with them by the database (CASCADE).
 // Real users and their data are never touched.
 export async function removeDemoData(prisma) {
+  await prisma.gymClass.deleteMany({ where: { trainer: isDemoUser } });
   const { count } = await prisma.user.deleteMany({ where: isDemoUser });
   return { removedUsers: count };
 }
 
 // Creates (or recreates with fresh dates) all demo data.
-export async function seedDemoData(prisma, { today = todayInGym() } = {}) {
+export async function seedDemoData(prisma, { today = todayInGym(), now = new Date() } = {}) {
   await removeDemoData(prisma);
 
   // Plans: reuse a plan with the same name if it already exists.
@@ -141,10 +145,12 @@ export async function seedDemoData(prisma, { today = todayInGym() } = {}) {
 
   const passwordHash = await hashPassword(DEMO_PASSWORD);
 
+  const trainers = {};
   for (const trainer of DEMO_TRAINERS) {
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: { ...trainer, email: demoEmail(trainer.firstName), passwordHash, role: 'TRAINER' },
     });
+    trainers[trainer.firstName] = user.id;
   }
 
   for (const member of DEMO_MEMBERS) {
@@ -166,5 +172,12 @@ export async function seedDemoData(prisma, { today = todayInGym() } = {}) {
     }
   }
 
-  return { plans: DEMO_PLANS.length, trainers: DEMO_TRAINERS.length, members: DEMO_MEMBERS.length };
+  const members = await prisma.user.findMany({
+    where: { ...isDemoUser, role: 'MEMBER' },
+    include: { memberships: true },
+    orderBy: { id: 'asc' },
+  });
+  const classes = await seedDemoClasses(prisma, { today, now, trainers, members });
+
+  return { plans: DEMO_PLANS.length, trainers: DEMO_TRAINERS.length, members: DEMO_MEMBERS.length, classes };
 }

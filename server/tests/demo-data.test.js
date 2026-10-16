@@ -77,6 +77,61 @@ describe('seedDemoData', () => {
   });
 });
 
+describe('demo classes', () => {
+  const today = parseDate('2026-10-15'); // a Thursday; "now" is 12:00 in Istanbul
+
+  it('creates future class sessions with full information', async () => {
+    const { classes } = await seedDemoData(prisma, { today });
+
+    const running = await prisma.gymClass.findFirst({ where: { title: 'Running Club' }, orderBy: { startsAt: 'asc' } });
+    expect(classes).toBeGreaterThan(10);
+    expect(running.startsAt.toISOString()).toBe('2026-10-17T05:00:00.000Z'); // Saturday 08:00 in Istanbul
+    expect(running.location).toBe('Bebek Park, main entrance');
+    expect(running.healthNotes).not.toBe('');
+    expect(await prisma.gymClass.count({ where: { startsAt: { lte: new Date() } } })).toBe(0);
+  });
+
+  it('never books more members than a class has places', async () => {
+    await seedDemoData(prisma, { today });
+
+    const classes = await prisma.gymClass.findMany({ include: { _count: { select: { bookings: true } } } });
+    for (const gymClass of classes) {
+      expect(gymClass._count.bookings).toBeLessThanOrEqual(gymClass.capacity);
+    }
+  });
+
+  it('only books members whose membership is valid on the class day', async () => {
+    await seedDemoData(prisma, { today });
+
+    const bookings = await prisma.booking.findMany({ include: { gymClass: true, member: { include: { memberships: true } } } });
+    expect(bookings.length).toBeGreaterThan(0);
+    for (const { gymClass, member } of bookings) {
+      const day = parseDate(gymClass.startsAt.toISOString().slice(0, 10));
+      expect(member.memberships.some((m) => m.startDate <= day && day <= m.endDate)).toBe(true);
+    }
+  });
+
+  it('replaces demo classes when run again and keeps real classes', async () => {
+    const realTrainer = await createUser({ role: 'TRAINER', email: 'real.trainer@gym.com' });
+    await prisma.gymClass.create({
+      data: {
+        title: 'Real class', category: 'YOGA', description: 'A real class created by the gym itself.', location: 'Studio 3',
+        startsAt: new Date('2026-10-20T07:00:00Z'), durationMinutes: 60, capacity: 10, level: 'BEGINNER', intensity: 'LOW',
+        trainerId: realTrainer.user.id,
+      },
+    });
+
+    const first = await seedDemoData(prisma, { today });
+    await seedDemoData(prisma, { today });
+
+    expect(await prisma.gymClass.count()).toBe(first.classes + 1);
+    expect(await prisma.gymClass.count({ where: { title: 'Real class' } })).toBe(1);
+
+    await removeDemoData(prisma);
+    expect(await prisma.gymClass.count()).toBe(1);
+  });
+});
+
 describe('removeDemoData', () => {
   it('removes demo accounts and keeps real data', async () => {
     await seedDemoData(prisma, { today: parseDate('2026-10-15') });
