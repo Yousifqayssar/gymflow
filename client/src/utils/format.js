@@ -13,11 +13,16 @@ export function formatPrice(price) {
   return priceFormatter.format(Number(price));
 }
 
-const dateFormatter = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+const DATE_OPTIONS = { day: 'numeric', month: 'short', year: 'numeric' };
+const dateFormatter = new Intl.DateTimeFormat('en-GB', DATE_OPTIONS);
+// Calendar dates ("2026-10-16") are read as midnight UTC, so they must also be shown in UTC.
+// Otherwise a viewer west of UTC would see the previous day.
+const calendarDateFormatter = new Intl.DateTimeFormat('en-GB', { ...DATE_OPTIONS, timeZone: 'UTC' });
 
-// "2026-10-16T15:45:35.000Z" or "2026-10-16" → "16 Oct 2026"
+// "2026-10-16" (calendar date) or "2026-10-16T15:45:35.000Z" (moment in time) → "16 Oct 2026"
 export function formatDate(value) {
-  return dateFormatter.format(new Date(value));
+  const isCalendarDate = /^\d{4}-\d{2}-\d{2}$/.test(value);
+  return (isCalendarDate ? calendarDateFormatter : dateFormatter).format(new Date(value));
 }
 
 // 1 → "1 month", 3 → "3 months"

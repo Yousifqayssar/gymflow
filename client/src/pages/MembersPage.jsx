@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { createUser, listUsers } from '../api/users.js';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import UserForm from '../components/UserForm.jsx';
@@ -123,14 +124,19 @@ function MembersPage() {
 
         <ul className="divide-y divide-slate-100">
           {users?.map((user) => (
-            <li key={user.id} className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 p-4 sm:px-5">
-              <div className="min-w-0">
-                <p className="font-semibold text-slate-900">
-                  {user.firstName} {user.lastName}
-                </p>
-                <p className="truncate text-sm text-slate-500">{user.email}</p>
-              </div>
-              <p className="text-sm text-slate-500">Joined {formatDate(user.createdAt)}</p>
+            <li key={user.id}>
+              <Link
+                to={`/people/${user.id}`}
+                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 p-4 hover:bg-slate-50 sm:px-5"
+              >
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-900">
+                    {user.firstName} {user.lastName}
+                  </p>
+                  <p className="truncate text-sm text-slate-500">{user.email}</p>
+                </div>
+                <p className="text-sm text-slate-500">Joined {formatDate(user.createdAt)}</p>
+              </Link>
             </li>
           ))}
         </ul>
