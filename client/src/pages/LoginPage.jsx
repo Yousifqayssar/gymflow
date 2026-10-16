@@ -4,6 +4,7 @@ import { useAuth } from '../auth/useAuth.js';
 import AuthCard from '../components/AuthCard.jsx';
 import FormField from '../components/FormField.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
+import Button from '../components/ui/Button.jsx';
 import { toFieldErrors } from '../utils/fieldErrors.js';
 
 function LoginPage() {
@@ -39,7 +40,7 @@ function LoginPage() {
   }
 
   return (
-    <AuthCard title="Welcome back" subtitle="Log in to your account">
+    <AuthCard title="Welcome back" subtitle="Log in to your GymFlow account.">
       <form onSubmit={handleSubmit} className="space-y-4">
         <ErrorMessage>{error}</ErrorMessage>
 
@@ -64,18 +65,14 @@ function LoginPage() {
           error={fieldErrors.password}
         />
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded-lg bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-700 disabled:opacity-60"
-        >
+        <Button type="submit" disabled={isSubmitting} className="w-full py-2.5">
           {isSubmitting ? 'Logging in…' : 'Log in'}
-        </button>
+        </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-600">
+      <p className="mt-8 text-center text-sm text-slate-500">
         New member?{' '}
-        <Link to="/register" className="font-medium text-slate-900 underline">
+        <Link to="/register" className="font-semibold text-brand-700 hover:text-brand-800">
           Create an account
         </Link>
       </p>

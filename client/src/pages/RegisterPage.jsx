@@ -4,6 +4,7 @@ import { useAuth } from '../auth/useAuth.js';
 import AuthCard from '../components/AuthCard.jsx';
 import FormField from '../components/FormField.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
+import Button from '../components/ui/Button.jsx';
 import { toFieldErrors } from '../utils/fieldErrors.js';
 
 function RegisterPage() {
@@ -36,7 +37,7 @@ function RegisterPage() {
   }
 
   return (
-    <AuthCard title="Create your account" subtitle="Join the gym as a member">
+    <AuthCard title="Create your account" subtitle="Join the gym as a member – it takes less than a minute.">
       <form onSubmit={handleSubmit} className="space-y-4">
         <ErrorMessage>{error}</ErrorMessage>
 
@@ -85,18 +86,14 @@ function RegisterPage() {
         />
         <p className="-mt-2 text-xs text-slate-500">At least 8 characters.</p>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded-lg bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-700 disabled:opacity-60"
-        >
+        <Button type="submit" disabled={isSubmitting} className="w-full py-2.5">
           {isSubmitting ? 'Creating account…' : 'Create account'}
-        </button>
+        </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-600">
+      <p className="mt-8 text-center text-sm text-slate-500">
         Already have an account?{' '}
-        <Link to="/login" className="font-medium text-slate-900 underline">
+        <Link to="/login" className="font-semibold text-brand-700 hover:text-brand-800">
           Log in
         </Link>
       </p>
