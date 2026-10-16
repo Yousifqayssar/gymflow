@@ -4,6 +4,7 @@ import { useAuth } from '../auth/useAuth.js';
 // Menu entries and which roles can see them. New pages are added here.
 const NAV_ITEMS = [
   { to: '/', label: 'Home', roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
+  { to: '/people', label: 'People', roles: ['ADMIN'] },
   { to: '/plans', label: 'Plans', roles: ['ADMIN'] },
 ];
 

@@ -3,6 +3,7 @@ import { AppError } from '../utils/AppError.js';
 import { hashPassword, verifyPassword } from '../utils/password.js';
 import { signToken } from '../utils/token.js';
 import { toPublicUser } from '../utils/publicUser.js';
+import { createUserAccount } from './user.service.js';
 
 // Same message for "unknown email" and "wrong password",
 // so attackers can't find out which emails are registered.
@@ -14,19 +15,12 @@ const DUMMY_HASH = await hashPassword('dummy-password-for-timing');
 
 // Creates a new MEMBER account and logs the user in.
 export async function register({ email, password, firstName, lastName }) {
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    throw new AppError(409, 'Email is already registered');
-  }
-
-  const user = await prisma.user.create({
-    data: {
-      email,
-      passwordHash: await hashPassword(password),
-      firstName,
-      lastName,
-      role: 'MEMBER', // always MEMBER: admins and trainers are never created via public sign-up
-    },
+  const user = await createUserAccount({
+    email,
+    password,
+    firstName,
+    lastName,
+    role: 'MEMBER', // always MEMBER: admins and trainers are never created via public sign-up
   });
 
   return { user: toPublicUser(user), token: signToken(user) };

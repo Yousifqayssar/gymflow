@@ -1,13 +1,21 @@
 import { z } from 'zod';
 
+// Field rules shared by every form that creates or identifies a user.
+
 // Emails are trimmed and lower-cased, so "Ali@Mail.com " and "ali@mail.com" are the same account.
-const email = z
+export const emailField = z
   .string({ error: 'Email is required' })
   .trim()
   .toLowerCase()
   .pipe(z.email('Invalid email address'));
 
-const name = (label) =>
+// bcrypt only uses the first 72 bytes of a password, so we don't allow longer ones.
+export const newPasswordField = z
+  .string({ error: 'Password is required' })
+  .min(8, 'Password must be at least 8 characters')
+  .max(72, 'Password must be at most 72 characters');
+
+export const nameField = (label) =>
   z
     .string({ error: `${label} is required` })
     .trim()
@@ -17,17 +25,13 @@ const name = (label) =>
 // Note: there is no "role" field. Public registration always creates a MEMBER,
 // and validate() removes any extra fields a client sends.
 export const registerSchema = z.object({
-  email,
-  // bcrypt only uses the first 72 bytes of a password, so we don't allow longer ones.
-  password: z
-    .string({ error: 'Password is required' })
-    .min(8, 'Password must be at least 8 characters')
-    .max(72, 'Password must be at most 72 characters'),
-  firstName: name('First name'),
-  lastName: name('Last name'),
+  email: emailField,
+  password: newPasswordField,
+  firstName: nameField('First name'),
+  lastName: nameField('Last name'),
 });
 
 export const loginSchema = z.object({
-  email,
+  email: emailField,
   password: z.string({ error: 'Password is required' }).min(1, 'Password is required'),
 });
