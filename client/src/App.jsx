@@ -9,6 +9,8 @@ import PlansPage from './pages/PlansPage.jsx';
 import MembersPage from './pages/MembersPage.jsx';
 import MemberDetailPage from './pages/MemberDetailPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
+import ClassesPage from './pages/ClassesPage.jsx';
+import ClassDetailPage from './pages/ClassDetailPage.jsx';
 
 // Which page is shown for which URL.
 function App() {
@@ -25,6 +27,8 @@ function App() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/classes" element={<ClassesPage />} />
+          <Route path="/classes/:id" element={<ClassDetailPage />} />
 
           {/* Admin-only pages */}
           <Route element={<ProtectedRoute roles={['ADMIN']} />}>

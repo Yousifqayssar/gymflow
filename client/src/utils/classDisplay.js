@@ -1,0 +1,102 @@
+import { Bike, Dumbbell, Flower2, Footprints, HandFist, PersonStanding, StretchHorizontal, Zap } from 'lucide-react';
+
+// How each class category looks: label, icon and colours (one place for the whole app).
+// `gradient` is used for the colourful card headers and the class banner;
+// `soft` for small icon boxes. (Tailwind needs complete class names written out like this.)
+export const CATEGORY_DISPLAY = {
+  RUNNING: {
+    label: 'Running',
+    icon: Footprints,
+    gradient: 'from-orange-400 via-orange-500 to-rose-500',
+    soft: 'bg-orange-100 text-orange-700',
+  },
+  YOGA: {
+    label: 'Yoga',
+    icon: Flower2,
+    gradient: 'from-violet-400 via-purple-500 to-fuchsia-500',
+    soft: 'bg-violet-100 text-violet-700',
+  },
+  HIIT: {
+    label: 'HIIT',
+    icon: Zap,
+    gradient: 'from-rose-500 via-red-500 to-orange-500',
+    soft: 'bg-red-100 text-red-700',
+  },
+  CYCLING: {
+    label: 'Cycling',
+    icon: Bike,
+    gradient: 'from-sky-400 via-sky-500 to-blue-600',
+    soft: 'bg-sky-100 text-sky-700',
+  },
+  PILATES: {
+    label: 'Pilates',
+    icon: PersonStanding,
+    gradient: 'from-pink-400 via-pink-500 to-rose-400',
+    soft: 'bg-pink-100 text-pink-700',
+  },
+  BOXING: {
+    label: 'Boxing',
+    icon: HandFist,
+    gradient: 'from-amber-400 via-orange-500 to-red-600',
+    soft: 'bg-amber-100 text-amber-800',
+  },
+  STRENGTH: {
+    label: 'Strength',
+    icon: Dumbbell,
+    gradient: 'from-indigo-500 via-indigo-600 to-slate-800',
+    soft: 'bg-indigo-100 text-indigo-700',
+  },
+  MOBILITY: {
+    label: 'Mobility',
+    icon: StretchHorizontal,
+    gradient: 'from-teal-400 via-emerald-500 to-green-600',
+    soft: 'bg-teal-100 text-teal-700',
+  },
+};
+
+export const LEVEL_LABELS = {
+  BEGINNER: 'Beginner',
+  INTERMEDIATE: 'Intermediate',
+  ADVANCED: 'Advanced',
+  ALL_LEVELS: 'All levels',
+};
+
+// Intensity as text plus 1–3 filled dots.
+export const INTENSITY_DISPLAY = {
+  LOW: { label: 'Low intensity', dots: 1 },
+  MEDIUM: { label: 'Medium intensity', dots: 2 },
+  HIGH: { label: 'High intensity', dots: 3 },
+};
+
+// Times are always shown in the gym's time zone (same as the server's GYM_TIMEZONE),
+// so a member travelling abroad still sees "08:00" for an 08:00 class.
+export const GYM_TIMEZONE = 'Europe/Istanbul';
+
+const timeFormatter = new Intl.DateTimeFormat('en-GB', { timeZone: GYM_TIMEZONE, hour: '2-digit', minute: '2-digit' });
+const dayFormatter = new Intl.DateTimeFormat('en-GB', { timeZone: GYM_TIMEZONE, weekday: 'long', day: 'numeric', month: 'long' });
+const dayKeyFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: GYM_TIMEZONE }); // "2026-10-24"
+
+// "2026-10-24T05:00:00.000Z" → "08:00"
+export const formatTime = (iso) => timeFormatter.format(new Date(iso));
+
+// The calendar day in the gym's time zone, used to group classes: "2026-10-24".
+export const dayKey = (isoOrDate) => dayKeyFormatter.format(new Date(isoOrDate));
+
+// "Today", "Tomorrow" or "Saturday 24 October". `now` is passed in (components must not read the clock while rendering).
+export function formatDayHeading(iso, now) {
+  const key = dayKey(iso);
+  if (key === dayKey(now)) return 'Today';
+  if (key === dayKey(new Date(now.getTime() + 24 * 60 * 60 * 1000))) return 'Tomorrow';
+  return dayFormatter.format(new Date(iso));
+}
+
+// "Saturday 24 October"
+export const formatLongDay = (iso) => dayFormatter.format(new Date(iso));
+
+// 75 → "1 h 15 min", 45 → "45 min"
+export function formatDuration(minutes) {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${rest} min`;
+  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+}

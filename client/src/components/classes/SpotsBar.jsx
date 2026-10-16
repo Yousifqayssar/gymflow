@@ -1,0 +1,23 @@
+// "6 of 15 spots left" with a small bar showing how full the class is.
+function SpotsBar({ capacity, bookedCount, spotsLeft }) {
+  const percentFull = Math.round((bookedCount / capacity) * 100);
+  const isFull = spotsLeft === 0;
+  const isAlmostFull = !isFull && spotsLeft <= 3;
+
+  const color = isFull ? 'bg-red-500' : isAlmostFull ? 'bg-amber-500' : 'bg-brand-500';
+  const text = isFull ? 'Full' : `${spotsLeft} of ${capacity} spots left`;
+
+  return (
+    <div>
+      <div className="flex justify-between text-xs">
+        <span className={`font-medium ${isFull ? 'text-red-600' : isAlmostFull ? 'text-amber-700' : 'text-slate-600'}`}>{text}</span>
+        <span className="text-slate-400">{bookedCount} booked</span>
+      </div>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${percentFull}%` }} />
+      </div>
+    </div>
+  );
+}
+
+export default SpotsBar;
