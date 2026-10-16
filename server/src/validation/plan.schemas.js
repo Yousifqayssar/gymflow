@@ -20,12 +20,19 @@ const price = z
   .max(99_999_999.99, 'Price is too large')
   .multipleOf(0.01, 'Price can have at most 2 decimals');
 
-export const createPlanSchema = z.object({ name, durationMonths, price });
+// What the plan includes, e.g. "Unlimited gym access and all group classes." Optional.
+const description = z
+  .string({ error: 'Description must be text' })
+  .trim()
+  .max(500, 'Description must be at most 500 characters');
+
+export const createPlanSchema = z.object({ name, description: description.default(''), durationMonths, price });
 
 // Every field is optional when editing, but at least one must be sent.
 export const updatePlanSchema = z
   .object({
     name: name.optional(),
+    description: description.optional(),
     durationMonths: durationMonths.optional(),
     price: price.optional(),
     isActive: z.boolean({ error: 'isActive must be true or false' }).optional(),

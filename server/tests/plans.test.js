@@ -29,10 +29,31 @@ describe('POST /api/plans', () => {
     expect(response.body.plan).toEqual({
       id: expect.any(Number),
       name: 'Monthly',
+      description: '',
       durationMonths: 1,
       price: '1500.00',
       isActive: true,
     });
+  });
+
+  it('saves a description of what the plan includes', async () => {
+    const response = await request(app)
+      .post('/api/plans')
+      .set('Authorization', bearer(adminToken))
+      .send({ ...monthly, description: '  Unlimited gym access and all group classes.  ' });
+
+    expect(response.status).toBe(201);
+    expect(response.body.plan.description).toBe('Unlimited gym access and all group classes.');
+  });
+
+  it('rejects a description longer than 500 characters (400)', async () => {
+    const response = await request(app)
+      .post('/api/plans')
+      .set('Authorization', bearer(adminToken))
+      .send({ ...monthly, description: 'x'.repeat(501) });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.details[0].field).toBe('description');
   });
 
   it('keeps prices with cents exact', async () => {
@@ -124,6 +145,17 @@ describe('PATCH /api/plans/:id', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.plan.price).toBe('1200.00');
+  });
+
+  it('lets an admin change the description', async () => {
+    const plan = await createPlan();
+
+    const response = await request(app)
+      .patch(`/api/plans/${plan.id}`)
+      .set('Authorization', bearer(adminToken))
+      .send({ description: 'Now with free towel service.' });
+
+    expect(response.body.plan.description).toBe('Now with free towel service.');
   });
 
   it('lets an admin deactivate a plan', async () => {

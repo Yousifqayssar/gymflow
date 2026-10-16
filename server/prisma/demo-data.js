@@ -11,10 +11,34 @@ export const DEMO_EMAIL_DOMAIN = 'demo.gymflow.local';
 export const DEMO_PASSWORD = 'demo1234';
 
 const DEMO_PLANS = [
-  { name: 'Monthly', durationMonths: 1, price: 1500, isActive: true },
-  { name: '3 Months', durationMonths: 3, price: 4000, isActive: true },
-  { name: '12 Months', durationMonths: 12, price: 14000, isActive: true },
-  { name: 'Student (old offer)', durationMonths: 1, price: 999.5, isActive: false },
+  {
+    name: 'Monthly',
+    description: 'Unlimited gym access 7 days a week and all group classes. Perfect to get started – no long commitment.',
+    durationMonths: 1,
+    price: 1500,
+    isActive: true,
+  },
+  {
+    name: '3 Months',
+    description: 'Unlimited gym access, all group classes and one free personal training session to set up your first workout plan.',
+    durationMonths: 3,
+    price: 4000,
+    isActive: true,
+  },
+  {
+    name: '12 Months',
+    description: 'Our best value: unlimited gym access, all group classes, a personal training session every 3 months and a free towel service.',
+    durationMonths: 12,
+    price: 14000,
+    isActive: true,
+  },
+  {
+    name: 'Student (old offer)',
+    description: 'Discounted monthly plan for students with a valid student card. No longer sold.',
+    durationMonths: 1,
+    price: 999.5,
+    isActive: false,
+  },
 ];
 
 const DEMO_TRAINERS = [
@@ -109,7 +133,8 @@ export async function seedDemoData(prisma, { today = todayInGym() } = {}) {
   for (const plan of DEMO_PLANS) {
     plans[plan.name] = await prisma.membershipPlan.upsert({
       where: { name: plan.name },
-      update: {},
+      // Existing demo plans get the latest description; price and status stay as the admin left them.
+      update: { description: plan.description },
       create: plan,
     });
   }

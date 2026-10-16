@@ -54,6 +54,8 @@ function AssignMembershipForm({ memberId, plans, onAssigned }) {
     }
   }
 
+  const selectedPlan = plans.find((plan) => String(plan.id) === planId);
+
   if (plans.length === 0) {
     return <p className="text-slate-500">There are no active plans. Create one on the Plans page first.</p>;
   }
@@ -97,6 +99,9 @@ function AssignMembershipForm({ memberId, plans, onAssigned }) {
           <p className="mt-1 text-xs text-slate-500">Empty = today, or right after the current membership.</p>
         </div>
       </div>
+
+      {/* What the chosen plan includes, so the admin can explain it to the member. */}
+      {selectedPlan?.description && <p className="-mt-1 text-sm text-slate-600">{selectedPlan.description}</p>}
 
       {planId && preview && (
         <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">

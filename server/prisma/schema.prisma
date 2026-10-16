@@ -35,6 +35,8 @@ model User {
 model MembershipPlan {
   id             Int          @id @default(autoincrement())
   name           String       @unique
+  // What the plan includes, shown to members (may be empty for older plans).
+  description    String       @default("")
   // Must be > 0 (database check constraint in the migration).
   durationMonths Int
   // Exact decimal for money, never a floating-point number. Must be > 0.

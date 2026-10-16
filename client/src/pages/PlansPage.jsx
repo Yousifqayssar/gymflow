@@ -110,6 +110,7 @@ function PlansPage() {
                       <Badge tone={plan.isActive ? 'green' : 'gray'}>{plan.isActive ? 'Active' : 'Inactive'}</Badge>
                     </div>
                     <p className="text-sm text-slate-500">{formatMonths(plan.durationMonths)}</p>
+                    {plan.description && <p className="mt-1 max-w-xl text-sm text-slate-600">{plan.description}</p>}
                   </div>
 
                   <span className="text-lg font-semibold text-slate-900">{formatPrice(plan.price)}</span>

@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import FormField from './FormField.jsx';
+import TextAreaField from './TextAreaField.jsx';
 import ErrorMessage from './ErrorMessage.jsx';
 import { toFieldErrors } from '../utils/fieldErrors.js';
 
-const EMPTY_PLAN = { name: '', durationMonths: '', price: '' };
+const EMPTY_PLAN = { name: '', description: '', durationMonths: '', price: '' };
 
 // Form for creating or editing a membership plan.
-// `onSubmit` receives { name, durationMonths, price } and may throw an ApiError.
+// `onSubmit` receives { name, description, durationMonths, price } and may throw an ApiError.
 function PlanForm({ initialPlan = EMPTY_PLAN, submitLabel, onSubmit, onCancel }) {
   const [form, setForm] = useState({
     name: initialPlan.name,
+    description: initialPlan.description ?? '',
     durationMonths: String(initialPlan.durationMonths),
     price: String(initialPlan.price),
   });
@@ -31,6 +33,7 @@ function PlanForm({ initialPlan = EMPTY_PLAN, submitLabel, onSubmit, onCancel })
       // Inputs always give text; the API expects numbers.
       await onSubmit({
         name: form.name,
+        description: form.description,
         durationMonths: Number(form.durationMonths),
         price: Number(form.price),
       });
@@ -79,6 +82,17 @@ function PlanForm({ initialPlan = EMPTY_PLAN, submitLabel, onSubmit, onCancel })
           error={fieldErrors.price}
         />
       </div>
+
+      <TextAreaField
+        label="What's included"
+        name="description"
+        placeholder="e.g. Unlimited gym access 7 days a week and all group classes."
+        hint="Shown to the admin when selling the plan and to members."
+        maxLength={500}
+        value={form.description}
+        onChange={handleChange}
+        error={fieldErrors.description}
+      />
 
       <div className="flex gap-2">
         <button

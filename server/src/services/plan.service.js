@@ -7,6 +7,7 @@ export function toPublicPlan(plan) {
   return {
     id: plan.id,
     name: plan.name,
+    description: plan.description,
     durationMonths: plan.durationMonths,
     price: plan.price.toFixed(2),
     isActive: plan.isActive,
@@ -22,10 +23,10 @@ export async function listPlans({ includeInactive }) {
   return plans.map(toPublicPlan);
 }
 
-export async function createPlan({ name, durationMonths, price }) {
+export async function createPlan({ name, description, durationMonths, price }) {
   await assertNameIsFree(name);
 
-  const plan = await prisma.membershipPlan.create({ data: { name, durationMonths, price } });
+  const plan = await prisma.membershipPlan.create({ data: { name, description, durationMonths, price } });
   return toPublicPlan(plan);
 }
 
