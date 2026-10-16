@@ -1,54 +1,72 @@
 import { Bike, Dumbbell, Flower2, Footprints, HandFist, PersonStanding, StretchHorizontal, Zap } from 'lucide-react';
+// Photos from Unsplash (free to use under the Unsplash License), stored in the project.
+// Vite bundles them and gives each a unique file name, so browsers can cache them safely.
+import runningPhoto from '../assets/classes/running.jpg';
+import yogaPhoto from '../assets/classes/yoga.jpg';
+import hiitPhoto from '../assets/classes/hiit.jpg';
+import cyclingPhoto from '../assets/classes/cycling.jpg';
+import pilatesPhoto from '../assets/classes/pilates.jpg';
+import boxingPhoto from '../assets/classes/boxing.jpg';
+import strengthPhoto from '../assets/classes/strength.jpg';
+import mobilityPhoto from '../assets/classes/mobility.jpg';
 
-// How each class category looks: label, icon and colours (one place for the whole app).
-// `gradient` is used for the colourful card headers and the class banner;
-// `soft` for small icon boxes. (Tailwind needs complete class names written out like this.)
+// How each class category looks: label, icon, photo and colours (one place for the whole app).
+// `gradient` tints the photo in the category's colours; `soft` is for small icon boxes.
+// (Tailwind needs complete class names written out like this.)
 export const CATEGORY_DISPLAY = {
   RUNNING: {
     label: 'Running',
     icon: Footprints,
+    photo: runningPhoto,
     gradient: 'from-orange-400 via-orange-500 to-rose-500',
     soft: 'bg-orange-100 text-orange-700',
   },
   YOGA: {
     label: 'Yoga',
     icon: Flower2,
+    photo: yogaPhoto,
     gradient: 'from-violet-400 via-purple-500 to-fuchsia-500',
     soft: 'bg-violet-100 text-violet-700',
   },
   HIIT: {
     label: 'HIIT',
     icon: Zap,
+    photo: hiitPhoto,
     gradient: 'from-rose-500 via-red-500 to-orange-500',
     soft: 'bg-red-100 text-red-700',
   },
   CYCLING: {
     label: 'Cycling',
     icon: Bike,
+    photo: cyclingPhoto,
     gradient: 'from-sky-400 via-sky-500 to-blue-600',
     soft: 'bg-sky-100 text-sky-700',
   },
   PILATES: {
     label: 'Pilates',
     icon: PersonStanding,
+    photo: pilatesPhoto,
     gradient: 'from-pink-400 via-pink-500 to-rose-400',
     soft: 'bg-pink-100 text-pink-700',
   },
   BOXING: {
     label: 'Boxing',
     icon: HandFist,
+    photo: boxingPhoto,
     gradient: 'from-amber-400 via-orange-500 to-red-600',
     soft: 'bg-amber-100 text-amber-800',
   },
   STRENGTH: {
     label: 'Strength',
     icon: Dumbbell,
+    photo: strengthPhoto,
     gradient: 'from-indigo-500 via-indigo-600 to-slate-800',
     soft: 'bg-indigo-100 text-indigo-700',
   },
   MOBILITY: {
     label: 'Mobility',
     icon: StretchHorizontal,
+    photo: mobilityPhoto,
     gradient: 'from-teal-400 via-emerald-500 to-green-600',
     soft: 'bg-teal-100 text-teal-700',
   },
