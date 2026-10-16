@@ -26,4 +26,42 @@ model User {
   role         Role     @default(MEMBER)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  memberships Membership[]
+}
+
+// A product the gym sells, e.g. "3 Months – 2500 TRY".
+// Plans are never deleted once used; they are deactivated (isActive = false).
+model MembershipPlan {
+  id             Int          @id @default(autoincrement())
+  name           String       @unique
+  // Must be > 0 (database check constraint in the migration).
+  durationMonths Int
+  // Exact decimal for money, never a floating-point number. Must be > 0.
+  price          Decimal      @db.Decimal(10, 2)
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  memberships Membership[]
+}
+
+// A plan sold to one member for a specific period.
+// The status (active, expiring soon, expired) is calculated from the dates, not stored.
+model Membership {
+  id        Int            @id @default(autoincrement())
+  userId    Int
+  // Deleting a user also deletes their memberships.
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId    Int
+  plan      MembershipPlan @relation(fields: [planId], references: [id])
+  // Calendar dates without time. Valid from startDate to endDate, both inclusive.
+  startDate DateTime       @db.Date
+  // Always after startDate (database check constraint in the migration).
+  endDate   DateTime       @db.Date
+  // The price at the time of sale, so later price changes don't rewrite history.
+  price     Decimal        @db.Decimal(10, 2)
+  createdAt DateTime       @default(now())
+
+  @@index([userId])
 }
