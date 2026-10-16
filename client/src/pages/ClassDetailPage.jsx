@@ -7,6 +7,7 @@ import Card from '../components/ui/Card.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import ClassBanner from '../components/classes/ClassBanner.jsx';
 import BookingPanel from '../components/classes/BookingPanel.jsx';
+import StaffClassActions from '../components/classes/StaffClassActions.jsx';
 import { useAuth } from '../auth/useAuth.js';
 import SpotsBar from '../components/classes/SpotsBar.jsx';
 import {
@@ -77,10 +78,14 @@ function ClassDetailPage() {
   return (
     // On phones members get a booking bar fixed to the bottom; pb-40 keeps content visible above it.
     <div className={`space-y-6 ${isMember ? 'pb-40 lg:pb-0' : ''}`}>
-      <Link to="/classes" className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900">
-        <ChevronLeft className="size-4" aria-hidden="true" />
-        All classes
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link to="/classes" className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900">
+          <ChevronLeft className="size-4" aria-hidden="true" />
+          All classes
+        </Link>
+        {/* The API only sends `attendees` to people who may manage this class. */}
+        {gymClass.attendees && <StaffClassActions gymClass={gymClass} onChange={setGymClass} />}
+      </div>
 
       {gymClass.isCancelled && (
         <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">

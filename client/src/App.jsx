@@ -11,6 +11,7 @@ import MemberDetailPage from './pages/MemberDetailPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import ClassesPage from './pages/ClassesPage.jsx';
 import ClassDetailPage from './pages/ClassDetailPage.jsx';
+import ClassFormPage from './pages/ClassFormPage.jsx';
 
 // Which page is shown for which URL.
 function App() {
@@ -29,6 +30,12 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/classes" element={<ClassesPage />} />
           <Route path="/classes/:id" element={<ClassDetailPage />} />
+
+          {/* Admin and trainer pages */}
+          <Route element={<ProtectedRoute roles={['ADMIN', 'TRAINER']} />}>
+            <Route path="/classes/new" element={<ClassFormPage />} />
+            <Route path="/classes/:id/edit" element={<ClassFormPage />} />
+          </Route>
 
           {/* Admin-only pages */}
           <Route element={<ProtectedRoute roles={['ADMIN']} />}>

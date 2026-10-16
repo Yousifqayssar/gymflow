@@ -111,6 +111,48 @@ export function formatDayHeading(iso, now) {
 // "Saturday 24 October"
 export const formatLongDay = (iso) => dayFormatter.format(new Date(iso));
 
+// The gym's UTC offset on a given date, e.g. "+03:00" for Istanbul.
+function gymUtcOffset(date) {
+  const name = new Intl.DateTimeFormat('en-US', { timeZone: GYM_TIMEZONE, timeZoneName: 'longOffset' })
+    .formatToParts(date)
+    .find((part) => part.type === 'timeZoneName').value; // "GMT+03:00" ("GMT" for UTC itself)
+  return name === 'GMT' ? 'Z' : name.slice(3);
+}
+
+// Date input "2026-10-24" + time input "08:00" (gym time) → "2026-10-24T08:00:00+03:00" for the API.
+export function toGymDateTime(date, time) {
+  const offset = gymUtcOffset(new Date(`${date}T12:00:00Z`));
+  return `${date}T${time}:00${offset}`;
+}
+
+// The other way round, to fill the form when editing: ISO moment → { date: "2026-10-24", time: "08:00" }.
+export function fromGymDateTime(iso) {
+  return { date: dayKey(iso), time: formatTime(iso) };
+}
+
+// A class object built from the form values, so the form can show a live preview card.
+export function previewClassFromForm(form, trainer) {
+  const hasTime = /^\d{4}-\d{2}-\d{2}$/.test(form.date) && /^\d{2}:\d{2}$/.test(form.time);
+  const startsAt = hasTime ? new Date(toGymDateTime(form.date, form.time)) : new Date('2026-01-01T06:00:00Z');
+  const minutes = Number(form.durationMinutes) || 60;
+  const capacity = Number(form.capacity) || 10;
+  return {
+    id: 0,
+    title: form.title || 'Class title',
+    category: form.category || 'RUNNING',
+    location: form.location || 'Meeting point',
+    startsAt: startsAt.toISOString(),
+    endsAt: new Date(startsAt.getTime() + minutes * 60 * 1000).toISOString(),
+    level: form.level || 'ALL_LEVELS',
+    capacity,
+    bookedCount: 0,
+    spotsLeft: capacity,
+    isCancelled: false,
+    isBookedByMe: false,
+    trainer: trainer ?? { firstName: 'Trainer', lastName: '' },
+  };
+}
+
 // 75 → "1 h 15 min", 45 → "45 min"
 export function formatDuration(minutes) {
   const hours = Math.floor(minutes / 60);

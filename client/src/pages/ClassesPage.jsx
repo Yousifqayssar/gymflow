@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { CalendarDays } from 'lucide-react';
+import { Link } from 'react-router';
+import { CalendarDays, Plus } from 'lucide-react';
+import { useAuth } from '../auth/useAuth.js';
+import Button from '../components/ui/Button.jsx';
 import { listClasses } from '../api/classes.js';
 import ClassCard from '../components/classes/ClassCard.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -20,6 +23,8 @@ function groupByDay(classes) {
 
 // The class schedule for the next 14 days, grouped by day, with a category filter.
 function ClassesPage() {
+  const { user } = useAuth();
+  const isStaff = user.role === 'ADMIN' || user.role === 'TRAINER';
   const [category, setCategory] = useState('');
   const [data, setData] = useState(null); // { classes, loadedAt }
   const [error, setError] = useState('');
@@ -48,7 +53,17 @@ function ClassesPage() {
 
   return (
     <div>
-      <PageHeader title="Classes" description="Group classes for the next two weeks. Tap a class to see all details." />
+      <PageHeader
+        title="Classes"
+        description="Group classes for the next two weeks. Tap a class to see all details."
+        actions={
+          isStaff && (
+            <Button as={Link} to="/classes/new" icon={Plus}>
+              New class
+            </Button>
+          )
+        }
+      />
 
       <div className="-mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Filter by category">
         {filters.map(([value, label]) => (
