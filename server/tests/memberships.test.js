@@ -70,7 +70,14 @@ describe('POST /api/users/:id/memberships', () => {
       startDate: '2026-11-01',
       endDate: '2026-11-30',
       status: 'UPCOMING',
+      daysUntilStart: 17, // from 15 October
     });
+  });
+
+  it('reports 0 days until start for a membership that has already started', async () => {
+    const response = await assign(member.id, { planId: monthly.id });
+
+    expect(response.body.membership.daysUntilStart).toBe(0);
   });
 
   it('starts today when the previous membership has already ended', async () => {

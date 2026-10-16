@@ -14,7 +14,7 @@ const HINTS = {
   EXPIRING_SOON: 'Your membership ends soon. Ask at the front desk to renew it.',
   EXPIRED: 'Your membership has ended. Ask at the front desk to renew it.',
   NONE: 'You don’t have a membership yet. Ask at the front desk to choose a plan.',
-  UPCOMING: 'Your membership hasn’t started yet.',
+  // UPCOMING gets its own hint with the start date (see below).
 };
 
 // Length of a membership in days (both dates inclusive), from "YYYY-MM-DD" strings.
@@ -47,6 +47,16 @@ function MyMembershipCard() {
 
   const { status, currentMembership: current, memberships } = data;
   const isValidToday = status === 'ACTIVE' || status === 'EXPIRING_SOON';
+  const isUpcoming = status === 'UPCOMING';
+
+  // Card colour: green = valid today, blue = starts later (same as the "Upcoming" badge), grey = no valid membership.
+  const cardColor = isValidToday
+    ? 'from-brand-600 to-brand-900'
+    : isUpcoming
+      ? 'from-blue-500 to-blue-800'
+      : 'from-slate-600 to-slate-800';
+
+  const hint = isUpcoming ? `Your membership starts on ${formatDate(current.startDate)}.` : HINTS[status];
   // A renewal that starts after the current membership.
   const next = memberships.find((m) => m.status === 'UPCOMING' && m.id !== current?.id);
 
@@ -57,11 +67,7 @@ function MyMembershipCard() {
 
   return (
     <div className="space-y-3">
-      <section
-        className={`relative overflow-hidden rounded-2xl p-6 text-white shadow-lg ${
-          isValidToday ? 'bg-gradient-to-br from-brand-600 to-brand-900' : 'bg-gradient-to-br from-slate-600 to-slate-800'
-        }`}
-      >
+      <section className={`relative overflow-hidden rounded-2xl bg-gradient-to-br p-6 text-white shadow-lg ${cardColor}`}>
         {/* Decorative circles, like on a printed card */}
         <div aria-hidden="true" className="absolute -top-16 -right-16 size-56 rounded-full bg-white/10" />
         <div aria-hidden="true" className="absolute -bottom-20 left-1/3 size-48 rounded-full bg-white/5" />
@@ -85,6 +91,13 @@ function MyMembershipCard() {
             <div className="text-right">
               <p className="text-5xl font-bold leading-none">{current.daysRemaining}</p>
               <p className="mt-1 text-sm text-white/80">{current.daysRemaining === 1 ? 'day left' : 'days left'}</p>
+            </div>
+          )}
+          {isUpcoming && (
+            <div className="text-right">
+              <p className="text-sm text-white/80">Starts in</p>
+              <p className="text-5xl font-bold leading-none">{current.daysUntilStart}</p>
+              <p className="mt-1 text-sm text-white/80">{current.daysUntilStart === 1 ? 'day' : 'days'}</p>
             </div>
           )}
         </div>
@@ -119,15 +132,17 @@ function MyMembershipCard() {
         </p>
       )}
 
-      {HINTS[status] && !next && (
+      {hint && !next && (
         <p
           className={`rounded-xl border px-4 py-3 text-sm ${
             status === 'EXPIRING_SOON' || status === 'EXPIRED'
               ? 'border-amber-200 bg-amber-50 text-amber-800'
-              : 'border-slate-200 bg-white text-slate-600'
+              : isUpcoming
+                ? 'border-blue-100 bg-blue-50 text-blue-800'
+                : 'border-slate-200 bg-white text-slate-600'
           }`}
         >
-          {HINTS[status]}
+          {hint}
         </p>
       )}
     </div>

@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../utils/AppError.js';
-import { addDays, calculateEndDate, formatDate, parseDate, todayInGym } from '../utils/dates.js';
+import { addDays, calculateEndDate, daysBetween, formatDate, parseDate, todayInGym } from '../utils/dates.js';
 import { toPublicUser } from '../utils/publicUser.js';
 import { daysRemaining, getMembershipStatus, pickCurrentMembership } from './membershipStatus.js';
 import { findPlanOrThrow } from './plan.service.js';
@@ -15,6 +15,8 @@ export function toPublicMembership(membership, today) {
     price: membership.price.toFixed(2),
     status: getMembershipStatus(membership, today),
     daysRemaining: daysRemaining(membership, today),
+    // For upcoming memberships: how many days until it starts (0 once it has started).
+    daysUntilStart: Math.max(0, daysBetween(today, membership.startDate)),
     createdAt: membership.createdAt,
   };
 }
