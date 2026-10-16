@@ -71,6 +71,7 @@ cp server/.env.test.example server/.env.test     # settings for the automated te
 - Set `JWT_SECRET` in `server/.env` to a long random value:
   `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`
 - Choose your own `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` (the first Admin account).
+- `GYM_TIMEZONE` (default `Europe/Istanbul`): memberships start and end at midnight in this time zone.
 
 > `.env` files contain secrets and are ignored by git. Only the `.env.example` templates are committed.
 
@@ -109,11 +110,19 @@ Open <http://localhost:5173>. You are sent to the login page: log in with the se
 
 ## User roles
 
-| Role | How the account is created |
-| --- | --- |
-| **Member** | Public sign-up on the register page (always creates a Member) |
-| **Admin** | Created by the seed script (`npm run db:seed`) from `SEED_ADMIN_*` in `.env` |
-| **Trainer** | Created by an Admin (Stage 2) |
+| Role | How the account is created | What they can do (so far) |
+| --- | --- | --- |
+| **Member** | Public sign-up, or created by an Admin on the People page | See their own membership on the home page |
+| **Admin** | Seed script (`npm run db:seed`) from `SEED_ADMIN_*` in `.env` | Manage plans, people and memberships |
+| **Trainer** | Created by an Admin on the People page | (Classes and workout plans follow in Stage 3) |
+
+## Membership rules
+
+- A plan has a name, a duration in months (1–60) and a positive price. Plans are deactivated, never deleted once sold.
+- A membership of _N_ months starting on a day _D_ ends the day before _D_ in month _N_ later (1 Oct → 31 Oct). If that day does not exist, it ends on the last day of that month (31 Jan → 28/29 Feb).
+- Without a chosen start date, a new membership starts today, or the day after the member's current membership ends (renewal). Start dates in the past and overlapping memberships are rejected.
+- The price is copied into the membership when it is sold.
+- Status is calculated, not stored: **Active**, **Expiring soon** (ends within 7 days), **Expired**, **Upcoming**, **No membership**.
 
 ## Available scripts
 
@@ -152,13 +161,23 @@ Tests use a **separate database** (`gymflow_test`, configured in `server/.env.te
 
 ## API endpoints
 
-| Method | Path                 | Access     | Description                                   |
-| ------ | -------------------- | ---------- | --------------------------------------------- |
-| GET    | `/api/health`        | public     | API and database status (200 ok / 503 error)  |
-| POST   | `/api/auth/register` | public     | Create a member account → `{ user, token }`   |
-| POST   | `/api/auth/login`    | public     | Log in → `{ user, token }`                    |
-| GET    | `/api/auth/me`       | logged in  | The current user                              |
-| GET    | `/api/users`         | Admin only | List all users                                |
+| Method | Path | Access | Description |
+| ------ | ---- | ------ | ----------- |
+| GET | `/api/health` | public | API and database status (200 ok / 503 error) |
+| POST | `/api/auth/register` | public | Create a member account → `{ user, token }` |
+| POST | `/api/auth/login` | public | Log in → `{ user, token }` |
+| GET | `/api/auth/me` | logged in | The current user |
+| GET | `/api/plans` | logged in | Membership plans (non-admins only see active ones) |
+| POST | `/api/plans` | Admin | Create a plan |
+| PATCH | `/api/plans/:id` | Admin | Edit or (de)activate a plan |
+| GET | `/api/users?role=&status=&search=` | Admin | List users; members include their membership status and `counts` per status |
+| POST | `/api/users` | Admin | Create a Member or Trainer account |
+| GET | `/api/users/:id` | Admin | A member with status and membership history |
+| GET | `/api/users/:id/memberships/preview?planId=&startDate=` | Admin | Calculated dates and price, without saving |
+| POST | `/api/users/:id/memberships` | Admin | Assign a plan to a member |
+| GET | `/api/me/membership` | Member | The logged-in member's own membership |
+
+Status filters for `/api/users`: `active` (includes expiring soon), `expiring`, `expired`, `upcoming`, `none`. Prices are returned as exact strings, e.g. `"1500.00"`.
 
 Protected endpoints expect the header `Authorization: Bearer <token>`.
 
@@ -167,7 +186,8 @@ Protected endpoints expect the header `Authorization: Bearer <token>`.
 | 400 | Invalid input (`error.details` lists the fields) |
 | 401 | Not logged in, or invalid/expired token, or wrong credentials |
 | 403 | Logged in, but the role is not allowed |
-| 409 | Conflict, e.g. email already registered |
+| 404 | Not found (unknown plan or user) |
+| 409 | Conflict, e.g. email already registered, plan name taken, overlapping membership |
 
 ## Database design
 

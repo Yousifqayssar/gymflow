@@ -170,3 +170,104 @@ Let users create accounts and log in securely, make the server recognise who is 
 ### Next step
 
 **Stage 2 – Core functionality:** membership plans (Admin creates name, duration, price), assigning a plan to a member with automatic start and end dates, expiry logic (expiring within 7 days / expired), the Admin member list, and Admin-created Trainer accounts.
+
+---
+
+## Stage 2 – Core Functionality (Memberships)
+
+**Date:** 16 October 2026 (Week 3)
+
+### Objective
+
+Let the Admin define membership plans, create accounts, sell plans to members with automatically calculated dates, and see at a glance whose membership is active, expiring within 7 days or expired. Members see their own membership.
+
+### Implemented functionality
+
+- `MembershipPlan` and `Membership` tables (second migration) with database **check constraints**: positive duration and price, end date after start date.
+- Date helpers: "today" in the gym's time zone (`GYM_TIMEZONE`), end-date calculation with correct month-end and leap-year handling.
+- Membership status calculated from the dates: Active, Expiring soon (≤ 7 days), Expired, Upcoming, No membership.
+- Plans API and page: create, edit, deactivate/activate (Admin); members only see active plans.
+- Admin creates Member and Trainer accounts; People page with Members/Trainers tabs and search.
+- Assigning a plan: automatic start date (today or the day after the current membership ends), optional future start date, no back-dating, no overlaps, price copied from the plan; live preview of the dates calculated by the server.
+- Member detail page with current status and membership history.
+- Member list with status badges, days left, filter chips with counts (All, Active, Expiring soon, Expired, No membership); "Expiring soon" sorted by urgency.
+- `GET /api/me/membership` and a "My membership" card on the member's home page.
+- App layout with a role-based menu; role-restricted pages in the router.
+
+### Technical decisions
+
+| Decision | Reason |
+| --- | --- |
+| Build in vertical slices (API + tests + page per feature) | Each step can be seen and tried in the browser; changed after steps 1–3 were backend-only. |
+| Status calculated, not stored | Always correct without a nightly job; one tested function used by the list, the detail page and the member card. |
+| Dates stored as `DATE`, handled as midnight UTC; "today" taken in `Europe/Istanbul` | Memberships expire at gym midnight, wherever the server runs; daylight saving time cannot shift dates. |
+| End-date rule with month-end clamping | "31 Jan + 1 month" does not exist; it ends on 28/29 Feb. Tested for every day of a leap year × 4 plan lengths. |
+| Renewals start the day after the current membership ends | Members never lose paid days. |
+| Overlap check + `SELECT … FOR UPDATE` row lock in a transaction | Prevents two simultaneous requests (e.g. a double click) from creating overlapping memberships. |
+| Money as `DECIMAL(10,2)`, sent as strings (`"1500.00"`) | Floating-point numbers cannot represent money exactly. |
+| Price copied into each membership | Later price changes do not rewrite past sales. |
+| Plans deactivated instead of deleted; foreign key `RESTRICT` | Sold plans must stay in the history. |
+| Database CHECK constraints in addition to Zod | Defence in depth: invalid data is rejected even if the API is bypassed. |
+| Server-side date preview | The browser shows exactly what the server will save; date rules exist in one place only. |
+| `/api/me/membership` without an id in the URL | Prevents IDOR: a member cannot change an id to read another member's data. |
+| Admins can create Members and Trainers, not Admins | The most powerful role stays limited to the seed script. |
+| Status filtering in JavaScript instead of SQL | Reuses the tested status functions; fast enough for a gym. SQL filtering would scale better for very large data sets. |
+
+### Problems encountered and solutions
+
+1. **Changes were not visible in the browser.**
+   *Cause:* The original plan built all API endpoints first and the pages at the end.
+   *Solution:* Switched to vertical slices; every later step ended with a working page.
+
+2. **"31 January + 1 month" has no matching day.**
+   *Solution:* If the start day does not exist in the target month, the membership ends on that month's last day; covered by unit tests including leap years.
+
+3. **Race condition when assigning memberships.**
+   *Problem:* Two requests at the same time could both pass the overlap check.
+   *Solution:* A transaction that locks the member's row. A test sends two requests at once; with the lock removed it failed 5 out of 5 times, with the lock it passes.
+
+4. **Prisma cannot express CHECK constraints.**
+   *Solution:* Generated the migration with `--create-only` and added the constraints to the SQL by hand. During a later manual test, the constraint rejected a demo membership whose end date was before its start date.
+
+5. **Calendar dates shown one day early in time zones west of UTC.**
+   *Solution:* The client formats `YYYY-MM-DD` dates in UTC.
+
+6. **Inconsistent row layouts on phones.**
+   *Solution:* Rows always stack the same way on small screens (checked with screenshots at phone width).
+
+7. **"Cannot reach the server" in the browser.**
+   *Cause:* The server and client windows had been closed.
+   *Solution:* Keep the two windows open (minimised) while using the app.
+
+### Tests
+
+130 tests in 11 files, all passing (95 new in this stage):
+
+| File | Tests | Covers |
+| --- | --- | --- |
+| `unit/dates.test.js` | 10 | end dates (month end, leap year, 12 months, 1,464 combinations), time zone, DST |
+| `unit/membershipStatus.test.js` | 13 | every status, the exact 7-day boundary, choosing the current membership |
+| `plans.test.js` | 23 | validation, duplicate names, permissions, inactive plans, database constraints |
+| `memberships.test.js` | 21 | date calculation, renewal, overlaps, concurrency, price copy, preview |
+| `member-list.test.js` | 12 | statuses, counts, filters, urgency sorting |
+| `my-membership.test.js` | 5 | own data only, permissions |
+| `users.test.js` | 16 (+11) | account creation by admins, role and search filters |
+
+The clock is frozen in tests (`vi.useFakeTimers({ toFake: ['Date'] })`) so "today" is always 15 October 2026.
+
+### Related commits
+
+- `feat(server): add membership plan and membership models`
+- `feat(server): add date and membership status helpers`
+- `feat(server): add membership plan endpoints`
+- `feat(client): add app layout with role-based navigation`
+- `feat(client): add membership plans page`
+- `feat: add admin account creation and people page`
+- `feat: add membership assignment with date preview and member detail page`
+- `feat: add membership status, expiry filters and counts to member list`
+- `feat: show own membership to members`
+- `docs: add Stage 2 development log, ER diagram update and week 3 report`
+
+### Next step
+
+**Stage 3a – QR check-in:** each member gets a personal QR code (a random token, not their id); staff scan it or type the code to record a check-in; members with an expired or no membership cannot check in.

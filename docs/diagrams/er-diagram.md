@@ -2,10 +2,13 @@
 
 The diagrams use [Mermaid](https://mermaid.js.org/) and render automatically on GitHub and in VS Code's Markdown preview.
 
-## Current schema (after Stage 1)
+## Current schema (after Stage 2)
 
 ```mermaid
 erDiagram
+    USER ||--o{ MEMBERSHIP : "has"
+    MEMBERSHIP_PLAN ||--o{ MEMBERSHIP : "sold as"
+
     USER {
         int id PK
         string email UK "unique, stored in lower case"
@@ -16,7 +19,27 @@ erDiagram
         datetime createdAt
         datetime updatedAt
     }
+    MEMBERSHIP_PLAN {
+        int id PK
+        string name UK "unique, ignoring letter case"
+        int durationMonths "CHECK > 0"
+        decimal price "DECIMAL(10,2), CHECK > 0"
+        boolean isActive "deactivated instead of deleted"
+        datetime createdAt
+        datetime updatedAt
+    }
+    MEMBERSHIP {
+        int id PK
+        int userId FK "ON DELETE CASCADE"
+        int planId FK "ON DELETE RESTRICT"
+        date startDate
+        date endDate "CHECK endDate > startDate"
+        decimal price "price at the time of sale"
+        datetime createdAt
+    }
 ```
+
+### User
 
 | Column | Type | Rules |
 | --- | --- | --- |
@@ -28,9 +51,31 @@ erDiagram
 | `createdAt` | timestamp | set automatically on insert |
 | `updatedAt` | timestamp | updated automatically on every change |
 
+### MembershipPlan
+
+| Column | Type | Rules |
+| --- | --- | --- |
+| `id` | integer | primary key |
+| `name` | text | required, unique (the API also compares ignoring letter case) |
+| `durationMonths` | integer | 1–60 in the API; **database CHECK > 0** |
+| `price` | decimal(10,2) | exact money type; at most 2 decimals; **database CHECK > 0** |
+| `isActive` | boolean | default `true`; inactive plans cannot be sold but stay in the history |
+
+### Membership
+
+| Column | Type | Rules |
+| --- | --- | --- |
+| `id` | integer | primary key |
+| `userId` | integer | foreign key → User; deleting a user deletes their memberships (`CASCADE`); indexed |
+| `planId` | integer | foreign key → MembershipPlan; a plan that was sold cannot be deleted (`RESTRICT`) |
+| `startDate`, `endDate` | date | calendar dates without time, both inclusive; **database CHECK endDate > startDate** |
+| `price` | decimal(10,2) | copied from the plan when sold; **database CHECK > 0** |
+
+The membership **status** (active, expiring soon, expired, upcoming, none) is **not stored**: it is calculated from the dates and "today" in the gym's time zone, so it is always correct without any scheduled job.
+
 ## Planned data model (Stages 2–3)
 
-> This is the **planned** design. Each table is added in its own migration in the stage that needs it, and details may change during implementation.
+> This is the **planned** design. Each table is added in its own migration in the stage that needs it, and details may change during implementation. `MEMBERSHIP_PLAN` and `MEMBERSHIP` are already implemented (see above).
 
 ```mermaid
 erDiagram
@@ -117,8 +162,9 @@ erDiagram
 
 | Business rule | Where it is enforced |
 | --- | --- |
-| Membership end date is after its start date | Service check + database check constraint |
-| Prices and capacities are positive | Zod validation + database check constraint |
+| Membership end date is after its start date | Date calculation (unit-tested) + database check constraint ✅ |
+| Prices and capacities are positive | Zod validation + database check constraint (prices ✅, capacities in Stage 3) |
+| Memberships of one member do not overlap | Service check inside a transaction with a row lock ✅ |
 | A member cannot book the same class twice | Unique index on `(classId, memberId)` + service check |
 | A class cannot be booked beyond capacity | Service check inside a database transaction |
 | Trainers only see members assigned to them | Through `WORKOUT_PLAN.trainerId` / `memberId` |
