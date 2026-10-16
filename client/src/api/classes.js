@@ -23,6 +23,16 @@ export function updateClass(id, changes) {
   return apiRequest(`/classes/${id}`, { method: 'PATCH', body: changes });
 }
 
+// POST /api/classes/:id/book (Member) – returns the updated class
+export function bookClass(id) {
+  return apiRequest(`/classes/${id}/book`, { method: 'POST' });
+}
+
+// DELETE /api/classes/:id/book (Member) – returns the updated class
+export function cancelBooking(id) {
+  return apiRequest(`/classes/${id}/book`, { method: 'DELETE' });
+}
+
 // POST /api/classes/:id/cancel (Admin, the class's own trainer)
 export function cancelClass(id) {
   return apiRequest(`/classes/${id}/cancel`, { method: 'POST' });

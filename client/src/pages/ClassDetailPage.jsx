@@ -6,6 +6,8 @@ import Avatar from '../components/ui/Avatar.jsx';
 import Card from '../components/ui/Card.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import ClassBanner from '../components/classes/ClassBanner.jsx';
+import BookingPanel from '../components/classes/BookingPanel.jsx';
+import { useAuth } from '../auth/useAuth.js';
 import SpotsBar from '../components/classes/SpotsBar.jsx';
 import {
   CATEGORY_DISPLAY,
@@ -47,6 +49,7 @@ function IntensityDots({ intensity }) {
 
 // Everything about one class, so members understand it before booking.
 function ClassDetailPage() {
+  const { user } = useAuth();
   const { id } = useParams();
   const [gymClass, setGymClass] = useState(null);
   const [error, setError] = useState('');
@@ -69,9 +72,11 @@ function ClassDetailPage() {
   if (!gymClass) return <div className="h-64 animate-pulse rounded-2xl bg-slate-200" />;
 
   const category = CATEGORY_DISPLAY[gymClass.category];
+  const isMember = user.role === 'MEMBER';
 
   return (
-    <div className="space-y-6">
+    // On phones members get a booking bar fixed to the bottom; pb-40 keeps content visible above it.
+    <div className={`space-y-6 ${isMember ? 'pb-40 lg:pb-0' : ''}`}>
       <Link to="/classes" className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900">
         <ChevronLeft className="size-4" aria-hidden="true" />
         All classes
@@ -126,6 +131,18 @@ function ClassDetailPage() {
         </div>
 
         <div className="space-y-6">
+          {isMember && (
+            <>
+              {/* Desktop: card at the top of the side column. Phones: bar fixed to the bottom. */}
+              <div className="hidden lg:block">
+                <BookingPanel gymClass={gymClass} onChange={setGymClass} />
+              </div>
+              <div className="lg:hidden">
+                <BookingPanel gymClass={gymClass} onChange={setGymClass} variant="bar" />
+              </div>
+            </>
+          )}
+
           <Card>
             <div className="space-y-5">
               <Fact icon={CalendarDays} label="Date">

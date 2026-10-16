@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { useAuth } from '../auth/useAuth.js';
 import AdminHome from '../components/AdminHome.jsx';
 import MyMembershipCard from '../components/MyMembershipCard.jsx';
+import MyNextClasses from '../components/classes/MyNextClasses.jsx';
 import PointsCard from '../components/PointsCard.jsx';
 import Card from '../components/ui/Card.jsx';
 import PageHeader from '../components/ui/PageHeader.jsx';
@@ -13,8 +14,9 @@ function MemberHome({ user }) {
     <div>
       <PageHeader title={`Hi, ${user.firstName}!`} description="Ready for your next workout?" />
       <div className="grid gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
+        <div className="space-y-6 lg:col-span-3">
           <MyMembershipCard />
+          <MyNextClasses />
         </div>
         <div className="space-y-4 lg:col-span-2">
           <PointsCard points={0} />
