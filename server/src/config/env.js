@@ -12,7 +12,18 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters long'),
   // How long a login token stays valid, e.g. "1d" (1 day) or "2h".
   JWT_EXPIRES_IN: z.string().default('1d'),
+  // The gym's time zone: memberships start and end at midnight in this zone.
+  GYM_TIMEZONE: z.string().default('Europe/Istanbul').refine(isValidTimeZone, 'GYM_TIMEZONE is not a valid time zone'),
 });
+
+function isValidTimeZone(timeZone) {
+  try {
+    new Intl.DateTimeFormat('en', { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 const result = envSchema.safeParse(process.env);
 
