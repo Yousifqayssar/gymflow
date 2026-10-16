@@ -6,7 +6,7 @@ const MS_PER_MINUTE = 60 * 1000;
 const DEFAULT_RANGE_DAYS = 14;
 
 // What every class query loads: the trainer's name and the booked member ids.
-const CLASS_INCLUDE = {
+export const CLASS_INCLUDE = {
   trainer: { select: { id: true, firstName: true, lastName: true } },
   bookings: { select: { memberId: true } },
 };
