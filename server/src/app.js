@@ -5,6 +5,7 @@ import healthRoutes from './routes/health.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import planRoutes from './routes/plan.routes.js';
+import meRoutes from './routes/me.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -21,6 +22,7 @@ app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/plans', planRoutes);
+app.use('/api/me', meRoutes);
 
 // 3. Fallbacks (must come after all routes)
 app.use(notFound);
