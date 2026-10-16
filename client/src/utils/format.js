@@ -25,6 +25,12 @@ export function formatDate(value) {
   return (isCalendarDate ? calendarDateFormatter : dateFormatter).format(new Date(value));
 }
 
+// The readable member number shown on profiles (and later next to the QR code): 4 → "GF-00004".
+// It comes from the database id, so it is unique and never changes.
+export function formatMemberNumber(id) {
+  return `GF-${String(id).padStart(5, '0')}`;
+}
+
 // 1 → "1 month", 3 → "3 months"
 export function formatMonths(months) {
   return `${months} ${months === 1 ? 'month' : 'months'}`;

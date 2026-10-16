@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet } from 'react-router';
-import { CreditCard, House, LogOut, Menu, Users, X } from 'lucide-react';
+import { Link, NavLink, Outlet } from 'react-router';
+import { CreditCard, House, LogOut, Menu, UserRound, Users, X } from 'lucide-react';
 import { useAuth } from '../auth/useAuth.js';
 import Avatar from './ui/Avatar.jsx';
 import Logo from './ui/Logo.jsx';
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: '/', label: 'Home', icon: House, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
   { to: '/people', label: 'People', icon: Users, roles: ['ADMIN'] },
   { to: '/plans', label: 'Plans', icon: CreditCard, roles: ['ADMIN'] },
+  { to: '/profile', label: 'Profile', icon: UserRound, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
 ];
 
 const ROLE_LABELS = { ADMIN: 'Admin', TRAINER: 'Trainer', MEMBER: 'Member' };
@@ -77,15 +78,21 @@ function AppLayout() {
             ))}
           </nav>
 
-          {/* Right side: user and logout */}
-          <div className="ml-auto flex items-center gap-3">
-            <div className="hidden text-right lg:block">
-              <p className="text-sm font-medium leading-tight text-slate-900">
-                {user.firstName} {user.lastName}
-              </p>
-              <p className="text-xs text-slate-500">{ROLE_LABELS[user.role]}</p>
-            </div>
-            <Avatar firstName={user.firstName} lastName={user.lastName} size="sm" />
+          {/* Right side: user (links to the profile) and logout */}
+          <div className="ml-auto flex items-center gap-1">
+            <Link
+              to="/profile"
+              title="My profile"
+              className="flex items-center gap-3 rounded-lg p-1 hover:bg-slate-100 lg:px-2"
+            >
+              <span className="hidden text-right lg:block">
+                <span className="block text-sm font-medium leading-tight text-slate-900">
+                  {user.firstName} {user.lastName}
+                </span>
+                <span className="block text-xs text-slate-500">{ROLE_LABELS[user.role]}</span>
+              </span>
+              <Avatar firstName={user.firstName} lastName={user.lastName} size="sm" />
+            </Link>
             <button
               type="button"
               onClick={logout}
