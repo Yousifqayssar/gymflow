@@ -23,6 +23,10 @@ test-results/
 *.log
 npm-debug.log*
 
+# Lock files of open documents (LibreOffice / Microsoft Office)
+.~lock.*#
+~$*
+
 # Editor / OS files
 .vscode/*
 !.vscode/extensions.json
