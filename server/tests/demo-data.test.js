@@ -132,6 +132,41 @@ describe('demo classes', () => {
   });
 });
 
+describe('demo check-ins', () => {
+  const today = parseDate('2026-10-15'); // "now" is 12:00 in Istanbul
+
+  it('creates a visit history with at most one visit per member per day', async () => {
+    const { checkIns } = await seedDemoData(prisma, { today });
+
+    expect(checkIns).toBeGreaterThan(50);
+    // The unique index (member, day) would have rejected duplicates, so reaching here proves there are none.
+    expect(await prisma.checkIn.count()).toBe(checkIns);
+  });
+
+  it('only records visits on days when the member’s membership was valid', async () => {
+    await seedDemoData(prisma, { today });
+
+    const visits = await prisma.checkIn.findMany({ include: { member: { include: { memberships: true } } } });
+    for (const { gymDay, member } of visits) {
+      expect(member.memberships.some((m) => m.startDate <= gymDay && gymDay <= m.endDate)).toBe(true);
+    }
+  });
+
+  it('gives the most frequent visitor the Gold level', async () => {
+    await seedDemoData(prisma, { today });
+
+    const mehmet = await prisma.user.findFirst({ where: { firstName: 'Mehmet' } });
+    expect(await prisma.checkIn.count({ where: { memberId: mehmet.id } })).toBeGreaterThanOrEqual(30);
+  });
+
+  it('includes check-ins from earlier today, but none in the future', async () => {
+    await seedDemoData(prisma, { today });
+
+    expect(await prisma.checkIn.count({ where: { gymDay: today } })).toBeGreaterThan(0);
+    expect(await prisma.checkIn.count({ where: { checkedInAt: { gt: new Date() } } })).toBe(0);
+  });
+});
+
 describe('removeDemoData', () => {
   it('removes demo accounts and keeps real data', async () => {
     await seedDemoData(prisma, { today: parseDate('2026-10-15') });

@@ -172,7 +172,7 @@ function gymUtcOffset(date) {
 }
 
 // A calendar day (midnight UTC, as used by the date helpers) + "08:00" gym time → the exact moment.
-function atGymTime(day, time) {
+export function atGymTime(day, time) {
   return new Date(`${formatDate(day)}T${time}:00${gymUtcOffset(day)}`);
 }
 
