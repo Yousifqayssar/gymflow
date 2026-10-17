@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import GuestRoute from './components/GuestRoute.jsx';
@@ -13,6 +14,10 @@ import ClassesPage from './pages/ClassesPage.jsx';
 import ClassDetailPage from './pages/ClassDetailPage.jsx';
 import ClassFormPage from './pages/ClassFormPage.jsx';
 import MyQrPage from './pages/MyQrPage.jsx';
+
+// The check-in page contains the camera QR scanner (large). Loading it only when it is opened
+// keeps the app fast for members, who never use it.
+const CheckInPage = lazy(() => import('./pages/CheckInPage.jsx'));
 
 // Which page is shown for which URL.
 function App() {
@@ -39,6 +44,14 @@ function App() {
 
           {/* Admin and trainer pages */}
           <Route element={<ProtectedRoute roles={['ADMIN', 'TRAINER']} />}>
+            <Route
+              path="/check-in"
+              element={
+                <Suspense fallback={<p className="text-slate-500">Loading check-in…</p>}>
+                  <CheckInPage />
+                </Suspense>
+              }
+            />
             <Route path="/classes/new" element={<ClassFormPage />} />
             <Route path="/classes/:id/edit" element={<ClassFormPage />} />
           </Route>

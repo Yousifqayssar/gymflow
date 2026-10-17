@@ -1,7 +1,7 @@
 // One place for all requests to our API.
 // It adds the login token, sends/reads JSON, and turns error responses into ApiError.
 
-const TOKEN_KEY = 'gymflow_token';
+export const TOKEN_KEY = 'gymflow_token';
 
 // Saves the login token in the browser, so the user stays logged in after a page reload.
 // localStorage can be blocked (e.g. some private windows), so every access is guarded.
@@ -31,12 +31,14 @@ export const tokenStorage = {
 
 // An error answer from the API, e.g. 401 "Invalid email or password".
 // `details` holds per-field validation errors: [{ field, message }].
+// `code` is set for some errors the pages handle specially, e.g. 'MEMBERSHIP_NOT_ACTIVE'.
 export class ApiError extends Error {
-  constructor(status, message, details = []) {
+  constructor(status, message, details = [], code = null) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.details = details;
+    this.code = code;
   }
 }
 
@@ -73,6 +75,7 @@ export async function apiRequest(path, { method = 'GET', body } = {}) {
       response.status,
       data?.error?.message ?? 'Something went wrong. Please try again.',
       data?.error?.details,
+      data?.error?.code,
     );
   }
 

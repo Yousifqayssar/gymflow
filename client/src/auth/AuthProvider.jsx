@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AuthContext } from './AuthContext.js';
-import { tokenStorage } from '../api/client.js';
+import { TOKEN_KEY, tokenStorage } from '../api/client.js';
 import { getCurrentUser, loginRequest, registerRequest } from '../api/auth.js';
 
 // Keeps track of the logged-in user and makes it available to every page.
@@ -29,6 +29,23 @@ export function AuthProvider({ children }) {
     return () => {
       ignore = true;
     };
+  }, []);
+
+  // All tabs of the browser share one saved token. When another tab logs in (maybe as someone else)
+  // or logs out, follow it here too – otherwise this tab would show one person but send requests as another.
+  useEffect(() => {
+    function handleStorage(event) {
+      if (event.key !== null && event.key !== TOKEN_KEY) return;
+      if (!tokenStorage.get()) {
+        setUser(null);
+        return;
+      }
+      getCurrentUser()
+        .then((data) => setUser(data.user))
+        .catch(() => setUser(null));
+    }
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   // Both login and register answer with { user, token }.
