@@ -271,3 +271,64 @@ The clock is frozen in tests (`vi.useFakeTimers({ toFake: ['Date'] })`) so "toda
 ### Next step
 
 **Stage 3a – QR check-in:** each member gets a personal QR code (a random token, not their id); staff scan it or type the code to record a check-in; members with an expired or no membership cannot check in.
+
+---
+
+## Week 4 – Demo Data, UI Redesign and Stage 3b (Classes and Booking)
+
+**Date:** 17 October 2026 (Week 4)
+
+### Objective
+
+Make the application look and feel professional, give every user a profile, provide realistic demo data for testing and presentations, and implement group classes with full information and booking (Stage 3b). Stage 3b was done before Stage 3a (QR check-in) because classes and booking were the higher priority; QR check-in and the new loyalty points follow next week.
+
+### Implemented functionality
+
+- **Demo data** (`npm run db:seed:demo`): 4 plans with descriptions, 2 trainers, 12 members in every membership situation and about 25 classes over the next 14 days with bookings. Dates are relative to today; real data is never touched; refuses to run in production.
+- **Design system:** emerald brand colour as Tailwind tokens, Inter font (bundled), lucide icons, reusable components (Button, Card, PageHeader, StatCard, Avatar, EmptyState, Modal, Toast, Logo).
+- **Layout:** top navigation on desktop, slide-in menu on phones (chosen by the user over a sidebar).
+- **Redesigned pages:** split-screen login/register, admin home with stat cards and "needs renewal", member home with a membership card (progress bar, blue "starts in" card for upcoming memberships).
+- **Profile page** for every user with member number (`GF-00004`), member since and a points card (points arrive with check-ins).
+- **Plan descriptions** ("what's included"), shown in the plan list and when selling a plan.
+- **Classes:** `GymClass` and `Booking` tables; class API for admins and trainers; schedule grouped by day with category filter; class detail page with description, meeting point, time, level, intensity, what to bring and health notes; create/edit form with photo category picker and live preview; cancel class.
+- **Photos:** one Unsplash photo per category, tinted in the category colour, on cards and banners.
+- **Booking:** book and cancel with all business rules; booking panel (bottom bar on phones); "My next classes" on the member home.
+
+### Technical decisions
+
+| Decision | Reason |
+| --- | --- |
+| Demo data as a tested script, identified by the email domain `@demo.gymflow.local` | Reproducible for anyone (including the supervisor); re-running refreshes dates; real data is safe; tested. |
+| Design tokens (`brand-*`) in one CSS file | The whole colour scheme can be changed in one place. |
+| Fonts and photos bundled in the app | No requests to Google or Unsplash at runtime: privacy and offline use. |
+| Native `<dialog>` for modals | Built-in focus handling, Escape key and accessibility. |
+| `startsAt` as `TIMESTAMPTZ`, shown in the gym's time zone | A class starts at an exact moment; members abroad still see the gym's local time. |
+| Category enums (`ClassCategory`, `ClassLevel`, `ClassIntensity`) | Only known values can be stored. |
+| Unique index on `(classId, memberId)` + CHECK constraints | Double booking, zero capacity and absurd durations are impossible even outside the API. |
+| Booking in a transaction with `SELECT … FOR UPDATE` on the class | Prevents overbooking when many members book the last spots at the same time. |
+| Membership must be valid on the **class day** (gym time zone) | Booking a class without a membership that day makes no sense; 23:30 vs 00:30 is handled correctly. |
+| Booked-member list only for the class's trainer and admins | Privacy; the server decides, the page only shows what it receives. |
+| Cancel classes instead of deleting them | Booked members can see what happened. |
+| Server sends `daysUntilStart`, `spotsLeft`, `isBookedByMe` | Pages stay simple and never need their own clock or counting. |
+
+### Problems encountered and solutions
+
+1. **The interface looked too basic.** *Solution:* a design system and a full redesign, with the user choosing layout and colour.
+2. **Class icons looked plain.** *Solution:* real activity photos (Unsplash licence, credits in the README), tinted per category, with a dark fade for readable text.
+3. **No visible booking for members.** *Cause:* booking was planned after the trainer form. *Solution:* re-ordered so members could book first.
+4. **A concurrency test that could not fail.** With two members and one spot, the test passed with and without the row lock. *Solution:* six members for the last two spots; without the lock it failed 5/5 times, with the lock it passed 5/5 times.
+5. **Demo data removal blocked by `RESTRICT`.** A trainer with classes cannot be deleted. *Solution:* demo classes are removed before demo trainers; covered by a test.
+6. **Lint: impure `new Date()` during rendering.** *Solution:* values that depend on the clock are computed once (module level) or when data is loaded, never while rendering.
+7. **Confusing "membership hasn't started yet".** *Cause:* old test data with a start date in the future. *Solution:* cleaned the test data; the card now shows "Starts in N days" in blue with the start date.
+
+### Tests
+
+197 tests in 15 files, all passing (67 new this week). New files: `classes-database.test.js` (8, database rules), `classes.test.js` (26, class API and permissions), `bookings.test.js` (18, every booking rule, time-zone boundary and concurrency), plus additions to `demo-data.test.js` (11), `plans.test.js` and `memberships.test.js`.
+
+### Related commits
+
+`feat(server): add demo data seed script` · `feat(client): add design system with brand theme, icons and base components` · `feat(client): add sidebar layout with mobile bottom navigation` · `feat(client): add top navigation with mobile slide-in menu` · `feat(client): redesign login and register pages` · `feat(client): add profile page with member number and points card` · `feat(client): redesign home pages with admin overview and membership card` · `feat: add descriptions to membership plans` · `feat(server): add class and booking models` · `feat(server): add class endpoints for admins and trainers` · `feat(client): add class schedule and class detail pages` · `feat(server): add demo classes to the demo data` · `feat(client): add category photos to class cards and banners` · `feat(server): add class booking with capacity and timing rules` · `feat(client): add booking and cancelling classes` · `feat(client): add create and edit class form` · `feat: show when an upcoming membership starts` · `docs: add week 4 development log, documentation and report`
+
+### Next step
+
+**Stage 3a – QR check-in and loyalty points:** a personal QR code per member (random token), staff scan or type it to record a check-in, members without a valid membership cannot check in, +10 points per visit (once per day) with Bronze/Silver/Gold levels.

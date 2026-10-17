@@ -27,12 +27,15 @@ gymFlow/
 ├── client/                 # React frontend (Vite + Tailwind)
 │   └── src/
 │       ├── api/            # functions that call the backend (adds the login token)
+│       ├── assets/classes/ # class category photos (Unsplash, see Photo credits)
 │       ├── auth/           # AuthProvider + useAuth: who is logged in
-│       ├── components/     # reusable UI components and route guards
-│       ├── pages/          # one component per page (login, register, home)
-│       └── utils/
+│       ├── components/
+│       │   ├── ui/         # design system: Button, Card, Modal, Toast, Avatar, …
+│       │   └── classes/    # class cards, banners, booking panel, category picker
+│       ├── pages/          # one component per page
+│       └── utils/          # formatting (prices, dates, gym time zone)
 ├── server/                 # Express REST API
-│   ├── prisma/             # database schema, migrations and seed script
+│   ├── prisma/             # database schema, migrations, admin seed and demo data
 │   ├── src/
 │   │   ├── config/         # environment variable validation
 │   │   ├── routes/         # URL → middleware → controller mapping
@@ -108,13 +111,27 @@ npm run dev              # http://localhost:5173
 
 Open <http://localhost:5173>. You are sent to the login page: log in with the seeded admin account, or click **Create an account** to register as a member.
 
+### 5. Optional: demo data
+
+To try the app with realistic data (and for presentations):
+
+```bash
+cd server
+npm run db:seed:demo              # create or refresh the demo data (dates relative to today)
+npm run db:seed:demo -- --remove  # remove all demo data again
+```
+
+It creates 4 membership plans, 2 trainers, 12 members in every membership situation (active, expiring soon, expired, upcoming, renewed, no membership) and about 25 classes for the next 14 days with bookings. All demo accounts end in `@demo.gymflow.local` and use the password `demo1234`, e.g. `elif@demo.gymflow.local` (member) or `mert@demo.gymflow.local` (trainer). Real accounts and data are never touched, and the script refuses to run when `NODE_ENV=production`.
+
 ## User roles
 
 | Role | How the account is created | What they can do (so far) |
 | --- | --- | --- |
-| **Member** | Public sign-up, or created by an Admin on the People page | See their own membership on the home page |
-| **Admin** | Seed script (`npm run db:seed`) from `SEED_ADMIN_*` in `.env` | Manage plans, people and memberships |
-| **Trainer** | Created by an Admin on the People page | (Classes and workout plans follow in Stage 3) |
+| **Member** | Public sign-up, or created by an Admin on the People page | See their membership card and profile, browse classes, book and cancel spots |
+| **Trainer** | Created by an Admin on the People page | Create, edit and cancel their own classes; see who booked them |
+| **Admin** | Seed script (`npm run db:seed`) from `SEED_ADMIN_*` in `.env` | Everything: plans, people, memberships, all classes, the home overview |
+
+Every user has a profile page with their member number (e.g. `GF-00004`).
 
 ## Membership rules
 
@@ -123,6 +140,19 @@ Open <http://localhost:5173>. You are sent to the login page: log in with the se
 - Without a chosen start date, a new membership starts today, or the day after the member's current membership ends (renewal). Start dates in the past and overlapping memberships are rejected.
 - The price is copied into the membership when it is sold.
 - Status is calculated, not stored: **Active**, **Expiring soon** (ends within 7 days), **Expired**, **Upcoming**, **No membership**.
+
+## Class and booking rules
+
+- A class has a title, category, description, meeting point, start time, duration (15–300 min), capacity (> 0), level, intensity, and optional "what to bring" and health notes – everything a member needs before booking.
+- Trainers create and manage only their own classes; admins manage all classes and choose the trainer.
+- Classes must start in the future. A class that has started, or was cancelled, cannot be changed. Capacity cannot be lowered below the number of bookings. Cancelled classes stay visible.
+- **Booking** (members only):
+  - not beyond capacity (409),
+  - not twice for the same class (409, also enforced by a unique index),
+  - not after the class has started (400),
+  - only with a membership valid on the day of the class, in the gym's time zone (403).
+- Booking runs in a transaction with a row lock, so two members can never take the last spot at the same time.
+- A booking can be cancelled until the class starts.
 
 ## Available scripts
 
@@ -136,6 +166,7 @@ Open <http://localhost:5173>. You are sent to the login page: log in with the se
 | `npm run test:watch` | Re-run tests on every file change                |
 | `npm run db:migrate` | Create and apply a migration after a schema change |
 | `npm run db:seed`    | Create the first Admin account                   |
+| `npm run db:seed:demo` | Create or refresh demo data (`-- --remove` to delete it) |
 | `npm run db:studio`  | Open Prisma Studio to browse the database        |
 
 ### Client (`client/`)
@@ -176,8 +207,16 @@ Tests use a **separate database** (`gymflow_test`, configured in `server/.env.te
 | GET | `/api/users/:id/memberships/preview?planId=&startDate=` | Admin | Calculated dates and price, without saving |
 | POST | `/api/users/:id/memberships` | Admin | Assign a plan to a member |
 | GET | `/api/me/membership` | Member | The logged-in member's own membership |
+| GET | `/api/me/bookings` | Member | The member's upcoming booked classes |
+| GET | `/api/classes?category=&from=&to=` | logged in | Class schedule (default: next 14 days) with spots left and "booked by me" |
+| GET | `/api/classes/:id` | logged in | One class; its trainer and admins also get the list of booked members |
+| POST | `/api/classes` | Admin, Trainer | Create a class |
+| PATCH | `/api/classes/:id` | Admin, own Trainer | Edit a class |
+| POST | `/api/classes/:id/cancel` | Admin, own Trainer | Cancel a class |
+| POST | `/api/classes/:id/book` | Member | Book a spot |
+| DELETE | `/api/classes/:id/book` | Member | Cancel the booking |
 
-Status filters for `/api/users`: `active` (includes expiring soon), `expiring`, `expired`, `upcoming`, `none`. Prices are returned as exact strings, e.g. `"1500.00"`.
+Status filters for `/api/users`: `active` (includes expiring soon), `expiring`, `expired`, `upcoming`, `none`. Prices are returned as exact strings, e.g. `"1500.00"`. Class times are exact moments with a time zone, e.g. `"2026-10-24T08:00:00+03:00"`.
 
 Protected endpoints expect the header `Authorization: Bearer <token>`.
 
@@ -186,8 +225,8 @@ Protected endpoints expect the header `Authorization: Bearer <token>`.
 | 400 | Invalid input (`error.details` lists the fields) |
 | 401 | Not logged in, or invalid/expired token, or wrong credentials |
 | 403 | Logged in, but the role is not allowed |
-| 404 | Not found (unknown plan or user) |
-| 409 | Conflict, e.g. email already registered, plan name taken, overlapping membership |
+| 404 | Not found (unknown plan, user or class) |
+| 409 | Conflict, e.g. email already registered, plan name taken, overlapping membership, class full, already booked |
 
 ## Database design
 

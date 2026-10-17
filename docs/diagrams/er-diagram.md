@@ -2,12 +2,15 @@
 
 The diagrams use [Mermaid](https://mermaid.js.org/) and render automatically on GitHub and in VS Code's Markdown preview.
 
-## Current schema (after Stage 2)
+## Current schema (after Stage 3b)
 
 ```mermaid
 erDiagram
     USER ||--o{ MEMBERSHIP : "has"
     MEMBERSHIP_PLAN ||--o{ MEMBERSHIP : "sold as"
+    USER ||--o{ GYM_CLASS : "teaches (trainer)"
+    GYM_CLASS ||--o{ BOOKING : "has"
+    USER ||--o{ BOOKING : "books (member)"
 
     USER {
         int id PK
@@ -22,6 +25,7 @@ erDiagram
     MEMBERSHIP_PLAN {
         int id PK
         string name UK "unique, ignoring letter case"
+        string description "what the plan includes"
         int durationMonths "CHECK > 0"
         decimal price "DECIMAL(10,2), CHECK > 0"
         boolean isActive "deactivated instead of deleted"
@@ -37,7 +41,31 @@ erDiagram
         decimal price "price at the time of sale"
         datetime createdAt
     }
+    GYM_CLASS {
+        int id PK
+        string title
+        ClassCategory category "RUNNING | YOGA | HIIT | ..."
+        string description
+        string location "meeting point"
+        timestamptz startsAt "exact moment with time zone"
+        int durationMinutes "CHECK 15-300"
+        int capacity "CHECK > 0"
+        ClassLevel level
+        ClassIntensity intensity
+        string whatToBring
+        string healthNotes
+        boolean isCancelled "cancelled, never deleted"
+        int trainerId FK "ON DELETE RESTRICT"
+    }
+    BOOKING {
+        int id PK
+        int classId FK "ON DELETE CASCADE"
+        int memberId FK "ON DELETE CASCADE"
+        datetime createdAt
+    }
 ```
+
+`BOOKING` has a **unique index on (classId, memberId)**: the database itself makes it impossible to book the same class twice.
 
 ### User
 
@@ -73,9 +101,32 @@ erDiagram
 
 The membership **status** (active, expiring soon, expired, upcoming, none) is **not stored**: it is calculated from the dates and "today" in the gym's time zone, so it is always correct without any scheduled job.
 
+### GymClass
+
+| Column | Type | Rules |
+| --- | --- | --- |
+| `title`, `description`, `location` | text | required; description 20–2000 characters (API) |
+| `category` | enum `ClassCategory` | RUNNING, YOGA, HIIT, CYCLING, PILATES, BOXING, STRENGTH, MOBILITY |
+| `startsAt` | timestamptz | an exact moment; must be in the future when created (API) |
+| `durationMinutes` | integer | **database CHECK 15–300** |
+| `capacity` | integer | **database CHECK > 0**; cannot be lowered below existing bookings (API) |
+| `level` | enum `ClassLevel` | BEGINNER, INTERMEDIATE, ADVANCED, ALL_LEVELS |
+| `intensity` | enum `ClassIntensity` | LOW, MEDIUM, HIGH |
+| `whatToBring`, `healthNotes` | text | optional (default empty) |
+| `isCancelled` | boolean | a class with bookings is cancelled, never deleted |
+| `trainerId` | integer | foreign key → User (a trainer); a trainer with classes cannot be deleted (`RESTRICT`); indexed |
+
+### Booking
+
+| Column | Type | Rules |
+| --- | --- | --- |
+| `classId` | integer | foreign key → GymClass (`CASCADE`) |
+| `memberId` | integer | foreign key → User (`CASCADE`); indexed |
+| — | — | **unique (classId, memberId)**: no double bookings |
+
 ## Planned data model (Stages 2–3)
 
-> This is the **planned** design. Each table is added in its own migration in the stage that needs it, and details may change during implementation. `MEMBERSHIP_PLAN` and `MEMBERSHIP` are already implemented (see above).
+> This is the **planned** design. Each table is added in its own migration in the stage that needs it, and details may change during implementation. `MEMBERSHIP_PLAN`, `MEMBERSHIP`, `GYM_CLASS` and `BOOKING` are already implemented (see above).
 
 ```mermaid
 erDiagram
@@ -163,8 +214,10 @@ erDiagram
 | Business rule | Where it is enforced |
 | --- | --- |
 | Membership end date is after its start date | Date calculation (unit-tested) + database check constraint ✅ |
-| Prices and capacities are positive | Zod validation + database check constraint (prices ✅, capacities in Stage 3) |
+| Prices and capacities are positive | Zod validation + database check constraint ✅ |
 | Memberships of one member do not overlap | Service check inside a transaction with a row lock ✅ |
-| A member cannot book the same class twice | Unique index on `(classId, memberId)` + service check |
-| A class cannot be booked beyond capacity | Service check inside a database transaction |
+| A member cannot book the same class twice | Unique index on `(classId, memberId)` + service check ✅ |
+| A class cannot be booked beyond capacity | Service check inside a transaction with a row lock on the class ✅ |
+| A member cannot book a class that has already started | Service check against the current time ✅ |
+| Only members with a valid membership on the class day can book | Service check in the gym's time zone ✅ |
 | Trainers only see members assigned to them | Through `WORKOUT_PLAN.trainerId` / `memberId` |
