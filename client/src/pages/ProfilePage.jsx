@@ -29,6 +29,7 @@ import RecentVisits from '../components/RecentVisits.jsx';
 import { formatDate, formatMemberNumber } from '../utils/format.js';
 import { LEVEL_DISPLAY } from '../utils/levels.js';
 import PageTitle from '../components/ui/PageTitle.jsx';
+import { Stagger, StaggerItem } from '../components/ui/motion.jsx';
 
 const ROLE_DISPLAY = {
   ADMIN: { label: 'Admin', chip: 'bg-violet-100 dark:bg-violet-500/15 text-violet-800 dark:text-violet-300' },
@@ -119,12 +120,20 @@ function MemberProfile({ user }) {
     <div className="space-y-6">
       <ProfileHeader user={user} levelName={visits?.level} />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Visits" value={visits?.visits} icon={Footprints} tone="brand" />
-        <StatCard label="Points" value={visits?.points} icon={Trophy} tone="amber" />
-        <StatCard label="Level" value={visits?.level} icon={visits ? LEVEL_DISPLAY[visits.level].icon : Trophy} tone="slate" />
-        <StatCard label="Booked classes" value={bookings?.classes.length} icon={CalendarCheck} tone="blue" />
-      </div>
+      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StaggerItem>
+          <StatCard label="Visits" value={visits?.visits} icon={Footprints} tone="brand" />
+        </StaggerItem>
+        <StaggerItem>
+          <StatCard label="Points" value={visits?.points} icon={Trophy} tone="amber" />
+        </StaggerItem>
+        <StaggerItem>
+          <StatCard label="Level" value={visits?.level} icon={visits ? LEVEL_DISPLAY[visits.level].icon : Trophy} tone="slate" />
+        </StaggerItem>
+        <StaggerItem>
+          <StatCard label="Booked classes" value={bookings?.classes.length} icon={CalendarCheck} tone="blue" />
+        </StaggerItem>
+      </Stagger>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
@@ -189,11 +198,13 @@ function StaffProfile({ user }) {
     <div className="space-y-6">
       <ProfileHeader user={user} />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((stat) => (
-          <StatCard key={stat.label} {...stat} />
+          <StaggerItem key={stat.label}>
+            <StatCard {...stat} />
+          </StaggerItem>
         ))}
-      </div>
+      </Stagger>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">

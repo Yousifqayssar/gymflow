@@ -1,4 +1,5 @@
 import { CircleCheck, CircleHelp, Clock, ScanLine, ShieldX } from 'lucide-react';
+import { AnimatePresence, m } from 'motion/react';
 import Avatar from '../ui/Avatar.jsx';
 import Card from '../ui/Card.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
@@ -15,13 +16,24 @@ const STYLES = {
 };
 
 // The answer to the last scan. `result` is built by the check-in page:
+// Every result has an `id`, so scanning the same member twice still plays the animation again.
 //   { type: 'success' | 'already', data }  – data is the POST /api/check-ins answer
 //   { type: 'refused' | 'error', message, hint? } – the message from the server
 function CheckInResult({ result }) {
   // aria-live: screen readers announce each new result without the staff moving focus.
   return (
     <div aria-live="polite">
-      {result ? <ResultCard result={result} /> : <WaitingCard />}
+      {/* mode="wait": the old result leaves first, then the new one pops in */}
+      <AnimatePresence mode="wait" initial={false}>
+        <m.div
+          key={result?.id ?? 'waiting'}
+          initial={{ opacity: 0, scale: 0.94, y: 8 }}
+          animate={{ opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 380, damping: 26 } }}
+          exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.12 } }}
+        >
+          {result ? <ResultCard result={result} /> : <WaitingCard />}
+        </m.div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -41,10 +53,17 @@ function ResultCard({ result }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
       <div className={`flex items-center gap-3 bg-gradient-to-br px-5 py-4 text-white ${header}`}>
-        <Icon className="size-7 shrink-0" aria-hidden="true" />
+        {/* The icon "bounces" in a moment after the card */}
+        <m.span
+          initial={{ scale: 0, rotate: -30 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 15, delay: 0.1 }}
+        >
+          <Icon className="size-7 shrink-0" aria-hidden="true" />
+        </m.span>
         <div className="min-w-0">
           <p className="text-sm font-medium text-white/80">{label}</p>
-          <p className="truncate text-xl font-bold">
+          <p className="text-xl leading-snug font-bold text-balance">
             {member ? `Welcome, ${member.firstName}!` : result.message}
           </p>
         </div>
@@ -97,7 +116,14 @@ function MemberDetails({ result }) {
 
       <div className="flex flex-wrap items-center gap-2 text-sm">
         {result.type === 'success' ? (
-          <span className="rounded-full bg-amber-100 dark:bg-amber-500/15 px-2.5 py-1 font-semibold text-amber-800 dark:text-amber-300">+10 points</span>
+          <m.span
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: [0.5, 1.2, 1], opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="rounded-full bg-amber-100 px-2.5 py-1 font-semibold text-amber-800 dark:bg-amber-500/15 dark:text-amber-300"
+          >
+            +10 points
+          </m.span>
         ) : (
           <span className="rounded-full bg-surface-3 px-2.5 py-1 font-medium text-ink-3">No extra points today</span>
         )}

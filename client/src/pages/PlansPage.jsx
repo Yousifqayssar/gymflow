@@ -9,6 +9,7 @@ import Button from '../components/ui/Button.jsx';
 import Card from '../components/ui/Card.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import PageHeader from '../components/ui/PageHeader.jsx';
+import { Stagger, StaggerItem } from '../components/ui/motion.jsx';
 
 // Admin page: list, create, edit and (de)activate membership plans.
 function PlansPage() {
@@ -97,11 +98,13 @@ function PlansPage() {
         </Card>
       )}
 
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {plans?.map((plan) => (
-          <li
+      {plans && (
+      <Stagger as="ul" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {plans.map((plan) => (
+          <StaggerItem
+            as="li"
             key={plan.id}
-            className={`flex flex-col rounded-2xl border bg-surface p-5 shadow-sm transition ${
+            className={`flex flex-col rounded-2xl border bg-surface p-5 shadow-sm ${
               editingId === plan.id
                 ? 'border-brand-500 ring-2 ring-brand-100 sm:col-span-2 lg:col-span-3 dark:ring-brand-500/25'
                 : 'border-line'
@@ -142,9 +145,10 @@ function PlansPage() {
                 </div>
               </>
             )}
-          </li>
+          </StaggerItem>
         ))}
-      </ul>
+      </Stagger>
+      )}
     </div>
   );
 }

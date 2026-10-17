@@ -6,6 +6,7 @@ import ErrorMessage from './ErrorMessage.jsx';
 import MembershipStatusBadge from './MembershipStatusBadge.jsx';
 import Logo from './ui/Logo.jsx';
 import { formatDate, formatMemberNumber } from '../utils/format.js';
+import { AnimatedNumber, ProgressFill } from './ui/motion.jsx';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -89,7 +90,9 @@ function MyMembershipCard() {
           </div>
           {isValidToday && (
             <div className="text-right">
-              <p className="font-display text-6xl font-bold leading-none">{current.daysRemaining}</p>
+              <p className="font-display text-6xl font-bold leading-none">
+                <AnimatedNumber value={current.daysRemaining} />
+              </p>
               <p className="mt-1 text-sm text-white/80">{current.daysRemaining === 1 ? 'day left' : 'days left'}</p>
             </div>
           )}
@@ -111,7 +114,7 @@ function MyMembershipCard() {
             aria-valuemax={100}
             aria-label="Part of the membership already used"
           >
-            <div className="h-full rounded-full bg-white" style={{ width: `${usedPercent}%` }} />
+            <ProgressFill percent={usedPercent} className="bg-white" />
           </div>
         )}
 

@@ -1,4 +1,5 @@
 import { Keyboard, QrCode, Users } from 'lucide-react';
+import { AnimatePresence, m } from 'motion/react';
 import Avatar from '../ui/Avatar.jsx';
 import Card from '../ui/Card.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
@@ -26,10 +27,18 @@ function TodaysCheckIns({ today, error, limit, actions }) {
       {today?.count === 0 && <EmptyState icon={Users} title="No visits yet today" description="Checked-in members appear here." />}
 
       <ul className="divide-y divide-line-soft">
+        {/* initial={false}: no animation for the first load, only for visits added later */}
+        <AnimatePresence initial={false}>
         {checkIns?.map((checkIn) => {
           const MethodIcon = checkIn.method === 'QR' ? QrCode : Keyboard;
           return (
-            <li key={checkIn.id} className="flex items-center gap-3 px-5 py-3">
+            <m.li
+              key={checkIn.id}
+              layout
+              initial={{ opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-3 px-5 py-3"
+            >
               <Avatar firstName={checkIn.member.firstName} lastName={checkIn.member.lastName} size="sm" />
               <p className="min-w-0 flex-1 truncate text-sm font-medium text-ink">
                 {checkIn.member.firstName} {checkIn.member.lastName}
@@ -41,9 +50,10 @@ function TodaysCheckIns({ today, error, limit, actions }) {
                 <MethodIcon className="size-3.5" aria-hidden="true" />
                 {formatTime(checkIn.checkedInAt)}
               </span>
-            </li>
+            </m.li>
           );
         })}
+        </AnimatePresence>
       </ul>
     </Card>
   );

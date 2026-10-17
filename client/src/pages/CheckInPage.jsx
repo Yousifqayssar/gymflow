@@ -46,11 +46,11 @@ function CheckInPage() {
     setIsBusy(true);
     try {
       const data = await checkInMember(code);
-      setResult({ type: data.alreadyCheckedIn ? 'already' : 'success', data });
+      setResult({ id: now, type: data.alreadyCheckedIn ? 'already' : 'success', data });
       if (!data.alreadyCheckedIn) reloadToday();
       return true;
     } catch (error) {
-      setResult(resultForError(error));
+      setResult({ id: now, ...resultForError(error) });
       return error.status !== 0;
     } finally {
       setIsBusy(false);

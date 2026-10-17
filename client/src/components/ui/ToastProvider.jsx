@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { CircleAlert, CircleCheck, X } from 'lucide-react';
+import { AnimatePresence, m } from 'motion/react';
 import { ToastContext } from './ToastContext.js';
 
 const VISIBLE_MS = 3500;
@@ -16,7 +17,13 @@ function Toast({ toast, onDismiss }) {
   const Icon = isError ? CircleAlert : CircleCheck;
 
   return (
-    <div className="pointer-events-auto flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 shadow-lg">
+    <m.div
+      layout
+      initial={{ opacity: 0, y: 16, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
+      className="pointer-events-auto flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 shadow-lg"
+    >
       <Icon className={`size-5 shrink-0 ${isError ? 'text-red-600 dark:text-red-400' : 'text-brand-600 dark:text-brand-400'}`} aria-hidden="true" />
       <p className="text-sm font-medium text-ink">{toast.message}</p>
       <button
@@ -27,7 +34,7 @@ function Toast({ toast, onDismiss }) {
       >
         <X className="size-4" />
       </button>
-    </div>
+    </m.div>
   );
 }
 
@@ -52,9 +59,12 @@ export function ToastProvider({ children }) {
         aria-live="polite"
         className="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex flex-col items-center gap-2 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:items-end"
       >
-        {toasts.map((toast) => (
-          <Toast key={toast.id} toast={toast} onDismiss={dismiss} />
-        ))}
+        {/* AnimatePresence keeps a removed toast on screen until its exit animation has finished */}
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <Toast key={toast.id} toast={toast} onDismiss={dismiss} />
+          ))}
+        </AnimatePresence>
       </div>
     </ToastContext>
   );

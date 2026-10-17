@@ -1,5 +1,6 @@
 import { Sparkles } from 'lucide-react';
 import { LEVEL_DISPLAY, LEVEL_START } from '../utils/levels.js';
+import { AnimatedNumber, ProgressFill } from './ui/motion.jsx';
 
 // The member's loyalty level as a card in the level's own colours (bronze, silver, gold),
 // with the points and the progress to the next level. `visits` comes from GET /api/me/visits.
@@ -26,7 +27,9 @@ function LevelCard({ visits }) {
       </div>
 
       <p className="mt-5 flex items-baseline gap-2">
-        <span className="font-display text-6xl font-bold tracking-tight">{points}</span>
+        <span className="font-display text-6xl font-bold tracking-tight">
+          <AnimatedNumber value={points} />
+        </span>
         <span className="text-white/80">points</span>
       </p>
 
@@ -38,7 +41,7 @@ function LevelCard({ visits }) {
         aria-valuemax={100}
         aria-label="Progress to the next level"
       >
-        <div className="h-full rounded-full bg-white" style={{ width: `${progress}%` }} />
+        <ProgressFill percent={progress} className="bg-white" />
       </div>
       <p className="mt-2 flex items-center gap-1.5 text-sm text-white/90">
         <Sparkles className="size-4" aria-hidden="true" />

@@ -1,3 +1,5 @@
+import { ProgressFill } from '../ui/motion.jsx';
+
 // "6 of 15 spots left" with a small bar showing how full the class is.
 function SpotsBar({ capacity, bookedCount, spotsLeft }) {
   const percentFull = Math.round((bookedCount / capacity) * 100);
@@ -14,7 +16,7 @@ function SpotsBar({ capacity, bookedCount, spotsLeft }) {
         <span className="text-faint">{bookedCount} booked</span>
       </div>
       <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-3" aria-hidden="true">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${percentFull}%` }} />
+        <ProgressFill percent={percentFull} className={color} />
       </div>
     </div>
   );

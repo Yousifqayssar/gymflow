@@ -11,6 +11,7 @@ import PageHeader from './ui/PageHeader.jsx';
 import StatCard from './ui/StatCard.jsx';
 import SystemStatus from './SystemStatus.jsx';
 import { formatDate } from '../utils/format.js';
+import { Stagger, StaggerItem } from './ui/motion.jsx';
 
 // Admin home: key numbers, members who need to renew, quick actions.
 // One request gives everything: the expiring members (sorted by urgency) and the counts per status.
@@ -47,18 +48,19 @@ function AdminHome({ user }) {
 
       <ErrorMessage>{error}</ErrorMessage>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((stat) => (
-          <StatCard
-            key={stat.filter}
+          <StaggerItem key={stat.filter}>
+            <StatCard
             label={stat.label}
             value={stat.value}
             icon={stat.icon}
             tone={stat.tone}
-            onClick={() => navigate(`/people?status=${stat.filter}`)}
-          />
+              onClick={() => navigate(`/people?status=${stat.filter}`)}
+            />
+          </StaggerItem>
         ))}
-      </div>
+      </Stagger>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <Card
