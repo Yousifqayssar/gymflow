@@ -1,7 +1,8 @@
 import { env } from '../config/env.js';
+import { AppError } from '../utils/AppError.js';
 
 // Central error handler: every error thrown in a route ends up here
-// and is turned into the same JSON shape: { error: { message, details? } }
+// and is turned into the same JSON shape: { error: { message, details?, code? } }
 // Express recognises an error handler by its 4 parameters, so `next` must stay
 // even though we don't use it.
 export function errorHandler(err, req, res, next) {
@@ -23,6 +24,10 @@ export function errorHandler(err, req, res, next) {
   const body = { error: { message } };
   if (err.details) {
     body.error.details = err.details;
+  }
+  // Only our own codes: other errors (e.g. from Prisma) also have a `code`, which must not leak.
+  if (err instanceof AppError && err.code) {
+    body.error.code = err.code;
   }
 
   res.status(statusCode).json(body);

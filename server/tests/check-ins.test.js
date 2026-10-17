@@ -155,6 +155,7 @@ describe('POST /api/check-ins – refused', () => {
 
     expect(response.status).toBe(403);
     expect(response.body.error.message).toBe("Burak's membership expired on 2026-09-30");
+    expect(response.body.error.code).toBe('MEMBERSHIP_NOT_ACTIVE');
     expect(await prisma.checkIn.count()).toBe(0);
   });
 
@@ -165,6 +166,7 @@ describe('POST /api/check-ins – refused', () => {
 
     expect(response.status).toBe(403);
     expect(response.body.error.message).toBe('Selin has no membership');
+    expect(response.body.error.code).toBe('MEMBERSHIP_NOT_ACTIVE');
   });
 
   it('refuses a member whose membership has not started yet (403)', async () => {
@@ -200,7 +202,11 @@ describe('POST /api/check-ins – refused', () => {
   it('cannot be used by members, not even for themselves (403)', async () => {
     const { token } = await createUser({ role: 'MEMBER' });
 
-    expect((await scan(qrOf(member), token)).status).toBe(403);
+    const response = await scan(qrOf(member), token);
+
+    expect(response.status).toBe(403);
+    // Not a membership refusal: the client must not show "Entry refused" for this.
+    expect(response.body.error.code).toBeUndefined();
   });
 });
 

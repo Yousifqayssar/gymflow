@@ -7,6 +7,10 @@ import { pointsSummary } from './points.js';
 // What is written in a member's QR code: "GYMFLOW:" followed by their secret token.
 export const QR_PREFIX = 'GYMFLOW:';
 
+// Error code for "this member may not enter", so the client does not mix it up with
+// a missing staff permission (both are 403).
+export const MEMBERSHIP_NOT_ACTIVE = 'MEMBERSHIP_NOT_ACTIVE';
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MEMBER_NUMBER = /^GF-?0*(\d+)$/i;
 
@@ -78,7 +82,7 @@ export async function checkIn(code, staff) {
   const current = pickCurrentMembership(member.memberships, today);
   const status = getMembershipStatus(current, today);
   if (status !== MembershipStatus.ACTIVE && status !== MembershipStatus.EXPIRING_SOON) {
-    throw new AppError(403, refusalMessage(member, current, status));
+    throw new AppError(403, refusalMessage(member, current, status), undefined, MEMBERSHIP_NOT_ACTIVE);
   }
 
   const existing = await prisma.checkIn.findUnique({ where: { memberId_gymDay: { memberId: member.id, gymDay: today } } });
