@@ -70,9 +70,9 @@ function LoginPage() {
         </Button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-slate-500">
+      <p className="mt-8 text-center text-sm text-muted">
         New member?{' '}
-        <Link to="/register" className="font-semibold text-brand-700 hover:text-brand-800">
+        <Link to="/register" className="font-semibold text-brand-700 dark:text-brand-300 hover:text-brand-800 dark:hover:text-brand-300">
           Create an account
         </Link>
       </p>

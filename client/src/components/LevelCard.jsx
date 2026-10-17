@@ -4,7 +4,7 @@ import { LEVEL_DISPLAY, LEVEL_START } from '../utils/levels.js';
 // The member's loyalty level as a card in the level's own colours (bronze, silver, gold),
 // with the points and the progress to the next level. `visits` comes from GET /api/me/visits.
 function LevelCard({ visits }) {
-  if (!visits) return <div className="h-52 animate-pulse rounded-2xl bg-slate-200" />;
+  if (!visits) return <div className="h-52 animate-pulse rounded-2xl bg-surface-4" />;
 
   const { points, level, nextLevel, pointsToNextLevel } = visits;
   const { icon: Icon, gradient } = LEVEL_DISPLAY[level];

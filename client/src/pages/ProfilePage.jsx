@@ -31,9 +31,9 @@ import { LEVEL_DISPLAY } from '../utils/levels.js';
 import PageTitle from '../components/ui/PageTitle.jsx';
 
 const ROLE_DISPLAY = {
-  ADMIN: { label: 'Admin', chip: 'bg-violet-100 text-violet-800' },
-  TRAINER: { label: 'Trainer', chip: 'bg-sky-100 text-sky-800' },
-  MEMBER: { label: 'Member', chip: 'bg-brand-100 text-brand-800' },
+  ADMIN: { label: 'Admin', chip: 'bg-violet-100 dark:bg-violet-500/15 text-violet-800 dark:text-violet-300' },
+  TRAINER: { label: 'Trainer', chip: 'bg-sky-100 dark:bg-sky-500/15 text-sky-800 dark:text-sky-300' },
+  MEMBER: { label: 'Member', chip: 'bg-brand-100 dark:bg-brand-500/15 text-brand-800 dark:text-brand-300' },
 };
 
 // Data loaders for useApiData (defined once, outside the components, so they stay the same).
@@ -47,7 +47,7 @@ function ProfileHeader({ user, levelName }) {
   const level = levelName ? LEVEL_DISPLAY[levelName] : null;
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
       <div className="relative h-32 overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-emerald-900 sm:h-40">
         <div aria-hidden="true" className="absolute -top-16 -right-10 size-64 rounded-full bg-white/10" />
         <div aria-hidden="true" className="absolute -bottom-24 left-1/4 size-56 rounded-full bg-white/10" />
@@ -55,12 +55,12 @@ function ProfileHeader({ user, levelName }) {
       </div>
       <div className="px-6 pb-6">
         <div className="flex flex-wrap items-end gap-4">
-          <span className="-mt-12 rounded-full ring-4 ring-white sm:-mt-14">
+          <span className="-mt-12 rounded-full ring-4 ring-surface sm:-mt-14">
             <Avatar firstName={user.firstName} lastName={user.lastName} size="xl" />
           </span>
           <div className="min-w-0 pt-2">
             <PageTitle>Profile</PageTitle>
-            <h1 className="truncate font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            <h1 className="truncate font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">
               {user.firstName} {user.lastName}
             </h1>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -71,7 +71,7 @@ function ProfileHeader({ user, levelName }) {
                   {levelName}
                 </span>
               )}
-              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 font-mono text-xs font-semibold text-slate-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-surface-3 px-3 py-1 font-mono text-xs font-semibold text-ink-2">
                 <Hash className="size-3.5" aria-hidden="true" />
                 {formatMemberNumber(user.id)}
               </span>
@@ -85,10 +85,10 @@ function ProfileHeader({ user, levelName }) {
 
 function AccountDetails({ user }) {
   const rows = [
-    { icon: Hash, tone: 'bg-brand-50 text-brand-700', label: 'Member number', value: formatMemberNumber(user.id), mono: true },
-    { icon: Mail, tone: 'bg-sky-50 text-sky-700', label: 'Email', value: user.email },
-    { icon: ShieldCheck, tone: 'bg-violet-50 text-violet-700', label: 'Role', value: ROLE_DISPLAY[user.role].label },
-    { icon: CalendarDays, tone: 'bg-amber-50 text-amber-700', label: 'Member since', value: formatDate(user.createdAt) },
+    { icon: Hash, tone: 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300', label: 'Member number', value: formatMemberNumber(user.id), mono: true },
+    { icon: Mail, tone: 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300', label: 'Email', value: user.email },
+    { icon: ShieldCheck, tone: 'bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300', label: 'Role', value: ROLE_DISPLAY[user.role].label },
+    { icon: CalendarDays, tone: 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300', label: 'Member since', value: formatDate(user.createdAt) },
   ];
   return (
     <Card title="Account details">
@@ -99,8 +99,8 @@ function AccountDetails({ user }) {
               <Icon className="size-5" aria-hidden="true" />
             </span>
             <span className="min-w-0">
-              <span className="block text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
-              <span className={`block truncate font-medium text-slate-900 ${mono ? 'font-mono' : ''}`}>{value}</span>
+              <span className="block text-xs font-medium uppercase tracking-wide text-faint">{label}</span>
+              <span className={`block truncate font-medium text-ink ${mono ? 'font-mono' : ''}`}>{value}</span>
             </span>
           </li>
         ))}
@@ -139,7 +139,7 @@ function MemberProfile({ user }) {
           <Card
             title="My QR code"
             actions={
-              <Link to="/my-qr" className="inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800">
+              <Link to="/my-qr" className="inline-flex items-center gap-1 text-sm font-medium text-brand-700 dark:text-brand-300 hover:text-brand-800 dark:hover:text-brand-300">
                 <Maximize2 className="size-4" aria-hidden="true" />
                 Full screen
               </Link>
@@ -205,9 +205,9 @@ function StaffProfile({ user }) {
               <Link
                 key={to}
                 to={to}
-                className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800"
+                className="flex items-center gap-3 rounded-xl border border-line px-4 py-3 text-sm font-medium text-ink-2 transition hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-800 dark:hover:text-brand-300"
               >
-                <Icon className="size-5 text-brand-600" aria-hidden="true" />
+                <Icon className="size-5 text-brand-600 dark:text-brand-400" aria-hidden="true" />
                 {label}
               </Link>
             ))}

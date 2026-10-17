@@ -67,7 +67,7 @@ function AdminHome({ user }) {
           title="Needs renewal"
           description="Memberships ending within the next 7 days."
           actions={
-            <Link to="/people?status=expiring" className="text-sm font-medium text-brand-700 hover:text-brand-800">
+            <Link to="/people?status=expiring" className="text-sm font-medium text-brand-700 dark:text-brand-300 hover:text-brand-800 dark:hover:text-brand-300">
               View all
             </Link>
           }
@@ -75,20 +75,20 @@ function AdminHome({ user }) {
           {data?.users.length === 0 && (
             <EmptyState icon={CircleCheck} title="Nobody needs to renew this week" description="All memberships are fine for the next 7 days." />
           )}
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-line-soft">
             {data?.users.slice(0, 5).map((member) => (
               <li key={member.id}>
-                <Link to={`/people/${member.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50">
+                <Link to={`/people/${member.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-surface-2">
                   <Avatar firstName={member.firstName} lastName={member.lastName} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-slate-900">
+                    <p className="truncate font-medium text-ink">
                       {member.firstName} {member.lastName}
                     </p>
-                    <p className="truncate text-sm text-slate-500">
+                    <p className="truncate text-sm text-muted">
                       {member.membership.planName} · ends {formatDate(member.membership.endDate)}
                     </p>
                   </div>
-                  <span className="whitespace-nowrap rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                  <span className="whitespace-nowrap rounded-full bg-amber-100 dark:bg-amber-500/15 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:text-amber-300">
                     {member.membership.daysRemaining} {member.membership.daysRemaining === 1 ? 'day' : 'days'} left
                   </span>
                 </Link>

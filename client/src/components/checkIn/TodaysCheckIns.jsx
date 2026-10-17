@@ -22,20 +22,20 @@ function TodaysCheckIns({ today, error, limit, actions }) {
           <ErrorMessage>{error}</ErrorMessage>
         </div>
       )}
-      {!today && !error && <div className="m-5 h-24 animate-pulse rounded-xl bg-slate-100" />}
+      {!today && !error && <div className="m-5 h-24 animate-pulse rounded-xl bg-surface-3" />}
       {today?.count === 0 && <EmptyState icon={Users} title="No visits yet today" description="Checked-in members appear here." />}
 
-      <ul className="divide-y divide-slate-100">
+      <ul className="divide-y divide-line-soft">
         {checkIns?.map((checkIn) => {
           const MethodIcon = checkIn.method === 'QR' ? QrCode : Keyboard;
           return (
             <li key={checkIn.id} className="flex items-center gap-3 px-5 py-3">
               <Avatar firstName={checkIn.member.firstName} lastName={checkIn.member.lastName} size="sm" />
-              <p className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900">
+              <p className="min-w-0 flex-1 truncate text-sm font-medium text-ink">
                 {checkIn.member.firstName} {checkIn.member.lastName}
               </p>
               <span
-                className="flex items-center gap-1.5 text-sm text-slate-500"
+                className="flex items-center gap-1.5 text-sm text-muted"
                 title={checkIn.method === 'QR' ? 'QR code' : 'Member number'}
               >
                 <MethodIcon className="size-3.5" aria-hidden="true" />

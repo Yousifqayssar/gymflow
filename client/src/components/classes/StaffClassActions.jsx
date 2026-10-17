@@ -44,7 +44,7 @@ function StaffClassActions({ gymClass, onChange }) {
       </div>
 
       <Modal isOpen={isConfirmOpen} title="Cancel this class?" onClose={() => setIsConfirmOpen(false)}>
-        <p className="text-slate-600">
+        <p className="text-ink-3">
           <strong>{gymClass.title}</strong> will be marked as cancelled. It stays visible in the schedule so the{' '}
           {gymClass.bookedCount} booked {gymClass.bookedCount === 1 ? 'member sees' : 'members see'} what happened. This cannot be undone.
         </p>

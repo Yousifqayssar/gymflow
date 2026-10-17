@@ -46,8 +46,8 @@ function AppLayout() {
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div className="min-h-screen bg-canvas">
+      <header className="sticky top-0 z-20 border-b border-line bg-surface/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:px-8">
           {/* Phone: menu button */}
           <button
@@ -56,7 +56,7 @@ function AppLayout() {
             aria-label="Open menu"
             aria-expanded={isMenuOpen}
             aria-controls="mobile-menu"
-            className="-ml-2 rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 lg:hidden"
+            className="-ml-2 rounded-lg p-2 text-ink-3 hover:bg-surface-3 hover:text-ink lg:hidden"
           >
             <Menu className="size-6" />
           </button>
@@ -72,7 +72,7 @@ function AppLayout() {
                 end={item.to === '/'}
                 className={({ isActive }) =>
                   `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    isActive ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300' : 'text-ink-3 hover:bg-surface-3 hover:text-ink'
                   }`
                 }
               >
@@ -88,13 +88,13 @@ function AppLayout() {
             <Link
               to="/profile"
               title="My profile"
-              className="flex items-center gap-3 rounded-lg p-1 hover:bg-slate-100 lg:px-2"
+              className="flex items-center gap-3 rounded-lg p-1 hover:bg-surface-3 lg:px-2"
             >
               <span className="hidden text-right lg:block">
-                <span className="block text-sm font-medium leading-tight text-slate-900">
+                <span className="block text-sm font-medium leading-tight text-ink">
                   {user.firstName} {user.lastName}
                 </span>
-                <span className="block text-xs text-slate-500">{ROLE_LABELS[user.role]}</span>
+                <span className="block text-xs text-muted">{ROLE_LABELS[user.role]}</span>
               </span>
               <Avatar firstName={user.firstName} lastName={user.lastName} size="sm" />
             </Link>
@@ -103,7 +103,7 @@ function AppLayout() {
               onClick={logout}
               title="Log out"
               aria-label="Log out"
-              className="hidden rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 lg:block"
+              className="hidden rounded-lg p-2 text-faint hover:bg-surface-3 hover:text-ink-2 lg:block"
             >
               <LogOut className="size-5" />
             </button>
@@ -127,17 +127,17 @@ function AppLayout() {
           aria-label="Menu"
           // `inert` makes the hidden menu unreachable with the keyboard while it is closed.
           inert={!isMenuOpen}
-          className={`absolute inset-y-0 left-0 flex w-72 max-w-[85%] flex-col bg-white shadow-xl transition-transform duration-300 ${
+          className={`absolute inset-y-0 left-0 flex w-72 max-w-[85%] flex-col bg-surface shadow-xl transition-transform duration-300 ${
             isMenuOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
-          <div className="flex h-16 items-center justify-between border-b border-slate-200 px-4">
+          <div className="flex h-16 items-center justify-between border-b border-line px-4">
             <Logo />
             <button
               type="button"
               onClick={closeMenu}
               aria-label="Close menu"
-              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+              className="rounded-lg p-2 text-muted hover:bg-surface-3 hover:text-ink"
             >
               <X className="size-6" />
             </button>
@@ -152,7 +152,7 @@ function AppLayout() {
                 onClick={closeMenu}
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-lg px-3 py-3 font-medium transition-colors ${
-                    isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-700 hover:bg-slate-100'
+                    isActive ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300' : 'text-ink-2 hover:bg-surface-3'
                   }`
                 }
               >
@@ -162,21 +162,21 @@ function AppLayout() {
             ))}
           </nav>
 
-          <div className="border-t border-slate-200 p-4">
+          <div className="border-t border-line p-4">
             <div className="flex items-center gap-3">
               <Avatar firstName={user.firstName} lastName={user.lastName} />
               <div className="min-w-0">
-                <p className="truncate font-medium text-slate-900">
+                <p className="truncate font-medium text-ink">
                   {user.firstName} {user.lastName}
                 </p>
-                <p className="text-sm text-slate-500">{ROLE_LABELS[user.role]}</p>
+                <p className="text-sm text-muted">{ROLE_LABELS[user.role]}</p>
               </div>
             </div>
-            <ThemeToggle withLabel className="mt-4 w-full justify-center border border-slate-300 py-2.5" />
+            <ThemeToggle withLabel className="mt-4 w-full justify-center border border-line-strong py-2.5" />
             <button
               type="button"
               onClick={logout}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-line-strong px-4 py-2.5 text-sm font-medium text-ink-2 hover:bg-surface-2"
             >
               <LogOut className="size-4" aria-hidden="true" />
               Log out

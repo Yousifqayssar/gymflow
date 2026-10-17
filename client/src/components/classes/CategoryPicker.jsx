@@ -6,7 +6,7 @@ import { CATEGORY_DISPLAY } from '../../utils/classDisplay.js';
 function CategoryPicker({ value, onChange, error }) {
   return (
     <fieldset>
-      <legend className="mb-1.5 text-sm font-medium text-slate-700">Category</legend>
+      <legend className="mb-1.5 text-sm font-medium text-ink-2">Category</legend>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4" role="radiogroup">
         {Object.entries(CATEGORY_DISPLAY).map(([key, { label, photo, icon: Icon }]) => {
           const isSelected = value === key;
@@ -32,7 +32,7 @@ function CategoryPicker({ value, onChange, error }) {
           );
         })}
       </div>
-      {error && <p className="mt-1.5 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{error}</p>}
     </fieldset>
   );
 }

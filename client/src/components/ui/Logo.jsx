@@ -12,7 +12,7 @@ function Logo({ inverted = false }) {
       >
         <Dumbbell className="size-5" aria-hidden="true" />
       </span>
-      <span className={`text-lg font-bold tracking-tight ${inverted ? 'text-white' : 'text-slate-900'}`}>GymFlow</span>
+      <span className={`text-lg font-bold tracking-tight ${inverted ? 'text-white' : 'text-ink'}`}>GymFlow</span>
     </span>
   );
 }

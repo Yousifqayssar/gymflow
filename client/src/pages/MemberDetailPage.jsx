@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
+import { CalendarClock, ChevronLeft, History, Mail } from 'lucide-react';
 import { getMember } from '../api/members.js';
 import { listPlans } from '../api/plans.js';
 import AssignMembershipForm from '../components/AssignMembershipForm.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import MembershipStatusBadge from '../components/MembershipStatusBadge.jsx';
-import { formatDate, formatPrice } from '../utils/format.js';
+import Avatar from '../components/ui/Avatar.jsx';
+import Card from '../components/ui/Card.jsx';
+import EmptyState from '../components/ui/EmptyState.jsx';
 import PageTitle from '../components/ui/PageTitle.jsx';
+import { formatDate, formatMemberNumber, formatPrice } from '../utils/format.js';
 
 // Admin page for one member: current membership, assign a new plan, and history.
 function MemberDetailPage() {
@@ -33,73 +37,83 @@ function MemberDetailPage() {
   }, [id, reloadCount]);
 
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
-  if (!data) return <p className="text-slate-500">Loading…</p>;
+  if (!data) return <div className="h-40 animate-pulse rounded-2xl bg-surface-3" aria-label="Loading" />;
 
   const { user, status, currentMembership, memberships } = data;
   const isMember = user.role === 'MEMBER';
 
   return (
-    <div className="space-y-4">
-      <Link to="/people" className="text-sm font-medium text-slate-600 hover:text-slate-900">
-        ← Back to people
+    <div className="space-y-6">
+      <PageTitle>{`${user.firstName} ${user.lastName}`}</PageTitle>
+      <Link to="/people" className="inline-flex items-center gap-1 text-sm font-medium text-ink-3 hover:text-ink">
+        <ChevronLeft className="size-4" aria-hidden="true" />
+        Back to people
       </Link>
 
-      <section className="rounded-2xl bg-white p-5 shadow-md">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <PageTitle>{`${user.firstName} ${user.lastName}`}</PageTitle>
-            <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+      {/* ---------- Who it is ---------- */}
+      <Card>
+        <div className="flex flex-wrap items-center gap-4">
+          <Avatar firstName={user.firstName} lastName={user.lastName} size="xl" />
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">
               {user.firstName} {user.lastName}
             </h1>
-            <p className="text-slate-600">{user.email}</p>
-            <p className="text-sm text-slate-500">Joined {formatDate(user.createdAt)}</p>
+            <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+              <span className="font-mono">{formatMemberNumber(user.id)}</span>
+              <span className="inline-flex items-center gap-1.5">
+                <Mail className="size-4" aria-hidden="true" />
+                {user.email}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarClock className="size-4" aria-hidden="true" />
+                Joined {formatDate(user.createdAt)}
+              </span>
+            </p>
           </div>
           {isMember && <MembershipStatusBadge status={status} />}
         </div>
 
         {isMember && currentMembership && (
-          <div className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-700">
-            <strong>{currentMembership.plan.name}</strong>: {formatDate(currentMembership.startDate)} –{' '}
+          <div className="mt-5 rounded-xl bg-surface-2 px-4 py-3 text-sm text-ink-2">
+            <strong className="text-ink">{currentMembership.plan.name}</strong>: {formatDate(currentMembership.startDate)} –{' '}
             {formatDate(currentMembership.endDate)}
             {currentMembership.status !== 'EXPIRED' && currentMembership.status !== 'UPCOMING' && (
               <> · {currentMembership.daysRemaining} days left</>
             )}
           </div>
         )}
-        {!isMember && <p className="mt-4 text-sm text-slate-500">Trainers don't have memberships.</p>}
-      </section>
+        {!isMember && <p className="mt-4 text-sm text-muted">Trainers don't have memberships.</p>}
+      </Card>
 
       {isMember && (
-        <>
-          <section className="rounded-2xl bg-white p-5 shadow-md">
-            <h2 className="mb-4 text-lg font-semibold text-slate-900">Assign a plan</h2>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card title="Assign a plan" description="Starts today, or right after the current membership – unless you pick a date.">
             <AssignMembershipForm memberId={user.id} plans={plans} onAssigned={() => setReloadCount((n) => n + 1)} />
-          </section>
+          </Card>
 
-          <section className="rounded-2xl bg-white shadow-md">
-            <h2 className="p-5 pb-2 text-lg font-semibold text-slate-900">Membership history</h2>
+          <Card title="Membership history" padded={false}>
             {memberships.length === 0 ? (
-              <p className="px-5 pb-5 text-slate-500">No memberships yet.</p>
+              <EmptyState icon={History} title="No memberships yet" description="Assign the first plan on the left." />
             ) : (
-              <ul className="divide-y divide-slate-100">
+              <ul className="divide-y divide-line-soft">
                 {memberships.map((membership) => (
                   <li key={membership.id} className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 px-5 py-3">
                     <div>
-                      <p className="font-medium text-slate-900">{membership.plan.name}</p>
-                      <p className="text-sm text-slate-500">
+                      <p className="font-medium text-ink">{membership.plan.name}</p>
+                      <p className="text-sm text-muted">
                         {formatDate(membership.startDate)} – {formatDate(membership.endDate)}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-slate-600">{formatPrice(membership.price)}</span>
+                      <span className="text-sm text-ink-3">{formatPrice(membership.price)}</span>
                       <MembershipStatusBadge status={membership.status} />
                     </div>
                   </li>
                 ))}
               </ul>
             )}
-          </section>
-        </>
+          </Card>
+        </div>
       )}
     </div>
   );

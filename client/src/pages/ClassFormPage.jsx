@@ -138,7 +138,7 @@ function ClassFormPage() {
   }
 
   if (loadError) return <ErrorMessage>{loadError}</ErrorMessage>;
-  if (isLoading) return <div className="h-96 animate-pulse rounded-2xl bg-slate-200" />;
+  if (isLoading) return <div className="h-96 animate-pulse rounded-2xl bg-surface-4" />;
 
   const chosenTrainer = isAdmin ? trainers.find((t) => String(t.id) === form.trainerId) : user;
   const preview = previewClassFromForm(form, chosenTrainer);
@@ -147,7 +147,7 @@ function ClassFormPage() {
     <div>
       <Link
         to={isEdit ? `/classes/${id}` : '/classes'}
-        className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900"
+        className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-ink-3 hover:text-ink"
       >
         <ChevronLeft className="size-4" aria-hidden="true" />
         Back
@@ -242,7 +242,7 @@ function ClassFormPage() {
                 />
               )}
               <fieldset className="sm:col-span-2">
-                <legend className="mb-1.5 text-sm font-medium text-slate-700">Intensity</legend>
+                <legend className="mb-1.5 text-sm font-medium text-ink-2">Intensity</legend>
                 <div className="grid grid-cols-3 gap-2" role="radiogroup">
                   {Object.entries(INTENSITY_DISPLAY).map(([value, { label, dots }]) => (
                     <button
@@ -253,13 +253,13 @@ function ClassFormPage() {
                       onClick={() => setField('intensity', value)}
                       className={`flex flex-col items-center gap-1.5 rounded-lg border px-3 py-2.5 text-sm font-medium ${
                         form.intensity === value
-                          ? 'border-brand-500 bg-brand-50 text-brand-800 ring-2 ring-brand-100'
-                          : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                          ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10 text-brand-800 dark:text-brand-300 ring-2 ring-brand-100 dark:ring-brand-500/25'
+                          : 'border-line-strong bg-surface text-ink-2 hover:bg-surface-2'
                       }`}
                     >
                       <span className="flex gap-1" aria-hidden="true">
                         {[1, 2, 3].map((n) => (
-                          <span key={n} className={`size-2 rounded-full ${n <= dots ? 'bg-brand-500' : 'bg-slate-200'}`} />
+                          <span key={n} className={`size-2 rounded-full ${n <= dots ? 'bg-brand-500' : 'bg-surface-4'}`} />
                         ))}
                       </span>
                       {label.replace(' intensity', '')}
@@ -306,7 +306,7 @@ function ClassFormPage() {
 
         {/* Live preview: how the class will look in the schedule */}
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <p className="mb-2 text-sm font-medium text-slate-500">Preview</p>
+          <p className="mb-2 text-sm font-medium text-muted">Preview</p>
           {/* inert: the preview cannot be clicked or reached with the keyboard */}
           <div inert>
             <ClassCard gymClass={preview} />

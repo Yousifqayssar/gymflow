@@ -3,6 +3,7 @@ import FormField from './FormField.jsx';
 import TextAreaField from './TextAreaField.jsx';
 import ErrorMessage from './ErrorMessage.jsx';
 import { toFieldErrors } from '../utils/fieldErrors.js';
+import Button from './ui/Button.jsx';
 
 const EMPTY_PLAN = { name: '', description: '', durationMonths: '', price: '' };
 
@@ -95,20 +96,12 @@ function PlanForm({ initialPlan = EMPTY_PLAN, submitLabel, onSubmit, onCancel })
       />
 
       <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-60"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving…' : submitLabel}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-        >
+        </Button>
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

@@ -26,7 +26,7 @@ function MemberHome({ user }) {
           {/* The most important action at the gym door: one tap to the QR code */}
           <Link
             to="/my-qr"
-            className="group flex items-center gap-4 rounded-2xl bg-slate-900 px-5 py-4 text-white shadow-md transition hover:bg-slate-800"
+            className="group flex items-center gap-4 rounded-2xl bg-slate-900 px-5 py-4 text-white shadow-md ring-1 ring-white/10 transition hover:bg-slate-800 dark:bg-brand-700 dark:hover:bg-brand-600"
           >
             <span className="flex size-12 items-center justify-center rounded-xl bg-white/10">
               <QrCode className="size-6" aria-hidden="true" />
@@ -40,7 +40,7 @@ function MemberHome({ user }) {
           <LevelCard visits={visits} />
           <Link
             to="/profile"
-            className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+            className="flex items-center justify-between rounded-2xl border border-line bg-surface px-5 py-4 text-sm font-medium text-ink-2 shadow-sm hover:bg-surface-2"
           >
             View my profile and visits
             <ArrowRight className="size-4" aria-hidden="true" />
@@ -57,7 +57,7 @@ function TrainerHome({ user }) {
     <div>
       <PageHeader title={`Welcome, ${user.firstName}`} tabTitle="Home" description="Good to have you on the team." />
       <Card title="Your trainer account">
-        <p className="text-slate-600">
+        <p className="text-ink-3">
           You are logged in as a trainer. Your profile shows your account details and member number.
         </p>
       </Card>

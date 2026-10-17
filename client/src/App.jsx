@@ -47,7 +47,7 @@ function App() {
             <Route
               path="/check-in"
               element={
-                <Suspense fallback={<p className="text-slate-500">Loading check-in…</p>}>
+                <Suspense fallback={<p className="text-muted">Loading check-in…</p>}>
                   <CheckInPage />
                 </Suspense>
               }

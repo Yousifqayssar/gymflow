@@ -17,10 +17,10 @@ function ManualCheckInForm({ onCode, isBusy }) {
   return (
     <form onSubmit={handleSubmit} className="mx-auto mt-6 max-w-sm">
       {/* "or" divider between the camera and the form */}
-      <div className="mb-4 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-slate-400">
-        <span className="h-px flex-1 bg-slate-200" />
+      <div className="mb-4 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-faint">
+        <span className="h-px flex-1 bg-surface-4" />
         or type the member number
-        <span className="h-px flex-1 bg-slate-200" />
+        <span className="h-px flex-1 bg-surface-4" />
       </div>
 
       <label htmlFor="memberNumber" className="sr-only">
@@ -35,7 +35,7 @@ function ManualCheckInForm({ onCode, isBusy }) {
           placeholder="GF-00004"
           autoComplete="off"
           spellCheck={false}
-          className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono uppercase text-slate-900 shadow-sm outline-none transition placeholder:normal-case placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100"
+          className="min-w-0 flex-1 rounded-lg border border-line-strong bg-surface px-3 py-2 font-mono uppercase text-ink shadow-sm outline-none transition placeholder:normal-case placeholder:text-faint focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-500/25"
         />
         <Button type="submit" icon={LogIn} disabled={isBusy || !memberNumber.trim()}>
           Check in

@@ -7,9 +7,9 @@
 
 const VARIANTS = {
   primary: 'bg-brand-600 text-white shadow-sm hover:bg-brand-700 focus-visible:outline-brand-600',
-  secondary: 'border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50 focus-visible:outline-slate-400',
-  danger: 'border border-red-200 bg-white text-red-700 hover:bg-red-50 focus-visible:outline-red-500',
-  ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-slate-400',
+  secondary: 'border border-line-strong bg-surface text-ink-2 shadow-sm hover:bg-surface-2 focus-visible:outline-slate-400',
+  danger: 'border border-red-200 dark:border-red-500/30 bg-surface text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 focus-visible:outline-red-500',
+  ghost: 'text-ink-3 hover:bg-surface-3 hover:text-ink focus-visible:outline-slate-400',
 };
 
 const SIZES = {

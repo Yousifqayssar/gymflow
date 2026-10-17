@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { assignMembership, previewMembership } from '../api/members.js';
 import ErrorMessage from './ErrorMessage.jsx';
 import { formatDate, formatPrice } from '../utils/format.js';
+import Button from './ui/Button.jsx';
 
 // Form to sell a plan to a member. While the admin chooses a plan and start date,
 // the server calculates the dates (the same code that saves), shown as a preview.
@@ -57,7 +58,7 @@ function AssignMembershipForm({ memberId, plans, onAssigned }) {
   const selectedPlan = plans.find((plan) => String(plan.id) === planId);
 
   if (plans.length === 0) {
-    return <p className="text-slate-500">There are no active plans. Create one on the Plans page first.</p>;
+    return <p className="text-muted">There are no active plans. Create one on the Plans page first.</p>;
   }
 
   return (
@@ -66,7 +67,7 @@ function AssignMembershipForm({ memberId, plans, onAssigned }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="planId" className="mb-1 block text-sm font-medium text-slate-700">
+          <label htmlFor="planId" className="mb-1 block text-sm font-medium text-ink-2">
             Plan
           </label>
           <select
@@ -74,7 +75,7 @@ function AssignMembershipForm({ memberId, plans, onAssigned }) {
             required
             value={planId}
             onChange={(event) => setPlanId(event.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+            className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-ink outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-500/25"
           >
             <option value="">Choose a plan…</option>
             {plans.map((plan) => (
@@ -86,38 +87,34 @@ function AssignMembershipForm({ memberId, plans, onAssigned }) {
         </div>
 
         <div>
-          <label htmlFor="startDate" className="mb-1 block text-sm font-medium text-slate-700">
-            Start date <span className="font-normal text-slate-500">(optional)</span>
+          <label htmlFor="startDate" className="mb-1 block text-sm font-medium text-ink-2">
+            Start date <span className="font-normal text-muted">(optional)</span>
           </label>
           <input
             id="startDate"
             type="date"
             value={startDate}
             onChange={(event) => setStartDate(event.target.value)}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+            className="w-full rounded-lg border border-line-strong px-3 py-2 text-ink outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-500/25"
           />
-          <p className="mt-1 text-xs text-slate-500">Empty = today, or right after the current membership.</p>
+          <p className="mt-1 text-xs text-muted">Empty = today, or right after the current membership.</p>
         </div>
       </div>
 
       {/* What the chosen plan includes, so the admin can explain it to the member. */}
-      {selectedPlan?.description && <p className="-mt-1 text-sm text-slate-600">{selectedPlan.description}</p>}
+      {selectedPlan?.description && <p className="-mt-1 text-sm text-ink-3">{selectedPlan.description}</p>}
 
       {planId && preview && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        <div className="rounded-lg border border-line bg-surface-2 px-4 py-3 text-sm text-ink-2">
           Valid from <strong>{formatDate(preview.startDate)}</strong> to <strong>{formatDate(preview.endDate)}</strong> ·{' '}
           {formatPrice(preview.price)}
         </div>
       )}
       {planId && previewError && <ErrorMessage>{previewError}</ErrorMessage>}
 
-      <button
-        type="submit"
-        disabled={isSubmitting || !preview || Boolean(previewError)}
-        className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isSubmitting || !preview || Boolean(previewError)}>
         {isSubmitting ? 'Assigning…' : 'Assign membership'}
-      </button>
+      </Button>
     </form>
   );
 }

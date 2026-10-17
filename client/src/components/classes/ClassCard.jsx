@@ -14,8 +14,8 @@ function ClassCard({ gymClass }) {
   return (
     <Link
       to={`/classes/${gymClass.id}`}
-      className={`group flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg ${
-        isBookedByMe && !isCancelled ? 'border-brand-400 ring-2 ring-brand-200' : 'border-slate-200'
+      className={`group flex flex-col overflow-hidden rounded-2xl border bg-surface shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg ${
+        isBookedByMe && !isCancelled ? 'border-brand-400 ring-2 ring-brand-200' : 'border-line'
       } ${isCancelled ? 'opacity-60 grayscale' : ''}`}
     >
       <ClassBanner category={gymClass.category} className="h-32 p-4">
@@ -25,13 +25,13 @@ function ClassCard({ gymClass }) {
             {label}
           </span>
           {isCancelled && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-red-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-xs font-semibold text-red-700 dark:text-red-300">
               <Ban className="size-3.5" aria-hidden="true" />
               Cancelled
             </span>
           )}
           {!isCancelled && isBookedByMe && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-brand-700 shadow-sm">
+            <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-xs font-semibold text-brand-700 dark:text-brand-300 shadow-sm">
               <CircleCheck className="size-3.5" aria-hidden="true" />
               Booked
             </span>
@@ -45,24 +45,24 @@ function ClassCard({ gymClass }) {
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div>
-          <p className={`text-lg font-semibold leading-snug text-slate-900 group-hover:text-brand-700 ${isCancelled ? 'line-through' : ''}`}>
+          <p className={`text-lg font-semibold leading-snug text-ink group-hover:text-brand-700 dark:group-hover:text-brand-300 ${isCancelled ? 'line-through' : ''}`}>
             {gymClass.title}
           </p>
           {/* The meeting point may wrap: it is important information, so it is never cut off. */}
-          <p className="mt-0.5 flex items-start gap-1 text-sm text-slate-500">
+          <p className="mt-0.5 flex items-start gap-1 text-sm text-muted">
             <MapPin className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
             {gymClass.location}
           </p>
         </div>
 
         <div className="flex items-center justify-between gap-3 text-sm">
-          <span className="flex min-w-0 items-center gap-2 text-slate-600">
+          <span className="flex min-w-0 items-center gap-2 text-ink-3">
             <Avatar firstName={gymClass.trainer.firstName} lastName={gymClass.trainer.lastName} size="sm" />
             <span className="truncate">
               {gymClass.trainer.firstName} {gymClass.trainer.lastName}
             </span>
           </span>
-          <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+          <span className="shrink-0 rounded-full bg-surface-3 px-2.5 py-0.5 text-xs font-medium text-ink-3">
             {LEVEL_LABELS[gymClass.level]}
           </span>
         </div>

@@ -19,28 +19,28 @@ export const CATEGORY_DISPLAY = {
     icon: Footprints,
     photo: runningPhoto,
     gradient: 'from-orange-400 via-orange-500 to-rose-500',
-    soft: 'bg-orange-100 text-orange-700',
+    soft: 'bg-orange-100 dark:bg-orange-500/15 text-orange-700 dark:text-orange-300',
   },
   YOGA: {
     label: 'Yoga',
     icon: Flower2,
     photo: yogaPhoto,
     gradient: 'from-violet-400 via-purple-500 to-fuchsia-500',
-    soft: 'bg-violet-100 text-violet-700',
+    soft: 'bg-violet-100 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300',
   },
   HIIT: {
     label: 'HIIT',
     icon: Zap,
     photo: hiitPhoto,
     gradient: 'from-rose-500 via-red-500 to-orange-500',
-    soft: 'bg-red-100 text-red-700',
+    soft: 'bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-300',
   },
   CYCLING: {
     label: 'Cycling',
     icon: Bike,
     photo: cyclingPhoto,
     gradient: 'from-sky-400 via-sky-500 to-blue-600',
-    soft: 'bg-sky-100 text-sky-700',
+    soft: 'bg-sky-100 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300',
   },
   PILATES: {
     label: 'Pilates',
@@ -54,7 +54,7 @@ export const CATEGORY_DISPLAY = {
     icon: HandFist,
     photo: boxingPhoto,
     gradient: 'from-amber-400 via-orange-500 to-red-600',
-    soft: 'bg-amber-100 text-amber-800',
+    soft: 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300',
   },
   STRENGTH: {
     label: 'Strength',
@@ -68,7 +68,7 @@ export const CATEGORY_DISPLAY = {
     icon: StretchHorizontal,
     photo: mobilityPhoto,
     gradient: 'from-teal-400 via-emerald-500 to-green-600',
-    soft: 'bg-teal-100 text-teal-700',
+    soft: 'bg-teal-100 dark:bg-teal-500/15 text-teal-700 dark:text-teal-300',
   },
 };
 

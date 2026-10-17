@@ -5,8 +5,13 @@ import ErrorMessage from '../components/ErrorMessage.jsx';
 import MembershipStatusBadge from '../components/MembershipStatusBadge.jsx';
 import MembershipSummary from '../components/MembershipSummary.jsx';
 import UserForm from '../components/UserForm.jsx';
-import { formatDate } from '../utils/format.js';
-import PageTitle from '../components/ui/PageTitle.jsx';
+import { ChevronRight, Search, UserPlus, Users } from 'lucide-react';
+import { formatDate, formatMemberNumber } from '../utils/format.js';
+import Avatar from '../components/ui/Avatar.jsx';
+import Button from '../components/ui/Button.jsx';
+import Card from '../components/ui/Card.jsx';
+import EmptyState from '../components/ui/EmptyState.jsx';
+import PageHeader from '../components/ui/PageHeader.jsx';
 
 const TABS = [
   { role: 'MEMBER', label: 'Members' },
@@ -89,33 +94,27 @@ function MembersPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <PageTitle>People</PageTitle>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">People</h1>
-          <p className="text-slate-600">Gym members and trainers.</p>
-        </div>
-        {!isCreating && (
-          <button
-            type="button"
-            onClick={() => setIsCreating(true)}
-            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
-          >
-            + Add person
-          </button>
-        )}
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="People"
+        description="Gym members and trainers."
+        actions={
+          !isCreating && (
+            <Button icon={UserPlus} onClick={() => setIsCreating(true)}>
+              Add person
+            </Button>
+          )
+        }
+      />
 
       {isCreating && (
-        <section className="rounded-2xl bg-white p-5 shadow-md">
-          <h2 className="mb-4 text-lg font-semibold text-slate-900">New account</h2>
+        <Card title="New account" description="The person can log in straight away with this password.">
           <UserForm initialRole={role} onSubmit={handleCreate} onCancel={() => setIsCreating(false)} />
-        </section>
+        </Card>
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex rounded-lg bg-white p-1 shadow-sm" role="tablist">
+        <div className="flex rounded-xl border border-line bg-surface p-1 shadow-sm" role="tablist">
           {TABS.map((tab) => (
             <button
               key={tab.role}
@@ -123,8 +122,8 @@ function MembersPage() {
               role="tab"
               aria-selected={role === tab.role}
               onClick={() => handleTabChange(tab.role)}
-              className={`rounded-md px-4 py-1.5 text-sm font-medium ${
-                role === tab.role ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                role === tab.role ? 'bg-brand-600 text-white shadow-sm' : 'text-ink-3 hover:bg-surface-3 hover:text-ink'
               }`}
             >
               {tab.label}
@@ -132,14 +131,17 @@ function MembersPage() {
           ))}
         </div>
 
-        <input
-          type="search"
-          placeholder="Search name or email…"
-          aria-label="Search name or email"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200 sm:max-w-xs"
-        />
+        <div className="relative min-w-0 flex-1 sm:max-w-xs">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-faint" aria-hidden="true" />
+          <input
+            type="search"
+            placeholder="Search name or email…"
+            aria-label="Search name or email"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="w-full rounded-lg border border-line-strong bg-surface py-2 pr-3 pl-9 text-ink shadow-sm outline-none transition placeholder:text-faint focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-500/25"
+          />
+        </div>
       </div>
 
       {isMemberTab && (
@@ -150,10 +152,10 @@ function MembersPage() {
               type="button"
               aria-pressed={status === filter.value}
               onClick={() => handleStatusChange(filter.value)}
-              className={`whitespace-nowrap rounded-full border px-3 py-1 text-sm font-medium ${
+              className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
                 status === filter.value
-                  ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  ? 'border-brand-600 bg-brand-600 text-white'
+                  : 'border-line-strong bg-surface text-ink-2 hover:bg-surface-2'
               }`}
             >
               {filter.label}
@@ -165,46 +167,69 @@ function MembersPage() {
 
       <ErrorMessage>{error}</ErrorMessage>
 
-      <section className="rounded-2xl bg-white shadow-md">
-        {users === null && !error && <p className="p-5 text-slate-500">Loading…</p>}
+      <Card padded={false}>
+        {users === null && !error && <ListSkeleton />}
 
         {users?.length === 0 && (
-          <p className="p-5 text-slate-500">
-            {search || status ? 'Nobody matches these filters.' : `No ${isMemberTab ? 'members' : 'trainers'} yet.`}
-          </p>
+          <EmptyState
+            icon={Users}
+            title={search || status ? 'Nobody matches these filters' : `No ${isMemberTab ? 'members' : 'trainers'} yet`}
+            description={search || status ? 'Try another name or filter.' : 'Add the first person with “Add person”.'}
+          />
         )}
 
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-line-soft">
           {users?.map((user) => (
             <li key={user.id}>
               <Link
                 to={`/people/${user.id}`}
-                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 p-4 hover:bg-slate-50 sm:px-5"
+                className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3.5 transition-colors hover:bg-surface-2 sm:px-5"
               >
-                <div className="min-w-0">
-                  <p className="font-semibold text-slate-900">
+                <Avatar firstName={user.firstName} lastName={user.lastName} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-ink">
                     {user.firstName} {user.lastName}
                   </p>
-                  <p className="truncate text-sm text-slate-500">{user.email}</p>
+                  <p className="truncate text-sm text-muted">
+                    <span className="font-mono">{formatMemberNumber(user.id)}</span> · {user.email}
+                  </p>
                 </div>
 
                 {user.membership ? (
-                  // Phones: always below the name. Wider screens: on the right.
-                  <div className="flex w-full flex-col items-start gap-1 sm:w-auto sm:items-end">
+                  // Phones: below the name. Wider screens: on the right.
+                  <div className="flex w-full flex-col items-start gap-1 pl-14 sm:w-auto sm:items-end sm:pl-0">
                     <MembershipStatusBadge status={user.membership.status} />
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-muted">
                       <MembershipSummary membership={user.membership} />
                     </p>
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500">Joined {formatDate(user.createdAt)}</p>
+                  <p className="w-full pl-14 text-sm text-muted sm:w-auto sm:pl-0">Joined {formatDate(user.createdAt)}</p>
                 )}
+                <ChevronRight className="hidden size-5 shrink-0 text-faint sm:block" aria-hidden="true" />
               </Link>
             </li>
           ))}
         </ul>
-      </section>
+      </Card>
     </div>
+  );
+}
+
+// Grey placeholder rows while the list loads, so the page does not jump when it arrives.
+function ListSkeleton() {
+  return (
+    <ul className="divide-y divide-line-soft" aria-label="Loading">
+      {[1, 2, 3, 4].map((n) => (
+        <li key={n} className="flex animate-pulse items-center gap-4 px-5 py-4">
+          <span className="size-10 rounded-full bg-surface-3" />
+          <span className="flex-1 space-y-2">
+            <span className="block h-3.5 w-40 rounded bg-surface-3" />
+            <span className="block h-3 w-56 rounded bg-surface-3" />
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 

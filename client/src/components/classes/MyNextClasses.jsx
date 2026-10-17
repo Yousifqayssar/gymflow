@@ -35,7 +35,7 @@ function MyNextClasses() {
       padded={false}
       actions={
         classes?.length > 0 && (
-          <Link to="/classes" className="text-sm font-medium text-brand-700 hover:text-brand-800">
+          <Link to="/classes" className="text-sm font-medium text-brand-700 dark:text-brand-300 hover:text-brand-800 dark:hover:text-brand-300">
             All classes
           </Link>
         )
@@ -46,7 +46,7 @@ function MyNextClasses() {
           <ErrorMessage>{error}</ErrorMessage>
         </div>
       )}
-      {!classes && !error && <div className="m-5 h-16 animate-pulse rounded-xl bg-slate-100" />}
+      {!classes && !error && <div className="m-5 h-16 animate-pulse rounded-xl bg-surface-3" />}
 
       {classes?.length === 0 && (
         <EmptyState
@@ -61,23 +61,23 @@ function MyNextClasses() {
         />
       )}
 
-      <ul className="divide-y divide-slate-100">
+      <ul className="divide-y divide-line-soft">
         {classes?.slice(0, SHOWN).map((gymClass) => (
           <li key={gymClass.id}>
-            <Link to={`/classes/${gymClass.id}`} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50">
+            <Link to={`/classes/${gymClass.id}`} className="flex items-center gap-4 px-5 py-3.5 hover:bg-surface-2">
               <img
                 src={CATEGORY_DISPLAY[gymClass.category].photo}
                 alt=""
                 className="size-14 shrink-0 rounded-xl object-cover"
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-slate-900">{gymClass.title}</p>
-                <p className="text-sm text-slate-500">
+                <p className="truncate font-semibold text-ink">{gymClass.title}</p>
+                <p className="text-sm text-muted">
                   {formatLongDay(gymClass.startsAt)} · {formatTime(gymClass.startsAt)}
                 </p>
-                <p className="truncate text-sm text-slate-400">{gymClass.location}</p>
+                <p className="truncate text-sm text-faint">{gymClass.location}</p>
               </div>
-              <ChevronRight className="size-5 shrink-0 text-slate-300" aria-hidden="true" />
+              <ChevronRight className="size-5 shrink-0 text-faint" aria-hidden="true" />
             </Link>
           </li>
         ))}

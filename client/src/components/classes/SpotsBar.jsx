@@ -10,10 +10,10 @@ function SpotsBar({ capacity, bookedCount, spotsLeft }) {
   return (
     <div>
       <div className="flex justify-between text-xs">
-        <span className={`font-medium ${isFull ? 'text-red-600' : isAlmostFull ? 'text-amber-700' : 'text-slate-600'}`}>{text}</span>
-        <span className="text-slate-400">{bookedCount} booked</span>
+        <span className={`font-medium ${isFull ? 'text-red-600 dark:text-red-400' : isAlmostFull ? 'text-amber-700 dark:text-amber-300' : 'text-ink-3'}`}>{text}</span>
+        <span className="text-faint">{bookedCount} booked</span>
       </div>
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-3" aria-hidden="true">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${percentFull}%` }} />
       </div>
     </div>

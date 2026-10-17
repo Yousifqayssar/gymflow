@@ -37,7 +37,7 @@ function MemberQrCode({ size = 'large' }) {
 
   return (
     <div className="flex flex-col items-center text-center">
-      <div className={`rounded-2xl border border-slate-200 bg-white shadow-sm ${isLarge ? 'p-5' : 'p-3'}`}>
+      <div className={`rounded-2xl border border-line bg-white shadow-sm ${isLarge ? 'p-5' : 'p-3'}`}>
         {data ? (
           // Black on white with a quiet zone: the easiest QR code for any camera to read.
           <QRCodeSVG
@@ -52,13 +52,13 @@ function MemberQrCode({ size = 'large' }) {
         )}
       </div>
 
-      <p className="mt-4 text-xs font-medium uppercase tracking-wide text-slate-400">Member number</p>
-      <p className={`font-mono font-bold tracking-widest text-slate-900 ${isLarge ? 'text-2xl' : 'text-lg'}`}>
+      <p className="mt-4 text-xs font-medium uppercase tracking-wide text-faint">Member number</p>
+      <p className={`font-mono font-bold tracking-widest text-ink ${isLarge ? 'text-2xl' : 'text-lg'}`}>
         {formatMemberNumber(user.id)}
       </p>
 
       {isLarge && (
-        <p className="mt-4 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <p className="mt-4 flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-sm text-amber-800 dark:text-amber-300">
           <Sun className="size-4 shrink-0" aria-hidden="true" />
           Turn up your screen brightness at the entrance.
         </p>
@@ -69,7 +69,7 @@ function MemberQrCode({ size = 'large' }) {
       </Button>
 
       <Modal isOpen={isConfirmOpen} title="Get a new QR code?" onClose={() => setIsConfirmOpen(false)}>
-        <p className="text-slate-600">
+        <p className="text-ink-3">
           Your current QR code will stop working immediately. Do this if someone else may have a photo of your code.
         </p>
         <div className="mt-4">

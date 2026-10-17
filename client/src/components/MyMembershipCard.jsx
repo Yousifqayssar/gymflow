@@ -43,7 +43,7 @@ function MyMembershipCard() {
   }, []);
 
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
-  if (!data) return <div className="h-56 animate-pulse rounded-2xl bg-slate-200" aria-label="Loading your membership" />;
+  if (!data) return <div className="h-56 animate-pulse rounded-2xl bg-surface-4" aria-label="Loading your membership" />;
 
   const { status, currentMembership: current, memberships } = data;
   const isValidToday = status === 'ACTIVE' || status === 'EXPIRING_SOON';
@@ -124,7 +124,7 @@ function MyMembershipCard() {
       </section>
 
       {next && (
-        <p className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        <p className="flex items-center gap-2 rounded-xl border border-blue-100 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 px-4 py-3 text-sm text-blue-800 dark:text-blue-300">
           <CalendarClock className="size-4 shrink-0" aria-hidden="true" />
           <span>
             Renewed: <strong>{next.plan.name}</strong> starts on {formatDate(next.startDate)}.
@@ -136,10 +136,10 @@ function MyMembershipCard() {
         <p
           className={`rounded-xl border px-4 py-3 text-sm ${
             status === 'EXPIRING_SOON' || status === 'EXPIRED'
-              ? 'border-amber-200 bg-amber-50 text-amber-800'
+              ? 'border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300'
               : isUpcoming
-                ? 'border-blue-100 bg-blue-50 text-blue-800'
-                : 'border-slate-200 bg-white text-slate-600'
+                ? 'border-blue-100 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 text-blue-800 dark:text-blue-300'
+                : 'border-line bg-surface text-ink-3'
           }`}
         >
           {hint}

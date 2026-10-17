@@ -24,12 +24,12 @@ import {
 function Fact({ icon: Icon, label, children }) {
   return (
     <div className="flex gap-3">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-3 text-muted">
         <Icon className="size-5" aria-hidden="true" />
       </span>
       <div className="min-w-0">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
-        <div className="font-medium text-slate-900">{children}</div>
+        <p className="text-xs font-medium uppercase tracking-wide text-faint">{label}</p>
+        <div className="font-medium text-ink">{children}</div>
       </div>
     </div>
   );
@@ -41,7 +41,7 @@ function IntensityDots({ intensity }) {
     <span className="flex items-center gap-2">
       <span className="flex gap-1" aria-hidden="true">
         {[1, 2, 3].map((n) => (
-          <span key={n} className={`size-2 rounded-full ${n <= dots ? 'bg-brand-500' : 'bg-slate-200'}`} />
+          <span key={n} className={`size-2 rounded-full ${n <= dots ? 'bg-brand-500' : 'bg-surface-4'}`} />
         ))}
       </span>
       {label}
@@ -71,7 +71,7 @@ function ClassDetailPage() {
   }, [id]);
 
   if (error) return <ErrorMessage>{error}</ErrorMessage>;
-  if (!gymClass) return <div className="h-64 animate-pulse rounded-2xl bg-slate-200" />;
+  if (!gymClass) return <div className="h-64 animate-pulse rounded-2xl bg-surface-4" />;
 
   const category = CATEGORY_DISPLAY[gymClass.category];
   const isMember = user.role === 'MEMBER';
@@ -80,7 +80,7 @@ function ClassDetailPage() {
     // On phones members get a booking bar fixed to the bottom; pb-40 keeps content visible above it.
     <div className={`space-y-6 ${isMember ? 'pb-40 lg:pb-0' : ''}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link to="/classes" className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900">
+        <Link to="/classes" className="inline-flex items-center gap-1 text-sm font-medium text-ink-3 hover:text-ink">
           <ChevronLeft className="size-4" aria-hidden="true" />
           All classes
         </Link>
@@ -89,7 +89,7 @@ function ClassDetailPage() {
       </div>
 
       {gymClass.isCancelled && (
-        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+        <div className="flex items-center gap-3 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-4 py-3 text-red-800 dark:text-red-300">
           <Ban className="size-5 shrink-0" aria-hidden="true" />
           <p className="font-medium">This class has been cancelled.</p>
         </div>
@@ -114,25 +114,25 @@ function ClassDetailPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Card title="About this class">
-            <p className="whitespace-pre-line leading-relaxed text-slate-700">{gymClass.description}</p>
+            <p className="whitespace-pre-line leading-relaxed text-ink-2">{gymClass.description}</p>
           </Card>
 
           {gymClass.whatToBring && (
             <Card title="What to bring">
-              <p className="flex gap-3 text-slate-700">
-                <Backpack className="mt-0.5 size-5 shrink-0 text-slate-400" aria-hidden="true" />
+              <p className="flex gap-3 text-ink-2">
+                <Backpack className="mt-0.5 size-5 shrink-0 text-faint" aria-hidden="true" />
                 {gymClass.whatToBring}
               </p>
             </Card>
           )}
 
           {gymClass.healthNotes && (
-            <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-              <h2 className="flex items-center gap-2 font-semibold text-amber-900">
+            <section className="rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-5">
+              <h2 className="flex items-center gap-2 font-semibold text-amber-900 dark:text-amber-300">
                 <HeartPulse className="size-5" aria-hidden="true" />
                 Health notes
               </h2>
-              <p className="mt-2 leading-relaxed text-amber-900">{gymClass.healthNotes}</p>
+              <p className="mt-2 leading-relaxed text-amber-900 dark:text-amber-300">{gymClass.healthNotes}</p>
             </section>
           )}
         </div>
@@ -157,7 +157,7 @@ function ClassDetailPage() {
               </Fact>
               <Fact icon={Clock} label="Time">
                 {formatTime(gymClass.startsAt)} – {formatTime(gymClass.endsAt)}{' '}
-                <span className="font-normal text-slate-500">({formatDuration(gymClass.durationMinutes)})</span>
+                <span className="font-normal text-muted">({formatDuration(gymClass.durationMinutes)})</span>
               </Fact>
               <Fact icon={MapPin} label="Meeting point">
                 {gymClass.location}
@@ -177,7 +177,7 @@ function ClassDetailPage() {
             </div>
 
             {!gymClass.isCancelled && (
-              <div className="mt-6 border-t border-slate-100 pt-5">
+              <div className="mt-6 border-t border-line-soft pt-5">
                 <SpotsBar capacity={gymClass.capacity} bookedCount={gymClass.bookedCount} spotsLeft={gymClass.spotsLeft} />
               </div>
             )}
@@ -187,13 +187,13 @@ function ClassDetailPage() {
           {gymClass.attendees && (
             <Card title="Booked members" description={`${gymClass.attendees.length} of ${gymClass.capacity}`} padded={false}>
               {gymClass.attendees.length === 0 ? (
-                <p className="px-5 py-4 text-sm text-slate-500">Nobody has booked yet.</p>
+                <p className="px-5 py-4 text-sm text-muted">Nobody has booked yet.</p>
               ) : (
-                <ul className="divide-y divide-slate-100">
+                <ul className="divide-y divide-line-soft">
                   {gymClass.attendees.map((attendee) => (
                     <li key={attendee.id} className="flex items-center gap-3 px-5 py-2.5">
                       <Avatar firstName={attendee.firstName} lastName={attendee.lastName} size="sm" />
-                      <span className="text-sm font-medium text-slate-900">
+                      <span className="text-sm font-medium text-ink">
                         {attendee.firstName} {attendee.lastName}
                       </span>
                     </li>

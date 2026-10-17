@@ -7,8 +7,8 @@ import Card from './ui/Card.jsx';
 function StatusRow({ label, isUp }) {
   return (
     <div className="flex items-center justify-between py-2">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
-      <span className={`flex items-center gap-2 text-sm font-medium ${isUp ? 'text-brand-700' : 'text-red-600'}`}>
+      <span className="text-sm font-medium text-ink-2">{label}</span>
+      <span className={`flex items-center gap-2 text-sm font-medium ${isUp ? 'text-brand-700 dark:text-brand-300' : 'text-red-600 dark:text-red-400'}`}>
         <span className={`size-2 rounded-full ${isUp ? 'bg-brand-500' : 'bg-red-500'}`} aria-hidden="true" />
         {isUp ? 'Online' : 'Offline'}
       </span>
@@ -48,16 +48,16 @@ function SystemStatus() {
           onClick={handleCheckAgain}
           aria-label="Check again"
           title="Check again"
-          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+          className="rounded-lg p-1.5 text-faint hover:bg-surface-3 hover:text-ink-2"
         >
           <RefreshCw className="size-4" />
         </button>
       }
     >
       {health === null ? (
-        <p className="py-2 text-sm text-slate-500">Checking…</p>
+        <p className="py-2 text-sm text-muted">Checking…</p>
       ) : (
-        <div className="-my-2 divide-y divide-slate-100">
+        <div className="-my-2 divide-y divide-line-soft">
           <StatusRow label="API" isUp={health.api} />
           <StatusRow label="Database" isUp={health.database} />
         </div>

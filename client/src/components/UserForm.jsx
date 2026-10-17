@@ -2,6 +2,7 @@ import { useState } from 'react';
 import FormField from './FormField.jsx';
 import ErrorMessage from './ErrorMessage.jsx';
 import { toFieldErrors } from '../utils/fieldErrors.js';
+import Button from './ui/Button.jsx';
 
 // Admin form for creating a Member or Trainer account.
 // `onSubmit` receives { firstName, lastName, email, password, role } and may throw an ApiError.
@@ -35,13 +36,13 @@ function UserForm({ initialRole = 'MEMBER', onSubmit, onCancel }) {
       <ErrorMessage>{error}</ErrorMessage>
 
       <fieldset>
-        <legend className="mb-1 text-sm font-medium text-slate-700">Account type</legend>
+        <legend className="mb-1 text-sm font-medium text-ink-2">Account type</legend>
         <div className="flex gap-4">
           {[
             ['MEMBER', 'Member'],
             ['TRAINER', 'Trainer'],
           ].map(([value, label]) => (
-            <label key={value} className="flex items-center gap-2 text-slate-700">
+            <label key={value} className="flex items-center gap-2 text-ink-2">
               <input type="radio" name="role" value={value} checked={form.role === value} onChange={handleChange} />
               {label}
             </label>
@@ -65,23 +66,15 @@ function UserForm({ initialRole = 'MEMBER', onSubmit, onCancel }) {
           error={fieldErrors.password}
         />
       </div>
-      <p className="-mt-2 text-xs text-slate-500">At least 8 characters. Give it to the person so they can log in.</p>
+      <p className="-mt-2 text-xs text-muted">At least 8 characters. Give it to the person so they can log in.</p>
 
       <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-60"
-        >
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Creating…' : 'Create account'}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-        >
+        </Button>
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

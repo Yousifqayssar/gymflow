@@ -75,7 +75,7 @@ function ClassesPage() {
             className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
               category === value
                 ? 'border-brand-600 bg-brand-600 text-white'
-                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                : 'border-line-strong bg-surface text-ink-2 hover:bg-surface-2'
             }`}
           >
             {label}
@@ -88,13 +88,13 @@ function ClassesPage() {
       {!data && !error && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((n) => (
-            <div key={n} className="h-48 animate-pulse rounded-2xl bg-slate-200" />
+            <div key={n} className="h-48 animate-pulse rounded-2xl bg-surface-4" />
           ))}
         </div>
       )}
 
       {data?.classes.length === 0 && (
-        <div className="rounded-2xl border border-slate-200 bg-white">
+        <div className="rounded-2xl border border-line bg-surface">
           <EmptyState
             icon={CalendarDays}
             title="No classes planned"
@@ -107,7 +107,7 @@ function ClassesPage() {
         {data &&
           groupByDay(data.classes).map(([key, classes]) => (
             <section key={key}>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
                 {formatDayHeading(classes[0].startsAt, data.loadedAt)}
               </h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

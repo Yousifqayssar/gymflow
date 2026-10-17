@@ -84,16 +84,16 @@ function RegisterPage() {
           onChange={handleChange}
           error={fieldErrors.password}
         />
-        <p className="-mt-2 text-xs text-slate-500">At least 8 characters.</p>
+        <p className="-mt-2 text-xs text-muted">At least 8 characters.</p>
 
         <Button type="submit" disabled={isSubmitting} className="w-full py-2.5">
           {isSubmitting ? 'Creating account…' : 'Create account'}
         </Button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-slate-500">
+      <p className="mt-8 text-center text-sm text-muted">
         Already have an account?{' '}
-        <Link to="/login" className="font-semibold text-brand-700 hover:text-brand-800">
+        <Link to="/login" className="font-semibold text-brand-700 dark:text-brand-300 hover:text-brand-800 dark:hover:text-brand-300">
           Log in
         </Link>
       </p>

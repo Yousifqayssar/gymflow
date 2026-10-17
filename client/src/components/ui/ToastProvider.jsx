@@ -16,14 +16,14 @@ function Toast({ toast, onDismiss }) {
   const Icon = isError ? CircleAlert : CircleCheck;
 
   return (
-    <div className="pointer-events-auto flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-lg">
-      <Icon className={`size-5 shrink-0 ${isError ? 'text-red-600' : 'text-brand-600'}`} aria-hidden="true" />
-      <p className="text-sm font-medium text-slate-900">{toast.message}</p>
+    <div className="pointer-events-auto flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 shadow-lg">
+      <Icon className={`size-5 shrink-0 ${isError ? 'text-red-600 dark:text-red-400' : 'text-brand-600 dark:text-brand-400'}`} aria-hidden="true" />
+      <p className="text-sm font-medium text-ink">{toast.message}</p>
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
         aria-label="Dismiss"
-        className="ml-2 rounded p-0.5 text-slate-400 hover:text-slate-600"
+        className="ml-2 rounded p-0.5 text-faint hover:text-ink-3"
       >
         <X className="size-4" />
       </button>

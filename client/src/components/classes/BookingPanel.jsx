@@ -52,18 +52,18 @@ function BookingPanel({ gymClass, onChange, variant = 'card' }) {
   const content = (
     <>
       {state === 'BOOKED' && (
-        <p className="flex items-center gap-2 font-semibold text-brand-700">
+        <p className="flex items-center gap-2 font-semibold text-brand-700 dark:text-brand-300">
           <CircleCheck className="size-5" aria-hidden="true" />
           You're booked
         </p>
       )}
       {state === 'STARTED' && (
-        <p className="flex items-center gap-2 text-sm font-medium text-slate-500">
+        <p className="flex items-center gap-2 text-sm font-medium text-muted">
           <Clock className="size-4" aria-hidden="true" />
           This class has already started
         </p>
       )}
-      {(state === 'OPEN' || state === 'FULL') && <p className="text-sm text-slate-500">{spotsText}</p>}
+      {(state === 'OPEN' || state === 'FULL') && <p className="text-sm text-muted">{spotsText}</p>}
 
       {state === 'OPEN' && (
         <Button icon={CalendarCheck} onClick={handleBook} disabled={isBusy} className="w-full py-3 text-base">
@@ -86,12 +86,12 @@ function BookingPanel({ gymClass, onChange, variant = 'card' }) {
   return (
     <>
       {variant === 'card' ? (
-        <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="space-y-3 rounded-2xl border border-line bg-surface p-5 shadow-sm">
           {content}
           <ErrorMessage>{error}</ErrorMessage>
         </section>
       ) : (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur">
           <div className="mx-auto max-w-md space-y-2">
             <ErrorMessage>{error}</ErrorMessage>
             {content}
@@ -100,7 +100,7 @@ function BookingPanel({ gymClass, onChange, variant = 'card' }) {
       )}
 
       <Modal isOpen={isConfirmOpen} title="Cancel your booking?" onClose={() => setIsConfirmOpen(false)}>
-        <p className="text-slate-600">
+        <p className="text-ink-3">
           Your spot in <strong>{gymClass.title}</strong> will be given to someone else. You can book again later if
           spots are still free.
         </p>

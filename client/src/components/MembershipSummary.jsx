@@ -8,7 +8,7 @@ function MembershipSummary({ membership }) {
       return (
         <>
           {membership.planName} · ends {formatDate(membership.endDate)} ·{' '}
-          <span className={membership.status === 'EXPIRING_SOON' ? 'font-semibold text-amber-700' : ''}>
+          <span className={membership.status === 'EXPIRING_SOON' ? 'font-semibold text-amber-700 dark:text-amber-300' : ''}>
             {membership.daysRemaining} {membership.daysRemaining === 1 ? 'day' : 'days'} left
           </span>
         </>

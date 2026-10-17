@@ -8,7 +8,7 @@ function MyQrPage() {
 
   return (
     <div className="mx-auto max-w-md">
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg">
+      <section className="overflow-hidden rounded-3xl border border-line bg-surface shadow-lg">
         <div className="bg-gradient-to-br from-brand-500 to-brand-800 px-6 py-6 text-center text-white">
           <p className="text-sm font-medium text-white/80">Check in at the entrance</p>
           <PageTitle>My QR code</PageTitle>
@@ -20,7 +20,7 @@ function MyQrPage() {
           <MemberQrCode size="large" />
         </div>
       </section>
-      <p className="mt-4 text-center text-sm text-slate-500">
+      <p className="mt-4 text-center text-sm text-muted">
         Staff scan this code with the gym’s check-in screen. Every visit earns you 10 points.
       </p>
     </div>

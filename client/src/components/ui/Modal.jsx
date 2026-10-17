@@ -27,17 +27,17 @@ function Modal({ isOpen, title, onClose, children }) {
         onClose();
       }}
       onClick={handleClick}
-      className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl bg-white p-0 shadow-xl backdrop:bg-slate-900/40"
+      className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl bg-surface p-0 shadow-xl backdrop:bg-slate-900/40"
     >
       {isOpen && (
         <div className="p-6">
           <div className="mb-5 flex items-start justify-between gap-4">
-            <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+            <h2 className="text-lg font-semibold text-ink">{title}</h2>
             <button
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="-m-1 rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="-m-1 rounded-lg p-1 text-faint hover:bg-surface-3 hover:text-ink-3"
             >
               <X className="size-5" />
             </button>
