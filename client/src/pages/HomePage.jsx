@@ -1,15 +1,19 @@
 import { Link } from 'react-router';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, QrCode } from 'lucide-react';
 import { useAuth } from '../auth/useAuth.js';
+import { useApiData } from '../hooks/useApiData.js';
+import { getMyVisits } from '../api/me.js';
 import AdminHome from '../components/AdminHome.jsx';
+import LevelCard from '../components/LevelCard.jsx';
 import MyMembershipCard from '../components/MyMembershipCard.jsx';
 import MyNextClasses from '../components/classes/MyNextClasses.jsx';
-import PointsCard from '../components/PointsCard.jsx';
 import Card from '../components/ui/Card.jsx';
 import PageHeader from '../components/ui/PageHeader.jsx';
 
-// Members: their membership card and points.
+// Members: membership card, loyalty level, QR code shortcut and next classes.
 function MemberHome({ user }) {
+  const { data: visits } = useApiData(getMyVisits);
+
   return (
     <div>
       <PageHeader title={`Hi, ${user.firstName}!`} description="Ready for your next workout?" />
@@ -19,12 +23,26 @@ function MemberHome({ user }) {
           <MyNextClasses />
         </div>
         <div className="space-y-4 lg:col-span-2">
-          <PointsCard points={0} />
+          {/* The most important action at the gym door: one tap to the QR code */}
+          <Link
+            to="/my-qr"
+            className="group flex items-center gap-4 rounded-2xl bg-slate-900 px-5 py-4 text-white shadow-md transition hover:bg-slate-800"
+          >
+            <span className="flex size-12 items-center justify-center rounded-xl bg-white/10">
+              <QrCode className="size-6" aria-hidden="true" />
+            </span>
+            <span className="flex-1">
+              <span className="block font-semibold">Show my QR code</span>
+              <span className="block text-sm text-white/70">Check in at the entrance</span>
+            </span>
+            <ArrowRight className="size-5 transition group-hover:translate-x-1" aria-hidden="true" />
+          </Link>
+          <LevelCard visits={visits} />
           <Link
             to="/profile"
             className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
           >
-            View my profile
+            View my profile and visits
             <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
         </div>

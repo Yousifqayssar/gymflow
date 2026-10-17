@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router';
-import { CalendarDays, CreditCard, House, LogOut, Menu, UserRound, Users, X } from 'lucide-react';
+import { CalendarDays, CreditCard, House, LogOut, Menu, QrCode, UserRound, Users, X } from 'lucide-react';
 import { useAuth } from '../auth/useAuth.js';
 import Avatar from './ui/Avatar.jsx';
 import Logo from './ui/Logo.jsx';
@@ -8,6 +8,7 @@ import Logo from './ui/Logo.jsx';
 // Menu entries, their icons and which roles can see them. New pages are added here.
 const NAV_ITEMS = [
   { to: '/', label: 'Home', icon: House, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
+  { to: '/my-qr', label: 'My QR', icon: QrCode, roles: ['MEMBER'] },
   { to: '/classes', label: 'Classes', icon: CalendarDays, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
   { to: '/people', label: 'People', icon: Users, roles: ['ADMIN'] },
   { to: '/plans', label: 'Plans', icon: CreditCard, roles: ['ADMIN'] },

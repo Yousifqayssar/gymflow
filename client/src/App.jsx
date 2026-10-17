@@ -12,6 +12,7 @@ import ProfilePage from './pages/ProfilePage.jsx';
 import ClassesPage from './pages/ClassesPage.jsx';
 import ClassDetailPage from './pages/ClassDetailPage.jsx';
 import ClassFormPage from './pages/ClassFormPage.jsx';
+import MyQrPage from './pages/MyQrPage.jsx';
 
 // Which page is shown for which URL.
 function App() {
@@ -30,6 +31,11 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/classes" element={<ClassesPage />} />
           <Route path="/classes/:id" element={<ClassDetailPage />} />
+
+          {/* Member pages */}
+          <Route element={<ProtectedRoute roles={['MEMBER']} />}>
+            <Route path="/my-qr" element={<MyQrPage />} />
+          </Route>
 
           {/* Admin and trainer pages */}
           <Route element={<ProtectedRoute roles={['ADMIN', 'TRAINER']} />}>
