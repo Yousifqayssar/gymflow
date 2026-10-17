@@ -40,7 +40,7 @@ function LoginPage() {
   }
 
   return (
-    <AuthCard title="Welcome back" subtitle="Log in to your GymFlow account.">
+    <AuthCard title="Welcome back" tabTitle="Log in" subtitle="Log in to your GymFlow account.">
       <form onSubmit={handleSubmit} className="space-y-4">
         <ErrorMessage>{error}</ErrorMessage>
 

@@ -4,6 +4,7 @@ import { CalendarDays, CreditCard, House, LogOut, Menu, QrCode, ScanLine, UserRo
 import { useAuth } from '../auth/useAuth.js';
 import Avatar from './ui/Avatar.jsx';
 import Logo from './ui/Logo.jsx';
+import ThemeToggle from './ui/ThemeToggle.jsx';
 
 // Menu entries, their icons and which roles can see them. New pages are added here.
 const NAV_ITEMS = [
@@ -81,8 +82,9 @@ function AppLayout() {
             ))}
           </nav>
 
-          {/* Right side: user (links to the profile) and logout */}
+          {/* Right side: light/dark switch, user (links to the profile) and logout */}
           <div className="ml-auto flex items-center gap-1">
+            <ThemeToggle />
             <Link
               to="/profile"
               title="My profile"
@@ -170,10 +172,11 @@ function AppLayout() {
                 <p className="text-sm text-slate-500">{ROLE_LABELS[user.role]}</p>
               </div>
             </div>
+            <ThemeToggle withLabel className="mt-4 w-full justify-center border border-slate-300 py-2.5" />
             <button
               type="button"
               onClick={logout}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               <LogOut className="size-4" aria-hidden="true" />
               Log out

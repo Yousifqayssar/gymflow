@@ -6,6 +6,7 @@ import AssignMembershipForm from '../components/AssignMembershipForm.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import MembershipStatusBadge from '../components/MembershipStatusBadge.jsx';
 import { formatDate, formatPrice } from '../utils/format.js';
+import PageTitle from '../components/ui/PageTitle.jsx';
 
 // Admin page for one member: current membership, assign a new plan, and history.
 function MemberDetailPage() {
@@ -46,7 +47,8 @@ function MemberDetailPage() {
       <section className="rounded-2xl bg-white p-5 shadow-md">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">
+            <PageTitle>{`${user.firstName} ${user.lastName}`}</PageTitle>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               {user.firstName} {user.lastName}
             </h1>
             <p className="text-slate-600">{user.email}</p>

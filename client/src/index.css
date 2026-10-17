@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
+/* Dark mode is switched on with <html data-theme="dark"> (see theme/ThemeProvider.jsx),
+   so `dark:bg-…` classes follow our toggle instead of only the system setting. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* Design tokens: change the brand colour or font here, and the whole app follows. */
 @theme {
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  /* Sporty condensed font for page titles, big numbers and points (class: font-display). */
+  --font-display: "Barlow Condensed", "Inter Variable", ui-sans-serif, sans-serif;
 
   /* GymFlow brand colour: emerald green. Used as bg-brand-600, text-brand-700, etc. */
   --color-brand-50: var(--color-emerald-50);
@@ -16,9 +22,68 @@
   --color-brand-800: var(--color-emerald-800);
   --color-brand-900: var(--color-emerald-900);
   --color-brand-950: var(--color-emerald-950);
+
+  /* Colours by ROLE instead of by shade. Light values here, dark values below.
+     Components use e.g. bg-surface and text-ink, so they work in both themes without extra classes. */
+  --color-canvas: var(--color-slate-50); /* page background */
+  --color-surface: var(--color-white); /* cards, menus, inputs */
+  --color-surface-2: var(--color-slate-50); /* hover rows, inset panels */
+  --color-surface-3: var(--color-slate-100); /* icon circles, chips */
+  --color-surface-4: var(--color-slate-200); /* loading skeletons, tracks */
+  --color-ink: var(--color-slate-900); /* headings and main text */
+  --color-ink-2: var(--color-slate-700); /* labels, secondary buttons */
+  --color-ink-3: var(--color-slate-600); /* body text */
+  --color-muted: var(--color-slate-500); /* descriptions, meta info */
+  --color-faint: var(--color-slate-400); /* placeholders, decorative icons */
+  --color-line-soft: var(--color-slate-100); /* dividers inside cards */
+  --color-line: var(--color-slate-200); /* card borders */
+  --color-line-strong: var(--color-slate-300); /* input and button borders */
 }
 
-/* Smoother text rendering on all pages. */
-body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+[data-theme="dark"] {
+  color-scheme: dark; /* native scrollbars, date pickers and checkboxes turn dark too */
+  --color-canvas: var(--color-slate-950);
+  --color-surface: var(--color-slate-900);
+  --color-surface-2: color-mix(in oklab, var(--color-slate-800) 55%, var(--color-slate-900));
+  --color-surface-3: var(--color-slate-800);
+  --color-surface-4: var(--color-slate-700);
+  --color-ink: var(--color-slate-50);
+  --color-ink-2: var(--color-slate-200);
+  --color-ink-3: var(--color-slate-300);
+  --color-muted: var(--color-slate-400);
+  --color-faint: var(--color-slate-500);
+  --color-line-soft: color-mix(in oklab, var(--color-slate-800) 70%, var(--color-slate-900));
+  --color-line: var(--color-slate-800);
+  --color-line-strong: var(--color-slate-700);
+}
+
+@layer base {
+  /* Smoother text rendering on all pages. */
+  body {
+    @apply bg-canvas text-ink antialiased;
+  }
+
+  /* Tailwind v4 shows the normal arrow over buttons; a hand shows clearly what can be clicked. */
+  button:not(:disabled),
+  [role="button"],
+  summary,
+  select,
+  label[for] {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  /* People who ask their system for less motion get (almost) none. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

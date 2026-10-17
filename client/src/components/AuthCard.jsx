@@ -1,5 +1,6 @@
 import { CalendarDays, QrCode, TrendingUp } from 'lucide-react';
 import Logo from './ui/Logo.jsx';
+import PageTitle from './ui/PageTitle.jsx';
 
 // Calculated once when the app loads; components should not read the clock while rendering.
 const CURRENT_YEAR = new Date().getFullYear();
@@ -12,14 +13,16 @@ const FEATURES = [
 
 // Layout of the login and register pages.
 // Desktop: form on the left, green brand panel on the right. Phones: only the form.
-function AuthCard({ title, subtitle, children }) {
+// `tabTitle` is the browser tab title, e.g. "Log in".
+function AuthCard({ title, tabTitle, subtitle, children }) {
   return (
     <div className="flex min-h-screen bg-white">
       {/* ---------- Form side ---------- */}
       <main className="flex flex-1 flex-col justify-center px-6 py-12 sm:px-12 lg:flex-none lg:basis-1/2 xl:px-24">
         <div className="mx-auto w-full max-w-sm">
           <Logo />
-          <h1 className="mt-10 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{title}</h1>
+          <PageTitle>{tabTitle}</PageTitle>
+          <h1 className="mt-10 font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{title}</h1>
           {subtitle && <p className="mt-2 text-slate-500">{subtitle}</p>}
           <div className="mt-8">{children}</div>
         </div>

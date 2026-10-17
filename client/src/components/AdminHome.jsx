@@ -43,7 +43,7 @@ function AdminHome({ user }) {
 
   return (
     <div>
-      <PageHeader title={`Welcome back, ${user.firstName}`} description="Here is what is happening at your gym today." />
+      <PageHeader title={`Welcome back, ${user.firstName}`} tabTitle="Home" description="Here is what is happening at your gym today." />
 
       <ErrorMessage>{error}</ErrorMessage>
 

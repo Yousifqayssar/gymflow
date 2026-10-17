@@ -37,7 +37,7 @@ function RegisterPage() {
   }
 
   return (
-    <AuthCard title="Create your account" subtitle="Join the gym as a member – it takes less than a minute.">
+    <AuthCard title="Create your account" tabTitle="Create account" subtitle="Join the gym as a member – it takes less than a minute.">
       <form onSubmit={handleSubmit} className="space-y-4">
         <ErrorMessage>{error}</ErrorMessage>
 

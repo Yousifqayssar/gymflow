@@ -6,6 +6,7 @@ import MembershipStatusBadge from '../components/MembershipStatusBadge.jsx';
 import MembershipSummary from '../components/MembershipSummary.jsx';
 import UserForm from '../components/UserForm.jsx';
 import { formatDate } from '../utils/format.js';
+import PageTitle from '../components/ui/PageTitle.jsx';
 
 const TABS = [
   { role: 'MEMBER', label: 'Members' },
@@ -91,7 +92,8 @@ function MembersPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">People</h1>
+          <PageTitle>People</PageTitle>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">People</h1>
           <p className="text-slate-600">Gym members and trainers.</p>
         </div>
         {!isCreating && (

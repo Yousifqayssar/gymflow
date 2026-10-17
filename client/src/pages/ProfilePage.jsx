@@ -28,6 +28,7 @@ import MyMembershipCard from '../components/MyMembershipCard.jsx';
 import RecentVisits from '../components/RecentVisits.jsx';
 import { formatDate, formatMemberNumber } from '../utils/format.js';
 import { LEVEL_DISPLAY } from '../utils/levels.js';
+import PageTitle from '../components/ui/PageTitle.jsx';
 
 const ROLE_DISPLAY = {
   ADMIN: { label: 'Admin', chip: 'bg-violet-100 text-violet-800' },
@@ -58,7 +59,8 @@ function ProfileHeader({ user, levelName }) {
             <Avatar firstName={user.firstName} lastName={user.lastName} size="xl" />
           </span>
           <div className="min-w-0 pt-2">
-            <h1 className="truncate text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            <PageTitle>Profile</PageTitle>
+            <h1 className="truncate font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               {user.firstName} {user.lastName}
             </h1>
             <div className="mt-2 flex flex-wrap gap-2">

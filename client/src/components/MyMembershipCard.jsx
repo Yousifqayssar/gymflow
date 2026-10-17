@@ -80,7 +80,7 @@ function MyMembershipCard() {
         <div className="relative mt-8 flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="text-sm text-white/70">Plan</p>
-            <p className="text-2xl font-bold">{current ? current.plan.name : 'No membership'}</p>
+            <p className="font-display text-3xl font-bold">{current ? current.plan.name : 'No membership'}</p>
             {current && (
               <p className="mt-1 text-sm text-white/80">
                 {formatDate(current.startDate)} – {formatDate(current.endDate)}
@@ -89,14 +89,14 @@ function MyMembershipCard() {
           </div>
           {isValidToday && (
             <div className="text-right">
-              <p className="text-5xl font-bold leading-none">{current.daysRemaining}</p>
+              <p className="font-display text-6xl font-bold leading-none">{current.daysRemaining}</p>
               <p className="mt-1 text-sm text-white/80">{current.daysRemaining === 1 ? 'day left' : 'days left'}</p>
             </div>
           )}
           {isUpcoming && (
             <div className="text-right">
               <p className="text-sm text-white/80">Starts in</p>
-              <p className="text-5xl font-bold leading-none">{current.daysUntilStart}</p>
+              <p className="font-display text-6xl font-bold leading-none">{current.daysUntilStart}</p>
               <p className="mt-1 text-sm text-white/80">{current.daysUntilStart === 1 ? 'day' : 'days'}</p>
             </div>
           )}

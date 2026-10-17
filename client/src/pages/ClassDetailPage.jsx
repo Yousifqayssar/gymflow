@@ -10,6 +10,7 @@ import BookingPanel from '../components/classes/BookingPanel.jsx';
 import StaffClassActions from '../components/classes/StaffClassActions.jsx';
 import { useAuth } from '../auth/useAuth.js';
 import SpotsBar from '../components/classes/SpotsBar.jsx';
+import PageTitle from '../components/ui/PageTitle.jsx';
 import {
   CATEGORY_DISPLAY,
   formatDuration,
@@ -100,7 +101,8 @@ function ClassDetailPage() {
           <category.icon className="size-4" aria-hidden="true" />
           {category.label}
         </span>
-        <h1 className="mt-4 max-w-2xl text-3xl font-bold tracking-tight drop-shadow-sm sm:text-5xl">{gymClass.title}</h1>
+        <PageTitle>{gymClass.title}</PageTitle>
+        <h1 className="mt-4 max-w-2xl font-display text-4xl font-bold tracking-tight drop-shadow-sm sm:text-6xl">{gymClass.title}</h1>
         <p className="mt-3 text-lg font-medium text-white/90">
           {formatLongDay(gymClass.startsAt)} · {formatTime(gymClass.startsAt)} – {formatTime(gymClass.endsAt)}
         </p>

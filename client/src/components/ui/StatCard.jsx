@@ -24,7 +24,7 @@ function StatCard({ label, value, icon: Icon, tone = 'brand', onClick, isSelecte
         </span>
       )}
       <span className="min-w-0">
-        <span className="block text-2xl font-bold leading-tight text-slate-900">{value ?? '–'}</span>
+        <span className="block font-display text-3xl font-bold leading-tight text-slate-900">{value ?? '–'}</span>
         <span className="block truncate text-sm text-slate-500">{label}</span>
       </span>
     </Component>

@@ -4,6 +4,7 @@ import Badge from '../components/Badge.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import PlanForm from '../components/PlanForm.jsx';
 import { formatMonths, formatPrice } from '../utils/format.js';
+import PageTitle from '../components/ui/PageTitle.jsx';
 
 // Admin page: list, create, edit and (de)activate membership plans.
 function PlansPage() {
@@ -59,7 +60,8 @@ function PlansPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Membership plans</h1>
+          <PageTitle>Plans</PageTitle>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Membership plans</h1>
           <p className="text-slate-600">What the gym sells. Inactive plans can no longer be assigned.</p>
         </div>
         {!isCreating && (

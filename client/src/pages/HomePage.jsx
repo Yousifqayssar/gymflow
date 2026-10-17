@@ -16,7 +16,7 @@ function MemberHome({ user }) {
 
   return (
     <div>
-      <PageHeader title={`Hi, ${user.firstName}!`} description="Ready for your next workout?" />
+      <PageHeader title={`Hi, ${user.firstName}!`} tabTitle="Home" description="Ready for your next workout?" />
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="space-y-6 lg:col-span-3">
           <MyMembershipCard />
@@ -55,7 +55,7 @@ function MemberHome({ user }) {
 function TrainerHome({ user }) {
   return (
     <div>
-      <PageHeader title={`Welcome, ${user.firstName}`} description="Good to have you on the team." />
+      <PageHeader title={`Welcome, ${user.firstName}`} tabTitle="Home" description="Good to have you on the team." />
       <Card title="Your trainer account">
         <p className="text-slate-600">
           You are logged in as a trainer. Your profile shows your account details and member number.

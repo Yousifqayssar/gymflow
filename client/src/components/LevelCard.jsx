@@ -26,7 +26,7 @@ function LevelCard({ visits }) {
       </div>
 
       <p className="mt-5 flex items-baseline gap-2">
-        <span className="text-5xl font-bold tracking-tight">{points}</span>
+        <span className="font-display text-6xl font-bold tracking-tight">{points}</span>
         <span className="text-white/80">points</span>
       </p>
 
