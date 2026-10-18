@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, m } from 'motion/react';
-import { CalendarDays, Layers, MessageSquareText } from 'lucide-react';
+import { CalendarDays, Layers, MessageSquareText, Play } from 'lucide-react';
+import { Link } from 'react-router';
 import Avatar from '../ui/Avatar.jsx';
 import PlanDayView from './PlanDayView.jsx';
 import PlanTabs from './PlanTabs.jsx';
@@ -9,7 +10,8 @@ import { formatDate } from '../../utils/format.js';
 
 // A whole workout plan: title, who wrote it, the trainer's notes, and its days as tabs.
 // `actions` (optional) is shown in the header, e.g. an Edit button for staff.
-function PlanCard({ plan, actions }) {
+// `canStart`: the member's own plan – shows "Start workout" for the chosen day.
+function PlanCard({ plan, actions, canStart = false }) {
   const [selectedDay, setSelectedDay] = useState(0);
   const day = plan.days[selectedDay] ?? plan.days[0];
 
@@ -44,9 +46,20 @@ function PlanCard({ plan, actions }) {
           </p>
         )}
         <PlanTabs days={plan.days} selected={selectedDay} onSelect={setSelectedDay} layoutId={`plan-${plan.id}-tab`} />
-        <p className="text-sm text-muted">
-          {day.exercises.length} exercises · {totalSets(day)} sets
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted">
+            {day.exercises.length} exercises · {totalSets(day)} sets
+          </p>
+          {canStart && plan.isActive && (
+            <Link
+              to={`/workouts/${plan.id}/day/${day.id}`}
+              className="group inline-flex min-h-11 items-center gap-2 rounded-xl bg-brand-700 px-5 text-sm font-semibold text-white shadow-lg shadow-brand-700/25 transition hover:bg-brand-800 active:scale-[0.97]"
+            >
+              <Play className="size-4 fill-current transition-transform group-hover:scale-125" aria-hidden="true" />
+              Start {day.name}
+            </Link>
+          )}
+        </div>
         <AnimatePresence mode="wait">
           <m.div key={selectedDay} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12, transition: { duration: 0.12 } }}>
             <PlanDayView day={day} />
