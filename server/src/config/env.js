@@ -14,6 +14,9 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('1d'),
   // The gym's time zone: memberships start and end at midnight in this zone.
   GYM_TIMEZONE: z.string().default('Europe/Istanbul').refine(isValidTimeZone, 'GYM_TIMEZONE is not a valid time zone'),
+  // Google Gemini, for the food photo analysis. Optional: without a key that one feature is switched off.
+  GEMINI_API_KEY: z.string().trim().optional(),
+  GEMINI_MODEL: z.string().default('gemini-flash-latest'),
 });
 
 function isValidTimeZone(timeZone) {

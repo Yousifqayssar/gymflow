@@ -12,6 +12,7 @@ import gymRoutes from './routes/gym.routes.js';
 import accountRoutes from './routes/account.routes.js';
 import memberRoutes from './routes/member.routes.js';
 import partnerGymRoutes from './routes/partnerGym.routes.js';
+import nutritionRoutes from './routes/nutrition.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -21,6 +22,9 @@ export const app = express();
 
 // 1. Global middleware
 app.use(cors({ origin: env.CLIENT_ORIGIN }));
+// Meal photos are bigger than normal requests: allow up to 4 MB only on this route.
+// (It runs first; the general parser below then sees the body is already read and skips it.)
+app.use('/api/nutrition', express.json({ limit: '4mb' }));
 app.use(express.json());
 
 // 2. Routes
@@ -35,6 +39,7 @@ app.use('/api/gym', gymRoutes);
 app.use('/api/account', accountRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/partner-gyms', partnerGymRoutes);
+app.use('/api/nutrition', nutritionRoutes);
 
 // 3. Fallbacks (must come after all routes)
 app.use(notFound);
