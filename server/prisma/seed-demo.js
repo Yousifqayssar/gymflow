@@ -16,7 +16,7 @@ try {
     const result = await seedDemoData(prisma);
     console.log(
       `Demo data ready: ${result.plans} plans, ${result.trainers} trainers, ${result.members} members, ` +
-        `${result.classes} classes, ${result.checkIns} check-ins, ${result.bodyCheckIns} body check-ins, ${result.partnerGyms} partner gyms, ${result.exercises} exercises.`,
+        `${result.classes} classes, ${result.checkIns} check-ins, ${result.bodyCheckIns} body check-ins, ${result.partnerGyms} partner gyms, ${result.exercises} exercises, ${result.workoutPlans} workout plans.`,
     );
     console.log(`Log in as any demo user, e.g. elif@${DEMO_EMAIL_DOMAIN} / ${DEMO_PASSWORD}`);
   }

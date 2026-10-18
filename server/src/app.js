@@ -14,6 +14,7 @@ import memberRoutes from './routes/member.routes.js';
 import partnerGymRoutes from './routes/partnerGym.routes.js';
 import nutritionRoutes from './routes/nutrition.routes.js';
 import exerciseRoutes from './routes/exercise.routes.js';
+import workoutPlanRoutes from './routes/workoutPlan.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -42,6 +43,7 @@ app.use('/api/members', memberRoutes);
 app.use('/api/partner-gyms', partnerGymRoutes);
 app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/exercises', exerciseRoutes);
+app.use('/api/workout-plans', workoutPlanRoutes);
 
 // 3. Fallbacks (must come after all routes)
 app.use(notFound);

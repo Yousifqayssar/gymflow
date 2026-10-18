@@ -41,6 +41,9 @@ model User {
   checkIns         CheckIn[]    @relation("MemberCheckIns")
   // Monthly body check-ins (height, weight, goal) of this member.
   bodyCheckIns     BodyCheckIn[]
+  // Workout plans this member follows, and plans this trainer/admin wrote.
+  workoutPlans     WorkoutPlan[] @relation("MemberWorkoutPlans")
+  writtenPlans     WorkoutPlan[] @relation("PlanAuthor")
   recordedCheckIns CheckIn[]    @relation("StaffCheckIns")
 }
 
@@ -269,4 +272,55 @@ model Exercise {
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+
+  planExercises WorkoutPlanExercise[]
+}
+
+// A training plan a trainer (or admin) writes for one member, made of days ("Day A – Push").
+// Plans are switched off instead of deleted, so workouts logged with them keep their history.
+model WorkoutPlan {
+  id        Int          @id @default(autoincrement())
+  memberId  Int
+  member    User         @relation("MemberWorkoutPlans", fields: [memberId], references: [id], onDelete: Cascade)
+  // Who wrote the plan; only they (or an admin) may change it.
+  authorId  Int?
+  author    User?        @relation("PlanAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  name      String
+  notes     String?
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  days      WorkoutDay[]
+
+  @@index([memberId])
+}
+
+// One training day of a plan, in order (position 0, 1, 2 …).
+model WorkoutDay {
+  id        Int                   @id @default(autoincrement())
+  planId    Int
+  plan      WorkoutPlan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+  name      String
+  position  Int
+  exercises WorkoutPlanExercise[]
+
+  @@unique([planId, position])
+}
+
+// One exercise on a training day: how many sets and reps, with which weight and rest.
+model WorkoutPlanExercise {
+  id             Int        @id @default(autoincrement())
+  dayId          Int
+  day            WorkoutDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+  exerciseId     Int
+  exercise       Exercise   @relation(fields: [exerciseId], references: [id])
+  position       Int
+  sets           Int
+  reps           Int
+  // Empty for bodyweight exercises.
+  targetWeightKg Decimal?   @db.Decimal(5, 1)
+  restSeconds    Int
+  notes          String?
+
+  @@unique([dayId, position])
 }

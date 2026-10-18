@@ -4,5 +4,5 @@ import { prisma } from '../../src/lib/prisma.js';
 // RESTART IDENTITY resets the id counters back to 1.
 // CASCADE also empties tables that reference these ones.
 export async function resetDatabase() {
-  await prisma.$executeRaw`TRUNCATE TABLE "CheckIn", "Booking", "GymClass", "Membership", "MembershipPlan", "PartnerGym", "Exercise", "User" RESTART IDENTITY CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE "CheckIn", "Booking", "GymClass", "Membership", "MembershipPlan", "PartnerGym", "Exercise", "WorkoutPlan", "User" RESTART IDENTITY CASCADE`;
 }

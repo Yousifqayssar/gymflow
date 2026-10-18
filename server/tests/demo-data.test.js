@@ -68,6 +68,15 @@ describe('seedDemoData', () => {
     expect(await prisma.exercise.count()).toBe(32);
   });
 
+  it('gives Elif and Mehmet a workout plan from trainer Mert, using only library exercises', async () => {
+    await seedDemoData(prisma, { today: parseDate('2026-10-15') });
+
+    const plans = await prisma.workoutPlan.findMany({ include: { member: true, author: true, days: { include: { exercises: true } } } });
+    expect(plans.map((p) => p.member.firstName).sort()).toEqual(['Elif', 'Mehmet']);
+    expect(plans.every((p) => p.author.firstName === 'Mert')).toBe(true);
+    expect(plans.flatMap((p) => p.days.flatMap((d) => d.exercises)).every((e) => e.exerciseId)).toBe(true);
+  });
+
   it('gives demo people valid avatars, and leaves some with their initials', async () => {
     await seedDemoData(prisma, { today: parseDate('2026-10-15') });
 
