@@ -9,6 +9,7 @@ import { seedDemoClasses } from './demo-classes.js';
 import { seedDemoCheckIns } from './demo-check-ins.js';
 import { seedDemoBodies } from './demo-body.js';
 import { removeDemoPartnerGyms, seedDemoPartnerGyms } from './demo-gyms.js';
+import { seedDemoExercises } from './demo-exercises.js';
 
 export const DEMO_EMAIL_DOMAIN = 'demo.gymflow.local';
 // Every demo account uses this password, so you can log in as any of them.
@@ -194,6 +195,7 @@ export async function seedDemoData(prisma, { today = todayInGym(), now = new Dat
   const checkIns = await seedDemoCheckIns(prisma, { today, now, members, staffId: trainers.Mert });
   const bodyCheckIns = await seedDemoBodies(prisma, { today, members });
   const partnerGyms = await seedDemoPartnerGyms(prisma);
+  const exercises = await seedDemoExercises(prisma);
 
-  return { plans: DEMO_PLANS.length, trainers: DEMO_TRAINERS.length, members: DEMO_MEMBERS.length, classes, checkIns, bodyCheckIns, partnerGyms };
+  return { plans: DEMO_PLANS.length, trainers: DEMO_TRAINERS.length, members: DEMO_MEMBERS.length, classes, checkIns, bodyCheckIns, partnerGyms, exercises };
 }

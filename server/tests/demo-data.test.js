@@ -59,6 +59,15 @@ describe('seedDemoData', () => {
     expect((await prisma.partnerGym.findMany()).map((g) => g.name)).toEqual(['Real partner']);
   });
 
+  it('fills the exercise library with every muscle group, without duplicates when run twice', async () => {
+    await seedDemoData(prisma, { today: parseDate('2026-10-15') });
+    await seedDemoData(prisma, { today: parseDate('2026-10-15') });
+
+    const groups = await prisma.exercise.groupBy({ by: ['muscleGroup'], _count: true });
+    expect(groups).toHaveLength(8);
+    expect(await prisma.exercise.count()).toBe(32);
+  });
+
   it('gives demo people valid avatars, and leaves some with their initials', async () => {
     await seedDemoData(prisma, { today: parseDate('2026-10-15') });
 

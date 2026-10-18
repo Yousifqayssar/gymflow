@@ -233,3 +233,40 @@ model PartnerGym {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// Which part of the body an exercise trains (used for filtering and colours).
+enum MuscleGroup {
+  CHEST
+  BACK
+  LEGS
+  SHOULDERS
+  ARMS
+  CORE
+  FULL_BODY
+  CARDIO
+}
+
+enum Equipment {
+  BARBELL
+  DUMBBELL
+  MACHINE
+  CABLE
+  KETTLEBELL
+  BODYWEIGHT
+  BAND
+  CARDIO_MACHINE
+}
+
+// The exercise library. Trainers and admins manage it; workout plans are built from it.
+// Exercises are never deleted, only deactivated, so old plans and logs keep their exercises.
+model Exercise {
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  muscleGroup MuscleGroup
+  equipment   Equipment
+  // How to do it, in a few short sentences.
+  description String
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
