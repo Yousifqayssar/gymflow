@@ -1,40 +1,54 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { AnimatePresence, m } from 'motion/react';
 import { CalendarDays, Plus } from 'lucide-react';
 import { useAuth } from '../auth/useAuth.js';
 import Button from '../components/ui/Button.jsx';
 import { listClasses } from '../api/classes.js';
+import CategoryFilter from '../components/classes/CategoryFilter.jsx';
 import ClassCard from '../components/classes/ClassCard.jsx';
+import DayPicker from '../components/classes/DayPicker.jsx';
+import NextClassHero from '../components/classes/NextClassHero.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import PageHeader from '../components/ui/PageHeader.jsx';
-import { CATEGORY_DISPLAY, dayKey, formatDayHeading } from '../utils/classDisplay.js';
+import { Stagger, StaggerItem, TiltCard } from '../components/ui/motion.jsx';
+import { dayKey, formatDayHeading } from '../utils/classDisplay.js';
 
-// Groups classes (already sorted by time) by calendar day: [[dayKey, [class, ...]], ...]
+// The countdown in the "Up next" card is refreshed this often.
+const CLOCK_TICK_MS = 30_000;
+
+// Groups classes (already sorted by time) by calendar day: [{ key, startsAt, classes, count, hasMine }]
 function groupByDay(classes) {
   const groups = new Map();
   for (const gymClass of classes) {
     const key = dayKey(gymClass.startsAt);
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(gymClass);
+    if (!groups.has(key)) groups.set(key, { key, startsAt: gymClass.startsAt, classes: [] });
+    groups.get(key).classes.push(gymClass);
   }
-  return [...groups.entries()];
+  return [...groups.values()].map((day) => ({
+    ...day,
+    count: day.classes.length,
+    hasMine: day.classes.some((c) => c.isBookedByMe && !c.isCancelled),
+  }));
 }
 
-// The class schedule for the next 14 days, grouped by day, with a category filter.
+// The class schedule for the next 14 days: an "Up next" card, a day picker,
+// category chips and the classes of the chosen day.
 function ClassesPage() {
   const { user } = useAuth();
   const isStaff = user.role === 'ADMIN' || user.role === 'TRAINER';
   const [category, setCategory] = useState('');
-  const [data, setData] = useState(null); // { classes, loadedAt }
+  const [selectedDay, setSelectedDay] = useState(null); // null = the first day with classes
+  const [data, setData] = useState(null); // { classes }
   const [error, setError] = useState('');
+  const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
     let ignore = false;
     listClasses({ category })
       .then((result) => {
-        // `loadedAt` is used for "Today"/"Tomorrow"; read here, not while rendering.
-        if (!ignore) setData({ classes: result.classes, loadedAt: new Date() });
+        if (!ignore) setData({ classes: result.classes });
       })
       .catch((err) => {
         if (!ignore) setError(err.message);
@@ -44,18 +58,31 @@ function ClassesPage() {
     };
   }, [category]);
 
+  // A clock for "Today" and the countdown; components must not read the clock while rendering.
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), CLOCK_TICK_MS);
+    return () => clearInterval(timer);
+  }, []);
+
   function handleCategoryChange(newCategory) {
     setCategory(newCategory);
     setData(null);
   }
 
-  const filters = [['', 'All'], ...Object.entries(CATEGORY_DISPLAY).map(([key, display]) => [key, display.label])];
+  const days = data ? groupByDay(data.classes) : [];
+  // Keep the chosen day when the category changes; if it has no classes any more, use the first day.
+  const shownDay = days.find((day) => day.key === selectedDay) ?? days[0];
+
+  // Members see their next booked class first; otherwise the next class of the gym.
+  const upcoming = data?.classes.filter((c) => !c.isCancelled && new Date(c.startsAt) > now) ?? [];
+  const nextMine = upcoming.find((c) => c.isBookedByMe);
+  const nextClass = nextMine ?? upcoming[0];
 
   return (
     <div>
       <PageHeader
         title="Classes"
-        description="Group classes for the next two weeks. Tap a class to see all details."
+        description="Group classes for the next two weeks. Pick a day, then tap a class for all details."
         actions={
           isStaff && (
             <Button as={Link} to="/classes/new" icon={Plus}>
@@ -65,32 +92,25 @@ function ClassesPage() {
         }
       />
 
-      <div className="-mx-4 mb-6 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Filter by category">
-        {filters.map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            aria-pressed={category === value}
-            onClick={() => handleCategoryChange(value)}
-            className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
-              category === value
-                ? 'border-brand-600 bg-brand-600 text-white'
-                : 'border-line-strong bg-surface text-ink-2 hover:bg-surface-2'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {nextClass && <NextClassHero gymClass={nextClass} now={now} isMine={Boolean(nextMine)} />}
+
+      <CategoryFilter value={category} onChange={handleCategoryChange} />
 
       <ErrorMessage>{error}</ErrorMessage>
 
       {!data && !error && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((n) => (
-            <div key={n} className="h-48 animate-pulse rounded-2xl bg-surface-4" />
-          ))}
-        </div>
+        <>
+          <div className="mb-6 flex gap-2">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <div key={n} className="h-24 w-[4.5rem] animate-pulse rounded-2xl bg-surface-3" />
+            ))}
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="h-72 animate-pulse rounded-2xl bg-surface-3" />
+            ))}
+          </div>
+        </>
       )}
 
       {data?.classes.length === 0 && (
@@ -103,21 +123,33 @@ function ClassesPage() {
         </div>
       )}
 
-      <div className="space-y-8">
-        {data &&
-          groupByDay(data.classes).map(([key, classes]) => (
-            <section key={key}>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
-                {formatDayHeading(classes[0].startsAt, data.loadedAt)}
-              </h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {classes.map((gymClass) => (
-                  <ClassCard key={gymClass.id} gymClass={gymClass} />
+      {shownDay && (
+        <>
+          <DayPicker days={days} selectedKey={shownDay.key} onSelect={setSelectedDay} todayKey={dayKey(now)} />
+
+          <h2 className="mb-4 flex items-baseline gap-3">
+            <span className="font-display text-2xl font-bold tracking-tight text-ink">{formatDayHeading(shownDay.startsAt, now)}</span>
+            <span className="text-sm text-muted">
+              {shownDay.count} {shownDay.count === 1 ? 'class' : 'classes'}
+            </span>
+          </h2>
+
+          {/* A new day or category: the old cards fade out, the new ones come in one after another */}
+          <AnimatePresence mode="wait">
+            <m.div key={`${shownDay.key}-${category}`} exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}>
+              <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {shownDay.classes.map((gymClass) => (
+                  <StaggerItem key={gymClass.id}>
+                    <TiltCard className="h-full">
+                      <ClassCard gymClass={gymClass} />
+                    </TiltCard>
+                  </StaggerItem>
                 ))}
-              </div>
-            </section>
-          ))}
-      </div>
+              </Stagger>
+            </m.div>
+          </AnimatePresence>
+        </>
+      )}
     </div>
   );
 }

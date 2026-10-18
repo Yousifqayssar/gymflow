@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { animate, m, useReducedMotion } from 'motion/react';
+import { animate, m, useMotionTemplate, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react';
 
 // Small animation building blocks (library: Motion, https://motion.dev), used across the app.
 // We use `m.div` instead of `motion.div`: together with <LazyMotion> in main.jsx it only loads
@@ -73,5 +73,62 @@ export function PageTransition({ children }) {
     <m.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: EASE_OUT }}>
       {children}
     </m.div>
+  );
+}
+
+// Only devices with a real mouse get the 3D tilt: on touch screens there is no "hover", and a
+// tilting card under your finger feels broken. Read once, when the app starts.
+const CAN_HOVER = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+const TILT_SPRING = { stiffness: 300, damping: 25 };
+
+// A card that tilts in 3D towards the mouse, with a soft light reflection ("glare") under the pointer.
+//   <TiltCard className="h-full"><ClassCard … /></TiltCard>
+// `maxTilt` is the largest angle in degrees. Off for touch screens and for "reduce motion".
+export function TiltCard({ children, className = '', maxTilt = 7 }) {
+  const shouldReduceMotion = useReducedMotion();
+  // Pointer position inside the card, from 0 (left/top) to 1 (right/bottom); 0.5 = centre = no tilt.
+  const pointerX = useMotionValue(0.5);
+  const pointerY = useMotionValue(0.5);
+  // Springs make the card follow the pointer smoothly instead of jumping.
+  const rotateX = useSpring(useTransform(pointerY, [0, 1], [maxTilt, -maxTilt]), TILT_SPRING);
+  const rotateY = useSpring(useTransform(pointerX, [0, 1], [-maxTilt, maxTilt]), TILT_SPRING);
+  const glareX = useTransform(pointerX, (v) => v * 100);
+  const glareY = useTransform(pointerY, (v) => v * 100);
+  const glare = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, rgb(255 255 255 / 0.22), transparent 55%)`;
+
+  if (shouldReduceMotion || !CAN_HOVER) {
+    return <div className={className}>{children}</div>;
+  }
+
+  function handlePointerMove(event) {
+    const box = event.currentTarget.getBoundingClientRect();
+    pointerX.set((event.clientX - box.left) / box.width);
+    pointerY.set((event.clientY - box.top) / box.height);
+  }
+
+  function handlePointerLeave() {
+    pointerX.set(0.5);
+    pointerY.set(0.5);
+  }
+
+  return (
+    // perspective: how "deep" the 3D space is; smaller = stronger effect.
+    <div className={`group/tilt ${className}`} style={{ perspective: 900 }}>
+      <m.div
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
+        style={{ rotateX, rotateY }}
+        whileHover={{ scale: 1.02 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+        className="relative h-full"
+      >
+        {children}
+        <m.div
+          aria-hidden="true"
+          style={{ background: glare }}
+          className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover/tilt:opacity-100"
+        />
+      </m.div>
+    </div>
   );
 }

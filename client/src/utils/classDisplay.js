@@ -47,7 +47,7 @@ export const CATEGORY_DISPLAY = {
     icon: PersonStanding,
     photo: pilatesPhoto,
     gradient: 'from-pink-400 via-pink-500 to-rose-400',
-    soft: 'bg-pink-100 text-pink-700',
+    soft: 'bg-pink-100 dark:bg-pink-500/15 text-pink-700 dark:text-pink-300',
   },
   BOXING: {
     label: 'Boxing',
@@ -61,7 +61,7 @@ export const CATEGORY_DISPLAY = {
     icon: Dumbbell,
     photo: strengthPhoto,
     gradient: 'from-indigo-500 via-indigo-600 to-slate-800',
-    soft: 'bg-indigo-100 text-indigo-700',
+    soft: 'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300',
   },
   MOBILITY: {
     label: 'Mobility',
@@ -110,6 +110,28 @@ export function formatDayHeading(iso, now) {
 
 // "Saturday 24 October"
 export const formatLongDay = (iso) => dayFormatter.format(new Date(iso));
+
+const weekdayFormatter = new Intl.DateTimeFormat('en-GB', { timeZone: GYM_TIMEZONE, weekday: 'short' });
+const dayNumberFormatter = new Intl.DateTimeFormat('en-GB', { timeZone: GYM_TIMEZONE, day: 'numeric' });
+const monthFormatter = new Intl.DateTimeFormat('en-GB', { timeZone: GYM_TIMEZONE, month: 'short' });
+
+// Parts for the day picker: { weekday: "Sat", day: "24", month: "Oct" }
+export function dayParts(iso) {
+  const date = new Date(iso);
+  return { weekday: weekdayFormatter.format(date), day: dayNumberFormatter.format(date), month: monthFormatter.format(date) };
+}
+
+// How long until a class starts: "in 45 min", "in 3 h 20 min", "in 26 h", "in 3 days". `now` is passed in.
+export function formatStartsIn(iso, now) {
+  const minutes = Math.round((new Date(iso).getTime() - now.getTime()) / 60000);
+  if (minutes <= 0) return 'now';
+  if (minutes < 60) return `in ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 10) return minutes % 60 ? `in ${hours} h ${minutes % 60} min` : `in ${hours} h`;
+  if (hours < 48) return `in ${hours} h`; // "in 1 day" would hide that it is tomorrow evening, not morning
+  const days = Math.round(hours / 24);
+  return days === 1 ? 'in 1 day' : `in ${days} days`;
+}
 
 // The gym's UTC offset on a given date, e.g. "+03:00" for Istanbul.
 function gymUtcOffset(date) {

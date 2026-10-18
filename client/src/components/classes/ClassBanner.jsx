@@ -14,7 +14,8 @@ function ClassBanner({ category, size = 'card', className = '', children }) {
         src={photo}
         alt=""
         loading={size === 'card' ? 'lazy' : 'eager'}
-        className="absolute inset-0 -z-30 size-full object-cover"
+        // On cards (inside a "group" link) the photo slowly zooms in on hover.
+        className="absolute inset-0 -z-30 size-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
       />
       {/* Colour tint in the category's colours: every class keeps its own colour identity */}
       <div aria-hidden="true" className={`absolute inset-0 -z-20 bg-gradient-to-br opacity-50 mix-blend-multiply ${gradient}`} />

@@ -6,7 +6,7 @@ import SpotsBar from './SpotsBar.jsx';
 import { CATEGORY_DISPLAY, formatTime, LEVEL_LABELS } from '../../utils/classDisplay.js';
 
 // One class in the schedule: a colourful header with the time, then the details.
-// The whole card links to the class detail page.
+// The whole card links to the class detail page. On the schedule it sits inside a <TiltCard> (3D hover).
 function ClassCard({ gymClass }) {
   const { isCancelled, isBookedByMe } = gymClass;
   const { icon: Icon, label } = CATEGORY_DISPLAY[gymClass.category];
@@ -14,11 +14,11 @@ function ClassCard({ gymClass }) {
   return (
     <Link
       to={`/classes/${gymClass.id}`}
-      className={`group flex flex-col overflow-hidden rounded-2xl border bg-surface shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg ${
-        isBookedByMe && !isCancelled ? 'border-brand-400 ring-2 ring-brand-200' : 'border-line'
+      className={`group flex h-full flex-col overflow-hidden rounded-2xl border bg-surface shadow-sm transition-shadow duration-300 hover:shadow-xl ${
+        isBookedByMe && !isCancelled ? 'border-brand-400 ring-2 ring-brand-200 dark:ring-brand-500/30' : 'border-line'
       } ${isCancelled ? 'opacity-60 grayscale' : ''}`}
     >
-      <ClassBanner category={gymClass.category} className="h-32 p-4">
+      <ClassBanner category={gymClass.category} className="h-40 p-4">
         <div className="flex items-start justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-xs font-semibold backdrop-blur-sm">
             <Icon className="size-3.5" aria-hidden="true" />
@@ -38,7 +38,7 @@ function ClassCard({ gymClass }) {
           )}
         </div>
         <p className="absolute bottom-3 left-4 drop-shadow-sm">
-          <span className="text-3xl font-bold tracking-tight">{formatTime(gymClass.startsAt)}</span>
+          <span className="font-display text-4xl font-bold tracking-tight">{formatTime(gymClass.startsAt)}</span>
           <span className="ml-1.5 text-sm font-medium text-white/85">– {formatTime(gymClass.endsAt)}</span>
         </p>
       </ClassBanner>
