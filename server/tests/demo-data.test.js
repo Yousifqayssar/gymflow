@@ -50,6 +50,15 @@ describe('seedDemoData', () => {
     expect(elif.bodyCheckIns[0].recordedOn).toEqual(parseDate('2026-09-10'));
   });
 
+  it('adds partner gyms for the map, and removes only those again', async () => {
+    await prisma.partnerGym.create({ data: { name: 'Real partner', address: 'A', district: 'B', latitude: 41, longitude: 29, hours: [] } });
+    await seedDemoData(prisma, { today: parseDate('2026-10-15') });
+    expect(await prisma.partnerGym.count()).toBeGreaterThan(1);
+
+    await removeDemoData(prisma);
+    expect((await prisma.partnerGym.findMany()).map((g) => g.name)).toEqual(['Real partner']);
+  });
+
   it('gives demo people valid avatars, and leaves some with their initials', async () => {
     await seedDemoData(prisma, { today: parseDate('2026-10-15') });
 

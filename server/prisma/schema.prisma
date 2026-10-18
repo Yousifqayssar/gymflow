@@ -216,3 +216,20 @@ model BodyCheckIn {
 
   @@unique([memberId, recordedOn])
 }
+
+// A gym that cooperates with GymFlow, shown on the map on the home page. Managed by admins.
+model PartnerGym {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  address   String
+  district  String
+  phone     String?
+  // Position on the map (WGS 84, like GPS): about 10 cm precision.
+  latitude  Decimal  @db.Decimal(8, 6)
+  longitude Decimal  @db.Decimal(9, 6)
+  // Opening hours per weekday: [{ "day": 1, "open": "06:00", "close": "23:00" }, ...]
+  // day 1 = Monday … 7 = Sunday; a day that is missing means closed.
+  hours     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
