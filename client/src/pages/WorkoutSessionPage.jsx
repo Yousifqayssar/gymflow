@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { AnimatePresence, m } from 'motion/react';
-import { ChevronLeft, ChevronRight, Clock, Dumbbell, Flag, Info, Repeat, Trophy, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Dumbbell, Flag, Info, Repeat, TrendingUp, Trophy, X } from 'lucide-react';
 import { getWorkoutPlan } from '../api/workoutPlans.js';
 import { logWorkout } from '../api/workoutLogs.js';
 import RestTimer from '../components/workouts/RestTimer.jsx';
@@ -333,6 +333,26 @@ function WorkoutSummary({ workout }) {
         <h1 className="font-display text-5xl font-bold tracking-tight text-ink">Workout done!</h1>
         <p className="mt-2 text-muted">{workout.dayName} is saved. Great job – keep it up.</p>
       </div>
+      {workout.personalBests.length > 0 && (
+        <m.section
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6, type: 'spring', stiffness: 260, damping: 18 }}
+          className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-left dark:border-amber-500/40 dark:bg-amber-500/10"
+        >
+          <p className="flex items-center gap-2 font-semibold text-amber-900 dark:text-amber-200">
+            <Trophy className="size-5" aria-hidden="true" />
+            New personal {workout.personalBests.length === 1 ? 'best' : 'bests'}!
+          </p>
+          <ul className="mt-2 space-y-1 text-sm text-amber-900 dark:text-amber-200">
+            {workout.personalBests.map((best) => (
+              <li key={best.exerciseId}>
+                <strong>{best.exerciseName}</strong>: {best.weightKg ? `${best.weightKg} kg × ${best.reps}` : `${best.reps} reps`}
+              </li>
+            ))}
+          </ul>
+        </m.section>
+      )}
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {tiles.map(({ label, value, icon: Icon }) => (
           <li key={label} className="rounded-2xl border border-line bg-surface p-4 shadow-sm">
@@ -344,9 +364,14 @@ function WorkoutSummary({ workout }) {
           </li>
         ))}
       </ul>
-      <Button as={Link} to="/workouts">
-        Back to my workouts
-      </Button>
+      <div className="flex flex-wrap justify-center gap-2">
+        <Button as={Link} to="/workouts" variant="secondary">
+          Back to my workouts
+        </Button>
+        <Button as={Link} to="/progress" icon={TrendingUp}>
+          See my progress
+        </Button>
+      </div>
     </div>
   );
 }

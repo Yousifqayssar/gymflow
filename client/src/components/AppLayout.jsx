@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { Apple, CalendarDays, ClipboardList, CreditCard, Dumbbell, Gift, House, LogOut, MapPin, Menu, QrCode, ScanLine, UserRound, Users, X } from 'lucide-react';
+import { Apple, CalendarDays, ClipboardList, CreditCard, Dumbbell, Gift, House, LogOut, MapPin, Menu, QrCode, ScanLine, TrendingUp, UserRound, Users, X } from 'lucide-react';
 import { useAuth } from '../auth/useAuth.js';
 import Avatar from './ui/Avatar.jsx';
 import Logo from './ui/Logo.jsx';
@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { to: '/classes', label: 'Classes', icon: CalendarDays, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
   { to: '/food', label: 'Food', icon: Apple, roles: ['MEMBER', 'TRAINER'] },
   { to: '/workouts', label: 'Workouts', icon: ClipboardList, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
+  { to: '/progress', label: 'Progress', icon: TrendingUp, roles: ['MEMBER'] },
   { to: '/exercises', label: 'Exercises', icon: Dumbbell, roles: ['ADMIN', 'TRAINER'] },
   { to: '/people', label: 'People', icon: Users, roles: ['ADMIN'] },
   { to: '/plans', label: 'Plans', icon: CreditCard, roles: ['ADMIN'] },

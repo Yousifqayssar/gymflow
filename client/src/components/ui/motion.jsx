@@ -21,9 +21,9 @@ export function AnimatedNumber({ value, duration = 0.8 }) {
     return () => controls.stop();
   }, [value, isNumber, duration, shouldReduceMotion]);
 
-  // Not a number (e.g. the level "Silver"), or no motion wanted: show the value as it is.
-  if (!isNumber || shouldReduceMotion) return value;
-  return shown;
+  // Not a number (e.g. the level "Silver"): show it as it is. Numbers get thousands separators (103,535).
+  if (!isNumber) return value;
+  return (shouldReduceMotion ? value : shown).toLocaleString('en-US');
 }
 
 // The coloured part of a progress bar, growing from the left to `percent`.

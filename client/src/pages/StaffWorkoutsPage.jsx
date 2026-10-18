@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { ClipboardList, Pencil, Plus, Search, Users } from 'lucide-react';
 import { listMembersForStaff, listWorkoutPlans } from '../api/workoutPlans.js';
+import { getMemberProgress } from '../api/progress.js';
+import ProgressOverview from '../components/progress/ProgressOverview.jsx';
 import { useAuth } from '../auth/useAuth.js';
 import { useApiData } from '../hooks/useApiData.js';
 import MemberGoalSummary from '../components/workouts/MemberGoalSummary.jsx';
@@ -34,6 +36,8 @@ function StaffWorkoutsPage() {
   const { data: memberData, error: memberError } = useApiData(loadMembers);
   const loadPlans = useCallback(() => (memberId ? listWorkoutPlans(memberId) : Promise.resolve(null)), [memberId]);
   const { data: planData, error: planError } = useApiData(loadPlans);
+  const loadProgress = useCallback(() => (memberId ? getMemberProgress(memberId) : Promise.resolve(null)), [memberId]);
+  const { data: progress } = useApiData(loadProgress);
 
   const members = memberData?.members ?? [];
   const selected = members.find((m) => m.id === memberId) ?? planData?.plans[0]?.member ?? null;
@@ -119,6 +123,11 @@ function StaffWorkoutsPage() {
                   }
                 />
               ))}
+
+              <section className="pt-4">
+                <h2 className="mb-4 font-display text-3xl font-bold tracking-tight text-ink">Progress</h2>
+                <ProgressOverview progress={progress} emptyText="This member has not saved a workout yet." />
+              </section>
             </>
           )}
         </div>
