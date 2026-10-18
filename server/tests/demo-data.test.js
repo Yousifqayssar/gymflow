@@ -7,6 +7,7 @@ import { assertNotProduction, DEMO_PASSWORD, removeDemoData, seedDemoData } from
 import { resetDatabase } from './helpers/database.js';
 import { createUser, bearer } from './helpers/users.js';
 import { createPlan } from './helpers/plans.js';
+import { AVATAR_IDS } from '../src/utils/avatars.js';
 
 // "Today" is 2026-10-15 in Istanbul.
 vi.useFakeTimers({ toFake: ['Date'] });
@@ -35,6 +36,20 @@ const counts = async () =>
   (await request(app).get('/api/users?role=MEMBER').set('Authorization', bearer(admin.token))).body.counts;
 
 describe('seedDemoData', () => {
+  it('also works on days where an exact end date is impossible (e.g. monthly ending 30 October)', async () => {
+    // On 18 October, "ends in 12 days" means 30 October – no monthly membership ends on that day.
+    await expect(seedDemoData(prisma, { today: parseDate('2026-10-18') })).resolves.toBeDefined();
+  });
+
+  it('gives demo people valid avatars, and leaves some with their initials', async () => {
+    await seedDemoData(prisma, { today: parseDate('2026-10-15') });
+
+    const demoUsers = await prisma.user.findMany({ where: { email: { endsWith: '@demo.gymflow.local' } } });
+    const avatars = demoUsers.map((user) => user.avatar);
+    expect(avatars.filter(Boolean).every((id) => AVATAR_IDS.includes(id))).toBe(true);
+    expect(avatars).toContain(null);
+  });
+
   it('creates members in every membership situation', async () => {
     await seedDemoData(prisma, { today: parseDate('2026-10-15') });
 

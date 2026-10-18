@@ -7,6 +7,7 @@ export function toPublicUser(user) {
     firstName: user.firstName,
     lastName: user.lastName,
     role: user.role,
+    avatar: user.avatar,
     createdAt: user.createdAt,
   };
 }

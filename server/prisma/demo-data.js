@@ -43,24 +43,26 @@ const DEMO_PLANS = [
   },
 ];
 
+// `avatar`: the picture each demo person chose (ids from src/utils/avatars.js); some keep their initials.
 const DEMO_TRAINERS = [
-  { firstName: 'Mert', lastName: 'Aydin' },
-  { firstName: 'Gizem', lastName: 'Erdem' },
+  { firstName: 'Mert', lastName: 'Aydin', avatar: 'badge-dumbbell' },
+  { firstName: 'Gizem', lastName: 'Erdem', avatar: 'lorelei-nala' },
 ];
 
 // Each membership is described by the situation we want to show:
 //   endsIn: N   → ends N days from today (negative = already ended)
 //   startsIn: N → starts N days from today (an upcoming membership)
 const DEMO_MEMBERS = [
-  { firstName: 'Elif', lastName: 'Yilmaz', memberships: [{ plan: '3 Months', endsIn: 50 }] },
-  { firstName: 'Mehmet', lastName: 'Kaya', memberships: [{ plan: '12 Months', endsIn: 200 }] },
-  { firstName: 'Ayse', lastName: 'Demir', memberships: [{ plan: 'Monthly', endsIn: 12 }] },
-  { firstName: 'Can', lastName: 'Ozturk', memberships: [{ plan: 'Monthly', endsIn: 3 }] },
-  { firstName: 'Deniz', lastName: 'Arslan', memberships: [{ plan: 'Monthly', endsIn: 0 }] }, // last day today
-  { firstName: 'Zeynep', lastName: 'Sahin', memberships: [{ plan: '3 Months', endsIn: 6 }] },
-  { firstName: 'Burak', lastName: 'Celik', memberships: [{ plan: 'Monthly', endsIn: -20 }] },
+  { firstName: 'Elif', lastName: 'Yilmaz', avatar: 'notionists-aneka', memberships: [{ plan: '3 Months', endsIn: 50 }] },
+  { firstName: 'Mehmet', lastName: 'Kaya', avatar: 'notionists-felix', memberships: [{ plan: '12 Months', endsIn: 200 }] },
+  { firstName: 'Ayse', lastName: 'Demir', avatar: 'lorelei-mia', memberships: [{ plan: 'Monthly', endsIn: 12 }] },
+  { firstName: 'Can', lastName: 'Ozturk', avatar: 'badge-bike', memberships: [{ plan: 'Monthly', endsIn: 3 }] },
+  { firstName: 'Deniz', lastName: 'Arslan', avatar: 'notionists-omar', memberships: [{ plan: 'Monthly', endsIn: 0 }] }, // last day today
+  { firstName: 'Zeynep', lastName: 'Sahin', avatar: 'lorelei-zeynep', memberships: [{ plan: '3 Months', endsIn: 6 }] },
+  { firstName: 'Burak', lastName: 'Celik', avatar: 'notionists-kaan', memberships: [{ plan: 'Monthly', endsIn: -20 }] },
   {
     firstName: 'Emre',
+    avatar: 'badge-flame',
     lastName: 'Aydin',
     memberships: [
       { plan: 'Student (old offer)', endsIn: -150 },
@@ -72,6 +74,7 @@ const DEMO_MEMBERS = [
   {
     // Renewed: the current membership ends soon, the next one is already booked.
     firstName: 'Ahmet',
+    avatar: 'notionists-leo',
     lastName: 'Koc',
     memberships: [
       { plan: 'Monthly', endsIn: 4 },
@@ -80,6 +83,7 @@ const DEMO_MEMBERS = [
   },
   {
     firstName: 'Merve',
+    avatar: 'lorelei-sara',
     lastName: 'Polat',
     memberships: [
       { plan: 'Monthly', endsIn: -90 },
@@ -98,13 +102,17 @@ export function assertNotProduction(nodeEnv = process.env.NODE_ENV) {
   }
 }
 
-// The start date for a plan so that it ends exactly on `endDate`,
-// using the same end-date rule as the app (searches backwards day by day).
+// The start date for a plan so that it ends on `endDate`, using the same end-date rule as the app
+// (searches backwards day by day). Some end dates can never be reached: e.g. no monthly membership
+// ends on 30 October (30 September → 29 October, 1 October → 31 October). Then the membership
+// ends one day later, which is fine for demo data.
 function startDateForEnd(endDate, durationMonths) {
-  for (let daysBack = 27 * durationMonths; daysBack <= 32 * durationMonths; daysBack++) {
-    const start = addDays(endDate, -daysBack);
-    if (calculateEndDate(start, durationMonths).getTime() === endDate.getTime()) {
-      return start;
+  for (const target of [endDate, addDays(endDate, 1)]) {
+    for (let daysBack = 27 * durationMonths; daysBack <= 32 * durationMonths; daysBack++) {
+      const start = addDays(target, -daysBack);
+      if (calculateEndDate(start, durationMonths).getTime() === target.getTime()) {
+        return start;
+      }
     }
   }
   throw new Error('No matching start date found');
@@ -159,6 +167,7 @@ export async function seedDemoData(prisma, { today = todayInGym(), now = new Dat
       data: {
         firstName: member.firstName,
         lastName: member.lastName,
+        avatar: member.avatar ?? null,
         email: demoEmail(member.firstName),
         passwordHash,
         role: 'MEMBER',

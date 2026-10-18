@@ -7,7 +7,7 @@ const DEFAULT_RANGE_DAYS = 14;
 
 // What every class query loads: the trainer's name and the booked member ids.
 export const CLASS_INCLUDE = {
-  trainer: { select: { id: true, firstName: true, lastName: true } },
+  trainer: { select: { id: true, firstName: true, lastName: true, avatar: true } },
   bookings: { select: { memberId: true } },
 };
 
@@ -65,7 +65,7 @@ export async function getClass(id, viewer) {
     include: {
       ...CLASS_INCLUDE,
       bookings: {
-        select: { memberId: true, createdAt: true, member: { select: { id: true, firstName: true, lastName: true } } },
+        select: { memberId: true, createdAt: true, member: { select: { id: true, firstName: true, lastName: true, avatar: true } } },
         orderBy: { createdAt: 'asc' },
       },
     },

@@ -52,6 +52,7 @@ async function checkInResult(member, current, today, checkIn, alreadyCheckedIn) 
       id: member.id,
       firstName: member.firstName,
       lastName: member.lastName,
+      avatar: member.avatar,
       membership: {
         planName: current.plan.name,
         endDate: formatDate(current.endDate),
@@ -109,7 +110,7 @@ export async function checkIn(code, staff) {
 export async function listTodaysCheckIns() {
   const checkIns = await prisma.checkIn.findMany({
     where: { gymDay: todayInGym() },
-    include: { member: { select: { id: true, firstName: true, lastName: true } } },
+    include: { member: { select: { id: true, firstName: true, lastName: true, avatar: true } } },
     orderBy: { checkedInAt: 'desc' },
   });
   return checkIns.map((checkIn) => ({

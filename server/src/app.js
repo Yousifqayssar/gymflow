@@ -9,6 +9,7 @@ import meRoutes from './routes/me.routes.js';
 import classRoutes from './routes/class.routes.js';
 import checkInRoutes from './routes/checkIn.routes.js';
 import gymRoutes from './routes/gym.routes.js';
+import accountRoutes from './routes/account.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -29,6 +30,7 @@ app.use('/api/me', meRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/check-ins', checkInRoutes);
 app.use('/api/gym', gymRoutes);
+app.use('/api/account', accountRoutes);
 
 // 3. Fallbacks (must come after all routes)
 app.use(notFound);
