@@ -13,6 +13,7 @@ import MyNextClasses from '../components/classes/MyNextClasses.jsx';
 import TodaysCheckIns from '../components/checkIn/TodaysCheckIns.jsx';
 import AboutSection from '../components/home/AboutSection.jsx';
 import TrainersSection from '../components/home/TrainersSection.jsx';
+import PartnerGymsSection from '../components/home/PartnerGymsSection.jsx';
 import WelcomeHero from '../components/home/WelcomeHero.jsx';
 import BodyReminder from '../components/body/BodyReminder.jsx';
 import PageTitle from '../components/ui/PageTitle.jsx';
@@ -115,6 +116,7 @@ function HomePage() {
       <WelcomeHero title={hero.title(user)} stats={stats} actions={hero.actions} now={now} />
       <Dashboard />
       <TrainersSection />
+      <PartnerGymsSection now={now} />
       <AboutSection now={now} />
     </div>
   );

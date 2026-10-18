@@ -11,6 +11,9 @@ export const GYM = {
   address: ['Example Street 12', 'Kadıköy, Istanbul'],
   phone: '+90 212 000 00 00',
   email: 'hello@gymflow.example',
+  // Position on the map (the centre of Kadıköy for the demo).
+  latitude: 40.9903,
+  longitude: 29.029,
 };
 
 // Opening hours in the gym's time zone. `days`: 1 = Monday … 7 = Sunday.

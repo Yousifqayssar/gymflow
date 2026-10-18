@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { CalendarDays, CreditCard, Gift, House, LogOut, Menu, QrCode, ScanLine, UserRound, Users, X } from 'lucide-react';
+import { CalendarDays, CreditCard, Gift, House, LogOut, MapPin, Menu, QrCode, ScanLine, UserRound, Users, X } from 'lucide-react';
 import { useAuth } from '../auth/useAuth.js';
 import Avatar from './ui/Avatar.jsx';
 import Logo from './ui/Logo.jsx';
@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { to: '/classes', label: 'Classes', icon: CalendarDays, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
   { to: '/people', label: 'People', icon: Users, roles: ['ADMIN'] },
   { to: '/plans', label: 'Plans', icon: CreditCard, roles: ['ADMIN'] },
+  { to: '/locations', label: 'Locations', icon: MapPin, roles: ['ADMIN'] },
   { to: '/profile', label: 'Profile', icon: UserRound, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
 ];
 
@@ -68,14 +69,14 @@ function AppLayout() {
           <Logo />
 
           {/* Desktop: menu items in the bar */}
-          <nav className="ml-6 hidden items-center gap-1 lg:flex" aria-label="Main">
+          <nav className="ml-4 hidden items-center gap-0.5 lg:flex xl:ml-6 xl:gap-1" aria-label="Main">
             {items.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.to === '/'}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  `flex items-center gap-2 whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-medium transition-colors xl:px-3 ${
                     isActive ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300' : 'text-ink-3 hover:bg-surface-3 hover:text-ink'
                   }`
                 }
@@ -94,8 +95,9 @@ function AppLayout() {
               title="My profile"
               className="flex items-center gap-3 rounded-lg p-1 hover:bg-surface-3 lg:px-2"
             >
-              <span className="hidden text-right lg:block">
-                <span className="block text-sm font-medium leading-tight text-ink">
+              {/* The name only on wide screens; between lg and xl the menu needs the space */}
+              <span className="hidden text-right xl:block">
+                <span className="block max-w-36 truncate whitespace-nowrap text-sm font-medium leading-tight text-ink">
                   {user.firstName} {user.lastName}
                 </span>
                 <span className="block text-xs text-muted">{ROLE_LABELS[user.role]}</span>

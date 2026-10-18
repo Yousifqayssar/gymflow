@@ -19,6 +19,7 @@ const ClassDetailPage = lazy(() => import('./pages/ClassDetailPage.jsx'));
 const ClassFormPage = lazy(() => import('./pages/ClassFormPage.jsx'));
 const MyQrPage = lazy(() => import('./pages/MyQrPage.jsx'));
 const RewardsPage = lazy(() => import('./pages/RewardsPage.jsx'));
+const LocationsPage = lazy(() => import('./pages/LocationsPage.jsx'));
 const CheckInPage = lazy(() => import('./pages/CheckInPage.jsx'));
 
 // Which page is shown for which URL.
@@ -57,6 +58,7 @@ function App() {
             <Route path="/people" element={<MembersPage />} />
             <Route path="/people/:id" element={<MemberDetailPage />} />
             <Route path="/plans" element={<PlansPage />} />
+            <Route path="/locations" element={<LocationsPage />} />
           </Route>
         </Route>
       </Route>
