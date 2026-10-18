@@ -14,6 +14,7 @@ const SIZES = {
   md: 'size-10 text-sm',
   lg: 'size-14 text-lg',
   xl: 'size-20 text-2xl',
+  '2xl': 'size-28 font-display text-5xl',
 };
 
 function colorFor(name) {
