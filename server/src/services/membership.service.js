@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../utils/AppError.js';
-import { addDays, calculateEndDate, daysBetween, formatDate, parseDate, todayInGym } from '../utils/dates.js';
+import { addDays, calculateEndDate, daysBetween, formatDate, formatReadableDate, parseDate, todayInGym } from '../utils/dates.js';
 import { toPublicUser } from '../utils/publicUser.js';
 import { daysRemaining, getMembershipStatus, pickCurrentMembership } from './membershipStatus.js';
 import { findPlanOrThrow } from './plan.service.js';
@@ -72,7 +72,7 @@ async function planMembership(db, userId, { planId, startDate }) {
   if (overlapping) {
     throw new AppError(
       409,
-      `This period overlaps an existing membership (${formatDate(overlapping.startDate)} to ${formatDate(overlapping.endDate)})`,
+      `This period overlaps an existing membership (${formatReadableDate(overlapping.startDate)} to ${formatReadableDate(overlapping.endDate)})`,
     );
   }
 

@@ -4,6 +4,7 @@ import {
   calculateEndDate,
   daysBetween,
   formatDate,
+  formatReadableDate,
   parseDate,
   todayInTimeZone,
 } from '../../src/utils/dates.js';
@@ -47,6 +48,13 @@ describe('calculateEndDate', () => {
         expect(calculateEndDate(start, months) > start).toBe(true);
       }
     }
+  });
+});
+
+describe('formatReadableDate', () => {
+  it('writes the date the way people read it', () => {
+    expect(formatReadableDate(parseDate('2026-09-30'))).toBe('30 Sep 2026');
+    expect(formatReadableDate(parseDate('2027-01-01'))).toBe('1 Jan 2027');
   });
 });
 

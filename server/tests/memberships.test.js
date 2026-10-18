@@ -108,7 +108,7 @@ describe('POST /api/users/:id/memberships', () => {
     const response = await assign(member.id, { planId: monthly.id, startDate: '2026-10-20' });
 
     expect(response.status).toBe(409);
-    expect(response.body.error.message).toContain('2026-10-01 to 2026-10-31');
+    expect(response.body.error.message).toContain('1 Oct 2026 to 31 Oct 2026');
   });
 
   it('allows a chosen start date right after the existing membership', async () => {

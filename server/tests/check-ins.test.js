@@ -154,7 +154,7 @@ describe('POST /api/check-ins – refused', () => {
     const response = await scan(qrOf(expired));
 
     expect(response.status).toBe(403);
-    expect(response.body.error.message).toBe("Burak's membership expired on 2026-09-30");
+    expect(response.body.error.message).toBe("Burak's membership expired on 30 Sep 2026");
     expect(response.body.error.code).toBe('MEMBERSHIP_NOT_ACTIVE');
     expect(await prisma.checkIn.count()).toBe(0);
   });
@@ -175,7 +175,7 @@ describe('POST /api/check-ins – refused', () => {
     const response = await scan(qrOf(upcoming));
 
     expect(response.status).toBe(403);
-    expect(response.body.error.message).toBe("Ece's membership only starts on 2026-10-21");
+    expect(response.body.error.message).toBe("Ece's membership only starts on 21 Oct 2026");
   });
 
   it('refuses on the day after the membership ended', async () => {

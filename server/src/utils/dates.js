@@ -17,6 +17,14 @@ export function formatDate(date) {
   return date.toISOString().slice(0, 10);
 }
 
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Date → "15 Oct 2026", for messages that people read (e.g. at the check-in desk).
+// Written by hand instead of Intl, so the text is the same on every computer and in the tests.
+export function formatReadableDate(date) {
+  return `${date.getUTCDate()} ${MONTH_NAMES[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+}
+
 // The calendar date it currently is in the given time zone.
 // Example: 2026-10-15 at 22:30 UTC is already 16 October in Istanbul (UTC+3).
 export function todayInTimeZone(timeZone, now = new Date()) {

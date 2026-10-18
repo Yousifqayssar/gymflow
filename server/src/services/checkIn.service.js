@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../utils/AppError.js';
-import { formatDate, todayInGym } from '../utils/dates.js';
+import { formatDate, formatReadableDate, todayInGym } from '../utils/dates.js';
 import { getMembershipStatus, MembershipStatus, pickCurrentMembership, daysRemaining } from './membershipStatus.js';
 import { pointsSummary } from './points.js';
 
@@ -34,10 +34,10 @@ export function parseCheckInCode(code) {
 function refusalMessage(member, current, status) {
   const name = member.firstName;
   if (status === MembershipStatus.EXPIRED) {
-    return `${name}'s membership expired on ${formatDate(current.endDate)}`;
+    return `${name}'s membership expired on ${formatReadableDate(current.endDate)}`;
   }
   if (status === MembershipStatus.UPCOMING) {
-    return `${name}'s membership only starts on ${formatDate(current.startDate)}`;
+    return `${name}'s membership only starts on ${formatReadableDate(current.startDate)}`;
   }
   return `${name} has no membership`;
 }
