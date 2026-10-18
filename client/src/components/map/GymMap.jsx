@@ -10,6 +10,8 @@ import 'leaflet/dist/leaflet.css';
 // The map is drawn by Leaflet itself, not by React: React only tells it what changed.
 
 const ISTANBUL = [41.02, 29.0];
+// Free OpenStreetMap map images. To match our design they are recoloured with CSS filters in
+// index.css (.gym-map): calm grey with a touch of green in light mode, dark slate in dark mode.
 const TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 // The map data is free, but OpenStreetMap asks every map to name them.
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
