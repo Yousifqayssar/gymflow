@@ -6,7 +6,7 @@
 //   <Button as={Link} to="/people">…</Button>    rendered as another element, e.g. a link
 
 const VARIANTS = {
-  primary: 'bg-brand-600 text-white shadow-sm hover:bg-brand-700 focus-visible:outline-brand-600',
+  primary: 'bg-brand-700 text-white shadow-sm hover:bg-brand-800 focus-visible:outline-brand-600',
   secondary: 'border border-line-strong bg-surface text-ink-2 shadow-sm hover:bg-surface-2 focus-visible:outline-slate-400',
   danger: 'border border-red-200 dark:border-red-500/30 bg-surface text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 focus-visible:outline-red-500',
   ghost: 'text-ink-3 hover:bg-surface-3 hover:text-ink focus-visible:outline-slate-400',

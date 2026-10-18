@@ -63,7 +63,7 @@ function WelcomeHero({ title, stats, actions, now }) {
               to={to}
               className={`inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition active:scale-[0.97] ${
                 primary
-                  ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/30 hover:bg-brand-400'
+                  ? 'bg-brand-400 text-slate-950 shadow-lg shadow-brand-500/30 hover:bg-brand-300'
                   : 'bg-white/10 text-white ring-1 ring-white/20 backdrop-blur-md hover:bg-white/20'
               }`}
             >
@@ -75,19 +75,19 @@ function WelcomeHero({ title, stats, actions, now }) {
       </div>
 
       {/* Live numbers on frosted glass */}
-      <dl className="grid grid-cols-2 gap-px border-t border-white/10 bg-white/10 sm:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-px border-t border-white/10 bg-white/10 sm:grid-cols-4">
         {STAT_TILES.map(({ key, label, icon: Icon }) => (
-          <div key={key} className="flex items-center gap-3 bg-slate-950/40 px-6 py-5 backdrop-blur-md sm:px-8">
+          <li key={key} className="flex items-center gap-3 bg-slate-950/40 px-6 py-5 backdrop-blur-md sm:px-8">
             <Icon className="size-5 shrink-0 text-brand-300" aria-hidden="true" />
             <div>
-              <dd className="font-display text-3xl leading-none font-bold">
+              <p className="font-display text-3xl leading-none font-bold">
                 {stats ? <AnimatedNumber value={stats[key]} /> : '–'}
-              </dd>
-              <dt className="mt-1 text-xs text-white/65">{label}</dt>
+              </p>
+              <p className="mt-1 text-xs text-white/70">{label}</p>
             </div>
-          </div>
+          </li>
         ))}
-      </dl>
+      </ul>
     </section>
   );
 }

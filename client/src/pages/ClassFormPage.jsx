@@ -147,7 +147,7 @@ function ClassFormPage() {
     <div>
       <Link
         to={isEdit ? `/classes/${id}` : '/classes'}
-        className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-ink-3 hover:text-ink"
+        className="mb-4 inline-flex min-h-6 items-center gap-1 text-sm font-medium text-ink-3 hover:text-ink"
       >
         <ChevronLeft className="size-4" aria-hidden="true" />
         Back

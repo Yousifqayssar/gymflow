@@ -80,7 +80,7 @@ function ClassDetailPage() {
     // On phones members get a booking bar fixed to the bottom; pb-40 keeps content visible above it.
     <div className={`space-y-6 ${isMember ? 'pb-40 lg:pb-0' : ''}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link to="/classes" className="inline-flex items-center gap-1 text-sm font-medium text-ink-3 hover:text-ink">
+        <Link to="/classes" className="inline-flex min-h-6 items-center gap-1 text-sm font-medium text-ink-3 hover:text-ink">
           <ChevronLeft className="size-4" aria-hidden="true" />
           All classes
         </Link>

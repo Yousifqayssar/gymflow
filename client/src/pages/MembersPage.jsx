@@ -123,7 +123,7 @@ function MembersPage() {
               aria-selected={role === tab.role}
               onClick={() => handleTabChange(tab.role)}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                role === tab.role ? 'bg-brand-600 text-white shadow-sm' : 'text-ink-3 hover:bg-surface-3 hover:text-ink'
+                role === tab.role ? 'bg-brand-700 text-white shadow-sm' : 'text-ink-3 hover:bg-surface-3 hover:text-ink'
               }`}
             >
               {tab.label}
@@ -154,12 +154,12 @@ function MembersPage() {
               onClick={() => handleStatusChange(filter.value)}
               className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
                 status === filter.value
-                  ? 'border-brand-600 bg-brand-600 text-white'
+                  ? 'border-brand-700 bg-brand-700 text-white'
                   : 'border-line-strong bg-surface text-ink-2 hover:bg-surface-2'
               }`}
             >
               {filter.label}
-              {counts && <span className="ml-1.5 opacity-70">{counts[filter.countKey]}</span>}
+              {counts && <span className="ml-1.5 opacity-90">{counts[filter.countKey]}</span>}
             </button>
           ))}
         </div>

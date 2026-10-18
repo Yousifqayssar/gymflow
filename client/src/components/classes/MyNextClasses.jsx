@@ -35,7 +35,7 @@ function MyNextClasses() {
       padded={false}
       actions={
         classes?.length > 0 && (
-          <Link to="/classes" className="text-sm font-medium text-brand-700 dark:text-brand-300 hover:text-brand-800 dark:hover:text-brand-300">
+          <Link to="/classes" className="inline-flex min-h-6 items-center gap-1 text-sm font-medium text-brand-700 dark:text-brand-300 hover:text-brand-800 dark:hover:text-brand-300">
             All classes
           </Link>
         )

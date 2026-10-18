@@ -72,7 +72,7 @@ function AdminHome() {
             title="Needs renewal"
             description="Memberships ending within the next 7 days."
             actions={
-              <Link to="/people?status=expiring" className="text-sm font-medium text-brand-700 dark:text-brand-300 hover:text-brand-800 dark:hover:text-brand-300">
+              <Link to="/people?status=expiring" className="inline-flex min-h-6 items-center gap-1 text-sm font-medium text-brand-700 dark:text-brand-300 hover:text-brand-800 dark:hover:text-brand-300">
                 View all
               </Link>
             }
@@ -107,7 +107,7 @@ function AdminHome() {
             error={todayError}
             limit={5}
             actions={
-              <Link to="/check-in" className="inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-200">
+              <Link to="/check-in" className="inline-flex min-h-6 items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-200">
                 Open check-in
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>

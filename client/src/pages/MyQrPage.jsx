@@ -9,7 +9,7 @@ function MyQrPage() {
   return (
     <div className="mx-auto max-w-md">
       <section className="overflow-hidden rounded-3xl border border-line bg-surface shadow-lg">
-        <div className="bg-gradient-to-br from-brand-500 to-brand-800 px-6 py-6 text-center text-white">
+        <div className="bg-gradient-to-br from-brand-700 to-brand-900 px-6 py-6 text-center text-white">
           <p className="text-sm font-medium text-white/80">Check in at the entrance</p>
           <PageTitle>My QR code</PageTitle>
           <h1 className="mt-1 font-display text-3xl font-bold tracking-tight">

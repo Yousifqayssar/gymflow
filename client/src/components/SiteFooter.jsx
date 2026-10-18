@@ -39,7 +39,7 @@ function SiteFooter({ links }) {
           <ul className="mt-4 space-y-2.5 text-sm">
             {links.map((link) => (
               <li key={link.to}>
-                <Link to={link.to} className="text-muted transition hover:text-brand-700 dark:hover:text-brand-300">
+                <Link to={link.to} className="inline-flex min-h-6 items-center text-muted transition hover:text-brand-700 dark:hover:text-brand-300">
                   {link.label}
                 </Link>
               </li>
@@ -70,13 +70,13 @@ function SiteFooter({ links }) {
             </li>
             <li className="flex gap-2.5">
               <Phone className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              <a href={`tel:${GYM.phone.replaceAll(' ', '')}`} className="hover:text-brand-700 dark:hover:text-brand-300">
+              <a href={`tel:${GYM.phone.replaceAll(' ', '')}`} className="inline-flex min-h-6 items-center hover:text-brand-700 dark:hover:text-brand-300">
                 {GYM.phone}
               </a>
             </li>
             <li className="flex gap-2.5">
               <Mail className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              <a href={`mailto:${GYM.email}`} className="hover:text-brand-700 dark:hover:text-brand-300">
+              <a href={`mailto:${GYM.email}`} className="inline-flex min-h-6 items-center hover:text-brand-700 dark:hover:text-brand-300">
                 {GYM.email}
               </a>
             </li>

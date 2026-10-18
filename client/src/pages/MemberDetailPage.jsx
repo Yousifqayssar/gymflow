@@ -45,7 +45,7 @@ function MemberDetailPage() {
   return (
     <div className="space-y-6">
       <PageTitle>{`${user.firstName} ${user.lastName}`}</PageTitle>
-      <Link to="/people" className="inline-flex items-center gap-1 text-sm font-medium text-ink-3 hover:text-ink">
+      <Link to="/people" className="inline-flex min-h-6 items-center gap-1 text-sm font-medium text-ink-3 hover:text-ink">
         <ChevronLeft className="size-4" aria-hidden="true" />
         Back to people
       </Link>

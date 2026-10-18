@@ -29,7 +29,7 @@ function DayPicker({ days, selectedKey, onSelect, todayKey }) {
               <m.span
                 layoutId="day-picker-highlight"
                 transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                className="absolute inset-0 -z-0 rounded-2xl bg-gradient-to-b from-brand-500 to-brand-700 shadow-md shadow-brand-600/30"
+                className="absolute inset-0 -z-0 rounded-2xl bg-gradient-to-b from-brand-700 to-brand-900 shadow-md shadow-brand-700/30"
               />
             )}
             <span className={`relative text-xs font-medium ${isSelected ? 'text-white/85' : 'text-muted'}`}>

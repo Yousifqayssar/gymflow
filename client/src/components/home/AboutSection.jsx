@@ -91,13 +91,13 @@ function AboutSection({ now }) {
             </li>
             <li className="flex gap-3">
               <Phone className="mt-0.5 size-4 shrink-0 text-faint" aria-hidden="true" />
-              <a href={`tel:${GYM.phone.replaceAll(' ', '')}`} className="text-ink-2 hover:text-brand-700 dark:hover:text-brand-300">
+              <a href={`tel:${GYM.phone.replaceAll(' ', '')}`} className="inline-flex min-h-6 items-center text-ink-2 hover:text-brand-700 dark:hover:text-brand-300">
                 {GYM.phone}
               </a>
             </li>
             <li className="flex gap-3">
               <Mail className="mt-0.5 size-4 shrink-0 text-faint" aria-hidden="true" />
-              <a href={`mailto:${GYM.email}`} className="text-ink-2 hover:text-brand-700 dark:hover:text-brand-300">
+              <a href={`mailto:${GYM.email}`} className="inline-flex min-h-6 items-center text-ink-2 hover:text-brand-700 dark:hover:text-brand-300">
                 {GYM.email}
               </a>
             </li>

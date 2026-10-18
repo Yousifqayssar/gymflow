@@ -268,7 +268,7 @@ function MemberProfile({ user }) {
           <Card
             title="My QR code"
             actions={
-              <Link to="/my-qr" className="inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-200">
+              <Link to="/my-qr" className="inline-flex min-h-6 items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-200">
                 <Maximize2 className="size-4" aria-hidden="true" />
                 Full screen
               </Link>

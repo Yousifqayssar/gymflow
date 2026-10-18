@@ -27,7 +27,7 @@ function StatCard({ label, value, icon: Icon, tone = 'brand', onClick, isSelecte
       )}
       <span className="min-w-0">
         <span className="block font-display text-3xl font-bold leading-tight text-ink">{value === undefined || value === null ? '–' : <AnimatedNumber value={value} />}</span>
-        <span className="block truncate text-sm text-muted">{label}</span>
+        <span className="block text-sm leading-snug text-muted">{label}</span>
       </span>
     </Component>
   );

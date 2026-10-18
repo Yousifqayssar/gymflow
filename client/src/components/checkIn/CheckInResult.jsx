@@ -9,7 +9,7 @@ import { LEVEL_DISPLAY } from '../../utils/levels.js';
 
 // How each kind of result looks: a coloured header the staff can read from a distance.
 const STYLES = {
-  success: { icon: CircleCheck, header: 'from-brand-500 to-brand-700', label: 'Checked in' },
+  success: { icon: CircleCheck, header: 'from-brand-600 to-brand-800', label: 'Checked in' },
   already: { icon: Clock, header: 'from-sky-500 to-sky-700', label: 'Already checked in today' },
   refused: { icon: ShieldX, header: 'from-red-500 to-red-700', label: 'Entry refused' },
   error: { icon: CircleHelp, header: 'from-slate-500 to-slate-700', label: 'Not recognised' },

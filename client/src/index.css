@@ -33,8 +33,9 @@
   --color-ink: var(--color-slate-900); /* headings and main text */
   --color-ink-2: var(--color-slate-700); /* labels, secondary buttons */
   --color-ink-3: var(--color-slate-600); /* body text */
-  --color-muted: var(--color-slate-500); /* descriptions, meta info */
-  --color-faint: var(--color-slate-400); /* placeholders, decorative icons */
+  /* muted and faint are used for real text too, so both keep at least 4.5:1 contrast (WCAG AA) */
+  --color-muted: var(--color-slate-600); /* descriptions, meta info */
+  --color-faint: var(--color-slate-500); /* small labels, placeholders, decorative icons */
   --color-line-soft: var(--color-slate-100); /* dividers inside cards */
   --color-line: var(--color-slate-200); /* card borders */
   --color-line-strong: var(--color-slate-300); /* input and button borders */
@@ -50,8 +51,8 @@
   --color-ink: var(--color-slate-50);
   --color-ink-2: var(--color-slate-200);
   --color-ink-3: var(--color-slate-300);
-  --color-muted: var(--color-slate-400);
-  --color-faint: var(--color-slate-500);
+  --color-muted: color-mix(in oklab, var(--color-slate-300) 40%, var(--color-slate-400));
+  --color-faint: var(--color-slate-400);
   --color-line-soft: color-mix(in oklab, var(--color-slate-800) 70%, var(--color-slate-900));
   --color-line: var(--color-slate-800);
   --color-line-strong: var(--color-slate-700);
