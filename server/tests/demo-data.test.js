@@ -1,4 +1,8 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// These tests fill the whole demo database (some twice), which takes a few seconds:
+// more than the default 5-second limit per test.
+vi.setConfig({ testTimeout: 20_000 });
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { prisma } from '../src/lib/prisma.js';
@@ -75,6 +79,20 @@ describe('seedDemoData', () => {
     expect(plans.map((p) => p.member.firstName).sort()).toEqual(['Elif', 'Mehmet']);
     expect(plans.every((p) => p.author.firstName === 'Mert')).toBe(true);
     expect(plans.flatMap((p) => p.days.flatMap((d) => d.exercises)).every((e) => e.exerciseId)).toBe(true);
+  });
+
+  it('gives the members with a plan six weeks of workouts with slowly rising weights', async () => {
+    await seedDemoData(prisma, { today: parseDate('2026-10-15') });
+
+    const mehmet = await prisma.user.findFirst({ where: { firstName: 'Mehmet' } });
+    const benchSets = await prisma.workoutSet.findMany({
+      where: { log: { memberId: mehmet.id }, exercise: { name: 'Bench press' }, setNumber: 1 },
+      orderBy: { log: { performedAt: 'asc' } },
+    });
+    const weights = benchSets.map((s) => Number(s.weightKg));
+    expect(weights.length).toBeGreaterThan(3);
+    expect(weights.at(-1)).toBeGreaterThan(weights[0]);
+    expect(await prisma.workoutLog.count({ where: { performedAt: { gt: new Date() } } })).toBe(0);
   });
 
   it('gives demo people valid avatars, and leaves some with their initials', async () => {

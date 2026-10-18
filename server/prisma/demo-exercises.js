@@ -44,8 +44,7 @@ export const DEMO_EXERCISES = [
 ];
 
 export async function seedDemoExercises(prisma) {
-  for (const exercise of DEMO_EXERCISES) {
-    await prisma.exercise.upsert({ where: { name: exercise.name }, update: exercise, create: exercise });
-  }
+  // Side by side instead of one after another: each upsert touches a different exercise.
+  await Promise.all(DEMO_EXERCISES.map((exercise) => prisma.exercise.upsert({ where: { name: exercise.name }, update: exercise, create: exercise })));
   return DEMO_EXERCISES.length;
 }

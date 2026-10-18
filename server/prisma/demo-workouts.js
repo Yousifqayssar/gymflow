@@ -62,3 +62,47 @@ export async function seedDemoWorkoutPlans(prisma, { members, trainerId }) {
   }
   return count;
 }
+
+// Six weeks of finished workouts for the members with a plan: three sessions a week, cycling
+// through the plan's days, with the weights slowly going up – so the progress charts have a story.
+const WEEKS = 6;
+const SESSION_DAYS = [0, 2, 4]; // Monday, Wednesday, Friday of each week
+const KG_PER_WEEK = 2.5;
+
+export async function seedDemoWorkoutLogs(prisma, { today }) {
+  const plans = await prisma.workoutPlan.findMany({
+    where: { member: { email: { endsWith: '@demo.gymflow.local' } } },
+    include: { days: { orderBy: { position: 'asc' }, include: { exercises: { orderBy: { position: 'asc' } } } } },
+  });
+
+  // Built in memory first, then written with two queries (all logs, then all sets): much faster than one by one.
+  const logs = [];
+  const setsPerLog = [];
+  for (const plan of plans) {
+    let session = 0;
+    for (let week = WEEKS; week >= 1; week--) {
+      for (const weekday of SESSION_DAYS) {
+        const daysAgo = week * 7 - weekday;
+        if (daysAgo < 1) continue;
+        const day = plan.days[session % plan.days.length];
+        session++;
+        const weeksDone = WEEKS - week; // 0 in the first week, then 1, 2 …
+        const performedAt = new Date(today.getTime() - daysAgo * 24 * 60 * 60 * 1000 + 17 * 60 * 60 * 1000); // ~17:00 UTC
+        const sets = day.exercises.flatMap((item) =>
+          Array.from({ length: item.sets }, (_, i) => ({
+            exerciseId: item.exerciseId,
+            setNumber: i + 1,
+            reps: Math.max(1, item.reps - (i === item.sets - 1 ? 1 : 0)), // the last set is the hardest
+            weightKg: item.targetWeightKg === null ? null : Math.max(0, Number(item.targetWeightKg) - (WEEKS - 1 - weeksDone) * KG_PER_WEEK),
+          })),
+        );
+        logs.push({ memberId: plan.memberId, planId: plan.id, dayId: day.id, dayName: day.name, performedAt, durationSeconds: 40 * 60 + (session % 4) * 5 * 60 });
+        setsPerLog.push(sets);
+      }
+    }
+  }
+
+  const created = await prisma.workoutLog.createManyAndReturn({ data: logs, select: { id: true } });
+  await prisma.workoutSet.createMany({ data: created.flatMap((log, i) => setsPerLog[i].map((set) => ({ ...set, logId: log.id }))) });
+  return created.length;
+}

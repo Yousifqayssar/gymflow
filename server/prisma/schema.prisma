@@ -44,6 +44,7 @@ model User {
   // Workout plans this member follows, and plans this trainer/admin wrote.
   workoutPlans     WorkoutPlan[] @relation("MemberWorkoutPlans")
   writtenPlans     WorkoutPlan[] @relation("PlanAuthor")
+  workoutLogs      WorkoutLog[]
   recordedCheckIns CheckIn[]    @relation("StaffCheckIns")
 }
 
@@ -274,6 +275,7 @@ model Exercise {
   updatedAt   DateTime    @updatedAt
 
   planExercises WorkoutPlanExercise[]
+  loggedSets    WorkoutSet[]
 }
 
 // A training plan a trainer (or admin) writes for one member, made of days ("Day A – Push").
@@ -291,6 +293,7 @@ model WorkoutPlan {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
   days      WorkoutDay[]
+  logs      WorkoutLog[]
 
   @@index([memberId])
 }
@@ -303,6 +306,7 @@ model WorkoutDay {
   name      String
   position  Int
   exercises WorkoutPlanExercise[]
+  logs      WorkoutLog[]
 
   @@unique([planId, position])
 }
@@ -323,4 +327,39 @@ model WorkoutPlanExercise {
   notes          String?
 
   @@unique([dayId, position])
+}
+
+// A workout a member finished. The day's name is copied, so the history stays readable even
+// when the trainer later changes or rebuilds the plan (the links then become empty).
+model WorkoutLog {
+  id              Int          @id @default(autoincrement())
+  memberId        Int
+  member          User         @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  planId          Int?
+  plan            WorkoutPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  dayId           Int?
+  day             WorkoutDay?  @relation(fields: [dayId], references: [id], onDelete: SetNull)
+  dayName         String
+  performedAt     DateTime
+  durationSeconds Int
+  notes           String?
+  createdAt       DateTime     @default(now())
+  sets            WorkoutSet[]
+
+  @@index([memberId, performedAt])
+}
+
+// One set the member did: which exercise, how many reps, with how much weight.
+model WorkoutSet {
+  id         Int        @id @default(autoincrement())
+  logId      Int
+  log        WorkoutLog @relation(fields: [logId], references: [id], onDelete: Cascade)
+  exerciseId Int
+  exercise   Exercise   @relation(fields: [exerciseId], references: [id])
+  setNumber  Int
+  reps       Int
+  // Empty for bodyweight sets.
+  weightKg   Decimal?   @db.Decimal(5, 1)
+
+  @@index([exerciseId])
 }
