@@ -71,6 +71,7 @@ describe('GET /api/me/visits', () => {
       level: 'Bronze',
       nextLevel: 'Silver',
       pointsToNextLevel: 100,
+      discountPercent: 0,
       recentVisits: [],
     });
   });
@@ -85,16 +86,18 @@ describe('GET /api/me/visits', () => {
   });
 
   it.each([
-    [10, 'Silver', 'Gold', 200],
-    [29, 'Silver', 'Gold', 10],
-    [30, 'Gold', null, 0],
-  ])('with %i visits the level is %s', async (count, level, nextLevel, pointsToNextLevel) => {
-    const days = Array.from({ length: count }, (_, i) => `2026-09-${String(i + 1).padStart(2, '0')}`);
+    [10, 'Silver', 'Gold', 200, 5],
+    [29, 'Silver', 'Gold', 10, 5],
+    [30, 'Gold', 'Platinum', 300, 10],
+    [60, 'Platinum', null, 0, 15],
+  ])('with %i visits the level is %s', async (count, level, nextLevel, pointsToNextLevel, discountPercent) => {
+    // One visit per day, going back from 14 October 2026.
+    const days = Array.from({ length: count }, (_, i) => new Date(Date.UTC(2026, 9, 14 - i)).toISOString().slice(0, 10));
     await addVisits(days);
 
     const response = await get('/api/me/visits');
 
-    expect(response.body).toMatchObject({ level, nextLevel, pointsToNextLevel });
+    expect(response.body).toMatchObject({ level, nextLevel, pointsToNextLevel, discountPercent });
   });
 
   it('shows at most the 10 most recent visits', async () => {

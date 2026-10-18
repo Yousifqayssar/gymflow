@@ -4,6 +4,7 @@ import { addDays, calculateEndDate, daysBetween, formatDate, formatReadableDate,
 import { toPublicUser } from '../utils/publicUser.js';
 import { daysRemaining, getMembershipStatus, pickCurrentMembership } from './membershipStatus.js';
 import { findPlanOrThrow } from './plan.service.js';
+import { pointsSummary } from './points.js';
 
 // A membership as sent to clients, including its status on `today`.
 export function toPublicMembership(membership, today) {
@@ -13,6 +14,7 @@ export function toPublicMembership(membership, today) {
     startDate: formatDate(membership.startDate),
     endDate: formatDate(membership.endDate),
     price: membership.price.toFixed(2),
+    discountPercent: membership.discountPercent,
     status: getMembershipStatus(membership, today),
     daysRemaining: daysRemaining(membership, today),
     // For upcoming memberships: how many days until it starts (0 once it has started).
@@ -76,7 +78,12 @@ async function planMembership(db, userId, { planId, startDate }) {
     );
   }
 
-  return { plan, startDate: start, endDate: end, price: plan.price };
+  // Loyalty reward: the member's level (from their visits) gives a discount on the plan price.
+  const visits = await db.checkIn.count({ where: { memberId: userId } });
+  const { level, discountPercent } = pointsSummary(visits);
+  const price = plan.price.mul(100 - discountPercent).div(100).toDecimalPlaces(2);
+
+  return { plan, startDate: start, endDate: end, listPrice: plan.price, level, discountPercent, price };
 }
 
 // Without a chosen date: start today, or the day after the last membership that hasn't ended yet.
@@ -95,6 +102,9 @@ export async function previewMembership(userId, input) {
     plan: { id: planned.plan.id, name: planned.plan.name },
     startDate: formatDate(planned.startDate),
     endDate: formatDate(planned.endDate),
+    listPrice: planned.listPrice.toFixed(2),
+    level: planned.level,
+    discountPercent: planned.discountPercent,
     price: planned.price.toFixed(2),
   };
 }
@@ -115,6 +125,7 @@ export async function assignMembership(userId, input) {
         startDate: planned.startDate,
         endDate: planned.endDate,
         price: planned.price, // copied: later price changes don't rewrite this sale
+        discountPercent: planned.discountPercent,
       },
       include: { plan: true },
     });

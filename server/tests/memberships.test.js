@@ -180,6 +180,44 @@ describe('POST /api/users/:id/memberships', () => {
   });
 });
 
+describe('loyalty discount', () => {
+  // `count` visits on different days before "today" (15 October 2026).
+  const addVisits = (count) =>
+    prisma.checkIn.createMany({
+      data: Array.from({ length: count }, (_, i) => {
+        const day = new Date(Date.UTC(2026, 9, 14 - i));
+        return { memberId: member.id, gymDay: day, checkedInAt: day, method: 'QR' };
+      }),
+    });
+
+  it.each([
+    [0, 'Bronze', 0, '1500.00'],
+    [10, 'Silver', 5, '1425.00'],
+    [30, 'Gold', 10, '1350.00'],
+    [60, 'Platinum', 15, '1275.00'],
+  ])('with %i visits (%s) the member gets %i%% off', async (visits, level, discountPercent, price) => {
+    await addVisits(visits);
+
+    const preview = await request(app)
+      .get(`/api/users/${member.id}/memberships/preview?planId=${monthly.id}`)
+      .set('Authorization', bearer(adminToken));
+    const response = await assign(member.id, { planId: monthly.id });
+
+    expect(preview.body.preview).toMatchObject({ listPrice: '1500.00', level, discountPercent, price });
+    expect(response.status).toBe(201);
+    expect(response.body.membership).toMatchObject({ price, discountPercent });
+  });
+
+  it('rounds the discounted price to whole kuruş', async () => {
+    const odd = await createPlan({ name: 'Odd price', durationMonths: 1, price: 999.99 });
+    await addVisits(10); // Silver: 5 %
+
+    const response = await assign(member.id, { planId: odd.id });
+
+    expect(response.body.membership.price).toBe('949.99'); // 949.9905 → 949.99
+  });
+});
+
 describe('GET /api/users/:id/memberships/preview', () => {
   it('shows the dates and price without saving anything', async () => {
     const response = await request(app)
@@ -191,6 +229,9 @@ describe('GET /api/users/:id/memberships/preview', () => {
       plan: { id: monthly.id, name: 'Monthly' },
       startDate: '2026-10-15',
       endDate: '2026-11-14',
+      listPrice: '1500.00',
+      level: 'Bronze',
+      discountPercent: 0,
       price: '1500.00',
     });
     expect(await prisma.membership.count()).toBe(0);

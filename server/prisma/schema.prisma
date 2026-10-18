@@ -75,6 +75,8 @@ model Membership {
   endDate   DateTime       @db.Date
   // The price at the time of sale, so later price changes don't rewrite history.
   price     Decimal        @db.Decimal(10, 2)
+  // Loyalty discount the member got on this sale (0, 5, 10 or 15 %), already included in `price`.
+  discountPercent Int      @default(0)
   createdAt DateTime       @default(now())
 
   @@index([userId])
