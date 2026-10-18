@@ -5,6 +5,7 @@ import { getMyBody, recordMyBody } from '../controllers/body.controller.js';
 import { listMyWorkoutPlans } from '../controllers/workoutPlan.controller.js';
 import { listMyWorkouts, logWorkout } from '../controllers/workoutLog.controller.js';
 import { logWorkoutSchema } from '../validation/workoutLog.schemas.js';
+import { getMyProgress } from '../controllers/progress.controller.js';
 import { validate } from '../middleware/validate.js';
 import { bodyCheckInSchema } from '../validation/body.schemas.js';
 import { authenticate } from '../middleware/authenticate.js';
@@ -25,5 +26,6 @@ router.post('/body', validate(bodyCheckInSchema), recordMyBody);
 router.get('/workout-plans', listMyWorkoutPlans);
 router.get('/workouts', listMyWorkouts);
 router.post('/workouts', validate(logWorkoutSchema), logWorkout);
+router.get('/progress', getMyProgress);
 
 export default router;

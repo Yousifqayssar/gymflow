@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../utils/AppError.js';
+import { newPersonalBests } from './progress.service.js';
 
 const HISTORY_LIMIT = 20;
 
@@ -80,7 +81,9 @@ export async function logWorkout(memberId, input, now = new Date()) {
     },
     include: LOG_INCLUDE,
   });
-  return toPublicLog(log);
+  const workout = toPublicLog(log);
+  // For the summary screen: exercises where this workout beat every earlier one.
+  return { ...workout, personalBests: await newPersonalBests(memberId, workout) };
 }
 
 // GET /api/me/workouts and GET /api/members/:id/workouts – the latest workouts, newest first.
