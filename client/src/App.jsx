@@ -22,6 +22,8 @@ const RewardsPage = lazy(() => import('./pages/RewardsPage.jsx'));
 const LocationsPage = lazy(() => import('./pages/LocationsPage.jsx'));
 const NutritionPage = lazy(() => import('./pages/NutritionPage.jsx'));
 const ExercisesPage = lazy(() => import('./pages/ExercisesPage.jsx'));
+const WorkoutsPage = lazy(() => import('./pages/WorkoutsPage.jsx'));
+const PlanEditorPage = lazy(() => import('./pages/PlanEditorPage.jsx'));
 const CheckInPage = lazy(() => import('./pages/CheckInPage.jsx'));
 
 // Which page is shown for which URL.
@@ -42,6 +44,7 @@ function App() {
           <Route path="/classes" element={<ClassesPage />} />
           <Route path="/classes/:id" element={<ClassDetailPage />} />
           <Route path="/food" element={<NutritionPage />} />
+          <Route path="/workouts" element={<WorkoutsPage />} />
 
           {/* Member pages */}
           <Route element={<ProtectedRoute roles={['MEMBER']} />}>
@@ -53,6 +56,8 @@ function App() {
           <Route element={<ProtectedRoute roles={['ADMIN', 'TRAINER']} />}>
             <Route path="/check-in" element={<CheckInPage />} />
             <Route path="/exercises" element={<ExercisesPage />} />
+            <Route path="/workouts/new" element={<PlanEditorPage />} />
+            <Route path="/workouts/:id/edit" element={<PlanEditorPage />} />
             <Route path="/classes/new" element={<ClassFormPage />} />
             <Route path="/classes/:id/edit" element={<ClassFormPage />} />
           </Route>
