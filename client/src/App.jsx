@@ -21,6 +21,7 @@ const MyQrPage = lazy(() => import('./pages/MyQrPage.jsx'));
 const RewardsPage = lazy(() => import('./pages/RewardsPage.jsx'));
 const LocationsPage = lazy(() => import('./pages/LocationsPage.jsx'));
 const NutritionPage = lazy(() => import('./pages/NutritionPage.jsx'));
+const ExercisesPage = lazy(() => import('./pages/ExercisesPage.jsx'));
 const CheckInPage = lazy(() => import('./pages/CheckInPage.jsx'));
 
 // Which page is shown for which URL.
@@ -51,6 +52,7 @@ function App() {
           {/* Admin and trainer pages */}
           <Route element={<ProtectedRoute roles={['ADMIN', 'TRAINER']} />}>
             <Route path="/check-in" element={<CheckInPage />} />
+            <Route path="/exercises" element={<ExercisesPage />} />
             <Route path="/classes/new" element={<ClassFormPage />} />
             <Route path="/classes/:id/edit" element={<ClassFormPage />} />
           </Route>

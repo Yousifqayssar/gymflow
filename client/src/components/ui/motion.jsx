@@ -43,16 +43,17 @@ export function ProgressFill({ percent, className = '', delay = 0.2 }) {
 // Parent + children that fade in one after another ("stagger"), e.g. the four stat cards.
 //   <Stagger className="grid …"><StaggerItem>…</StaggerItem>…</Stagger>
 // `as` lets the parent be a <ul> and the children <li>.
-const staggerParent = { hidden: {}, shown: { transition: { staggerChildren: 0.06 } } };
+// `step` is the pause between two children; long lists use a shorter one so the last item is not late.
+const staggerParent = (step) => ({ hidden: {}, shown: { transition: { staggerChildren: step } } });
 const staggerChild = {
   hidden: { opacity: 0, y: 12 },
   shown: { opacity: 1, y: 0, transition: { duration: 0.35, ease: EASE_OUT } },
 };
 
-export function Stagger({ as = 'div', className, children }) {
+export function Stagger({ as = 'div', className, step = 0.06, children }) {
   const Component = m[as];
   return (
-    <Component className={className} variants={staggerParent} initial="hidden" animate="shown">
+    <Component className={className} variants={staggerParent(step)} initial="hidden" animate="shown">
       {children}
     </Component>
   );

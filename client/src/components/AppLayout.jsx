@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { Apple, CalendarDays, CreditCard, Gift, House, LogOut, MapPin, Menu, QrCode, ScanLine, UserRound, Users, X } from 'lucide-react';
+import { Apple, CalendarDays, CreditCard, Dumbbell, Gift, House, LogOut, MapPin, Menu, QrCode, ScanLine, UserRound, Users, X } from 'lucide-react';
 import { useAuth } from '../auth/useAuth.js';
 import Avatar from './ui/Avatar.jsx';
 import Logo from './ui/Logo.jsx';
@@ -16,10 +16,12 @@ const NAV_ITEMS = [
   { to: '/check-in', label: 'Check-in', icon: ScanLine, roles: ['ADMIN', 'TRAINER'] },
   { to: '/classes', label: 'Classes', icon: CalendarDays, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
   { to: '/food', label: 'Food', icon: Apple, roles: ['MEMBER', 'TRAINER'] },
+  { to: '/exercises', label: 'Exercises', icon: Dumbbell, roles: ['ADMIN', 'TRAINER'] },
   { to: '/people', label: 'People', icon: Users, roles: ['ADMIN'] },
   { to: '/plans', label: 'Plans', icon: CreditCard, roles: ['ADMIN'] },
   { to: '/locations', label: 'Locations', icon: MapPin, roles: ['ADMIN'] },
-  { to: '/profile', label: 'Profile', icon: UserRound, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
+  // Not in the desktop bar: there the avatar at the top right opens the profile (saves space).
+  { to: '/profile', label: 'Profile', icon: UserRound, roles: ['ADMIN', 'TRAINER', 'MEMBER'], phoneOnly: true },
 ];
 
 const ROLE_LABELS = { ADMIN: 'Admin', TRAINER: 'Trainer', MEMBER: 'Member' };
@@ -71,7 +73,7 @@ function AppLayout() {
 
           {/* Desktop: menu items in the bar */}
           <nav className="ml-4 hidden items-center gap-0.5 lg:flex xl:ml-6 xl:gap-1" aria-label="Main">
-            {items.map((item) => (
+            {items.filter((item) => !item.phoneOnly).map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -82,7 +84,8 @@ function AppLayout() {
                   }`
                 }
               >
-                <item.icon className="size-4" aria-hidden="true" />
+                {/* Icons only on wide screens; between lg and xl the labels need the space */}
+                <item.icon className="hidden size-4 xl:block" aria-hidden="true" />
                 {item.label}
               </NavLink>
             ))}
