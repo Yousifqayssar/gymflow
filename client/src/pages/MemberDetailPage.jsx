@@ -105,7 +105,10 @@ function MemberDetailPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-ink-3">{formatPrice(membership.price)}</span>
+                      <span className="text-sm text-ink-3">
+                        {formatPrice(membership.price)}
+                        {membership.discountPercent > 0 && <span className="ml-1 text-xs text-brand-700 dark:text-brand-300">(−{membership.discountPercent}%)</span>}
+                      </span>
                       <MembershipStatusBadge status={membership.status} />
                     </div>
                   </li>

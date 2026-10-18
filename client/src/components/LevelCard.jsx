@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react';
+import { BadgePercent, Sparkles } from 'lucide-react';
 import { LEVEL_DISPLAY, LEVEL_START } from '../utils/levels.js';
 import { AnimatedNumber, ProgressFill } from './ui/motion.jsx';
 
@@ -48,6 +48,12 @@ function LevelCard({ visits }) {
         {nextLevel ? `${pointsToNextLevel} points to ${nextLevel}` : 'Top level reached – thank you for training with us!'}
       </p>
       <p className="mt-1 text-xs text-white/70">10 points for every visit (once per day)</p>
+      {visits.discountPercent > 0 && (
+        <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold backdrop-blur-sm">
+          <BadgePercent className="size-4" aria-hidden="true" />
+          Your reward: {visits.discountPercent}% off memberships
+        </p>
+      )}
     </section>
   );
 }

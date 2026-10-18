@@ -105,9 +105,24 @@ function AssignMembershipForm({ memberId, plans, onAssigned }) {
       {selectedPlan?.description && <p className="-mt-1 text-sm text-ink-3">{selectedPlan.description}</p>}
 
       {planId && preview && (
-        <div className="rounded-lg border border-line bg-surface-2 px-4 py-3 text-sm text-ink-2">
-          Valid from <strong>{formatDate(preview.startDate)}</strong> to <strong>{formatDate(preview.endDate)}</strong> ·{' '}
-          {formatPrice(preview.price)}
+        <div className="space-y-1 rounded-lg border border-line bg-surface-2 px-4 py-3 text-sm text-ink-2">
+          <p>
+            Valid from <strong>{formatDate(preview.startDate)}</strong> to <strong>{formatDate(preview.endDate)}</strong>
+          </p>
+          {/* Loyalty reward: the member's level gives a discount (calculated by the server) */}
+          {preview.discountPercent > 0 ? (
+            <p>
+              <span className="text-muted line-through">{formatPrice(preview.listPrice)}</span>{' '}
+              <strong className="text-ink">{formatPrice(preview.price)}</strong>{' '}
+              <span className="ml-1 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold text-brand-800 dark:bg-brand-500/15 dark:text-brand-300">
+                {preview.level} member · −{preview.discountPercent}%
+              </span>
+            </p>
+          ) : (
+            <p>
+              <strong className="text-ink">{formatPrice(preview.price)}</strong>
+            </p>
+          )}
         </div>
       )}
       {planId && previewError && <ErrorMessage>{previewError}</ErrorMessage>}
