@@ -10,7 +10,6 @@ import Button from './ui/Button.jsx';
 import Card from './ui/Card.jsx';
 import EmptyState from './ui/EmptyState.jsx';
 import ErrorMessage from './ErrorMessage.jsx';
-import PageHeader from './ui/PageHeader.jsx';
 import StatCard from './ui/StatCard.jsx';
 import SystemStatus from './SystemStatus.jsx';
 import { formatDate } from '../utils/format.js';
@@ -18,7 +17,7 @@ import { Stagger, StaggerItem } from './ui/motion.jsx';
 
 // Admin home: key numbers, members who need to renew, today's visits, quick actions.
 // One request gives everything: the expiring members (sorted by urgency) and the counts per status.
-function AdminHome({ user }) {
+function AdminHome() {
   const navigate = useNavigate();
   const [data, setData] = useState(null); // { users, counts }
   const [error, setError] = useState('');
@@ -48,7 +47,7 @@ function AdminHome({ user }) {
 
   return (
     <div>
-      <PageHeader title={`Welcome back, ${user.firstName}`} tabTitle="Home" description="Here is what is happening at your gym today." />
+      <h2 className="mb-4 font-display text-3xl font-bold tracking-tight text-ink">Today at the gym</h2>
 
       <ErrorMessage>{error}</ErrorMessage>
 

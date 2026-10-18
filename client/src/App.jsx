@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import GuestRoute from './components/GuestRoute.jsx';
@@ -6,17 +6,18 @@ import AppLayout from './components/AppLayout.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import HomePage from './pages/HomePage.jsx';
-import PlansPage from './pages/PlansPage.jsx';
-import MembersPage from './pages/MembersPage.jsx';
-import MemberDetailPage from './pages/MemberDetailPage.jsx';
-import ProfilePage from './pages/ProfilePage.jsx';
-import ClassesPage from './pages/ClassesPage.jsx';
-import ClassDetailPage from './pages/ClassDetailPage.jsx';
-import ClassFormPage from './pages/ClassFormPage.jsx';
-import MyQrPage from './pages/MyQrPage.jsx';
 
-// The check-in page contains the camera QR scanner (large). Loading it only when it is opened
-// keeps the app fast for members, who never use it.
+// The other pages are loaded only when they are opened ("code splitting"): the first download
+// stays small, and e.g. members never download the camera QR scanner of the check-in page.
+// While a page loads, <Suspense> in AppLayout shows a short placeholder.
+const PlansPage = lazy(() => import('./pages/PlansPage.jsx'));
+const MembersPage = lazy(() => import('./pages/MembersPage.jsx'));
+const MemberDetailPage = lazy(() => import('./pages/MemberDetailPage.jsx'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage.jsx'));
+const ClassesPage = lazy(() => import('./pages/ClassesPage.jsx'));
+const ClassDetailPage = lazy(() => import('./pages/ClassDetailPage.jsx'));
+const ClassFormPage = lazy(() => import('./pages/ClassFormPage.jsx'));
+const MyQrPage = lazy(() => import('./pages/MyQrPage.jsx'));
 const CheckInPage = lazy(() => import('./pages/CheckInPage.jsx'));
 
 // Which page is shown for which URL.
@@ -44,14 +45,7 @@ function App() {
 
           {/* Admin and trainer pages */}
           <Route element={<ProtectedRoute roles={['ADMIN', 'TRAINER']} />}>
-            <Route
-              path="/check-in"
-              element={
-                <Suspense fallback={<p className="text-muted">Loading check-in…</p>}>
-                  <CheckInPage />
-                </Suspense>
-              }
-            />
+            <Route path="/check-in" element={<CheckInPage />} />
             <Route path="/classes/new" element={<ClassFormPage />} />
             <Route path="/classes/:id/edit" element={<ClassFormPage />} />
           </Route>

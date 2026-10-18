@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { CalendarDays, CreditCard, House, LogOut, Menu, QrCode, ScanLine, UserRound, Users, X } from 'lucide-react';
 import { useAuth } from '../auth/useAuth.js';
@@ -6,6 +6,7 @@ import Avatar from './ui/Avatar.jsx';
 import Logo from './ui/Logo.jsx';
 import ThemeToggle from './ui/ThemeToggle.jsx';
 import { PageTransition } from './ui/motion.jsx';
+import SiteFooter from './SiteFooter.jsx';
 
 // Menu entries, their icons and which roles can see them. New pages are added here.
 const NAV_ITEMS = [
@@ -191,9 +192,14 @@ function AppLayout() {
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
         {/* The key makes the animation start again on every new page */}
         <PageTransition key={location.pathname}>
-          <Outlet />
+          {/* Pages are loaded on demand (see App.jsx); this shows while one is downloading */}
+          <Suspense fallback={<div className="h-64 animate-pulse rounded-3xl bg-surface-3" aria-label="Loading page" />}>
+            <Outlet />
+          </Suspense>
         </PageTransition>
       </main>
+
+      <SiteFooter links={items} />
     </div>
   );
 }
