@@ -6,6 +6,7 @@ import { getWorkoutPlan } from '../api/workoutPlans.js';
 import { logWorkout } from '../api/workoutLogs.js';
 import RestTimer from '../components/workouts/RestTimer.jsx';
 import SetRow from '../components/workouts/SetRow.jsx';
+import ExerciseDemo from '../components/exercises/ExerciseDemo.jsx';
 import Button from '../components/ui/Button.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import PageTitle from '../components/ui/PageTitle.jsx';
@@ -256,9 +257,14 @@ function WorkoutSessionPage() {
 
           <button type="button" onClick={() => setShowHowTo((v) => !v)} aria-expanded={showHowTo} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-brand-700 dark:text-brand-300">
             <Info className="size-4" aria-hidden="true" />
-            {showHowTo ? 'Hide how to do it' : 'How to do it'}
+            {showHowTo ? 'Hide how to do it' : 'How to do it (3D demo)'}
           </button>
-          {showHowTo && <p className="rounded-2xl bg-surface-2 p-4 text-sm leading-relaxed text-ink-2">{item.exercise.description}</p>}
+          {showHowTo && (
+            <div className="space-y-3">
+              <ExerciseDemo key={item.exercise.id} exercise={item.exercise} className="h-72" />
+              <p className="rounded-2xl bg-surface-2 p-4 text-sm leading-relaxed text-ink-2">{item.exercise.description}</p>
+            </div>
+          )}
 
           <ol className="space-y-2">
             {entries.map((entry, index) => (

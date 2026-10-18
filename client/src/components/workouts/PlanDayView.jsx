@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, MessageSquareText, Timer } from 'lucide-react';
 import { EQUIPMENT_LABELS, MUSCLE_GROUPS } from '../../utils/exerciseDisplay.js';
+import ExerciseDemo from '../exercises/ExerciseDemo.jsx';
 import { formatRest, formatSetsReps } from '../../utils/workoutDisplay.js';
 
 // One exercise of a training day: what, how much, how long to rest – the how-to opens on demand.
@@ -40,7 +41,12 @@ function PlanExerciseRow({ item, number }) {
               {item.notes}
             </p>
           )}
-          {isOpen && <p className="leading-relaxed text-ink-3">{item.exercise.description}</p>}
+          {isOpen && (
+            <>
+              <ExerciseDemo exercise={item.exercise} className="h-64" />
+              <p className="leading-relaxed text-ink-3">{item.exercise.description}</p>
+            </>
+          )}
         </div>
       )}
     </li>

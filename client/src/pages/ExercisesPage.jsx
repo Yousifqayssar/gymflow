@@ -5,6 +5,7 @@ import { createExercise, listExercises, updateExercise } from '../api/exercises.
 import { useApiData } from '../hooks/useApiData.js';
 import ExerciseForm from '../components/exercises/ExerciseForm.jsx';
 import FlipExerciseCard from '../components/exercises/FlipExerciseCard.jsx';
+import ExerciseDemo from '../components/exercises/ExerciseDemo.jsx';
 import MuscleGroupTiles from '../components/exercises/MuscleGroupTiles.jsx';
 import MuscleOrbit from '../components/exercises/MuscleOrbit.jsx';
 import Button from '../components/ui/Button.jsx';
@@ -15,7 +16,7 @@ import PageTitle from '../components/ui/PageTitle.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import { AnimatedNumber } from '../components/ui/motion.jsx';
 import { useToast } from '../components/ui/useToast.js';
-import { MUSCLE_GROUPS } from '../utils/exerciseDisplay.js';
+import { EQUIPMENT_LABELS, MUSCLE_GROUPS } from '../utils/exerciseDisplay.js';
 
 // Trainers and admins: the exercise library that workout plans are built from.
 // The whole library is loaded once and filtered here, so the tiles can always show every count.
@@ -26,6 +27,7 @@ function ExercisesPage() {
   const [showInactive, setShowInactive] = useState(false);
   const [editing, setEditing] = useState(null); // null, 'new' or an exercise
   const [actionError, setActionError] = useState('');
+  const [demo, setDemo] = useState(null); // the exercise shown in the 3D demo popup
 
   const load = useCallback(() => listExercises({ includeInactive: showInactive }), [showInactive]);
   const { data, error, reload } = useApiData(load);
@@ -154,11 +156,24 @@ function ExercisesPage() {
               animate={{ opacity: 1, scale: 1, y: 0, transition: { delay: Math.min(index, 12) * 0.03 } }}
               exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
             >
-              <FlipExerciseCard exercise={exercise} onEdit={setEditing} onToggleActive={handleToggleActive} />
+              <FlipExerciseCard exercise={exercise} onEdit={setEditing} onToggleActive={handleToggleActive} onDemo={setDemo} />
             </m.li>
           ))}
         </AnimatePresence>
       </ul>
+
+      <Modal isOpen={demo !== null} title={demo?.name ?? ''} onClose={() => setDemo(null)}>
+        {demo && (
+          <div className="space-y-4">
+            <ExerciseDemo key={demo.id} exercise={demo} className="h-80 sm:h-96" />
+            <p className="flex flex-wrap gap-1.5">
+              <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${MUSCLE_GROUPS[demo.muscleGroup].soft}`}>{MUSCLE_GROUPS[demo.muscleGroup].label}</span>
+              <span className="rounded-full bg-surface-3 px-2 py-0.5 text-xs font-medium text-ink-3">{EQUIPMENT_LABELS[demo.equipment]}</span>
+            </p>
+            <p className="text-sm leading-relaxed text-ink-3">{demo.description}</p>
+          </div>
+        )}
+      </Modal>
 
       <Modal isOpen={editing !== null} title={editing === 'new' ? 'New exercise' : 'Edit exercise'} onClose={() => setEditing(null)}>
         {editing !== null && (

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { m } from 'motion/react';
-import { Eye, EyeOff, Pencil, RotateCw, Undo2 } from 'lucide-react';
+import { Box, Eye, EyeOff, Pencil, RotateCw, Undo2 } from 'lucide-react';
 import Button from '../ui/Button.jsx';
 import { EQUIPMENT_LABELS, MUSCLE_GROUPS } from '../../utils/exerciseDisplay.js';
 
@@ -8,7 +8,7 @@ import { EQUIPMENT_LABELS, MUSCLE_GROUPS } from '../../utils/exerciseDisplay.js'
 // the back shows how to do it and the buttons to edit or (de)activate it.
 // Both sides are stacked on top of each other; the back is turned 180° and hidden while it faces away
 // (backface-visibility: hidden), so turning the card shows the other side.
-function FlipExerciseCard({ exercise, onEdit, onToggleActive }) {
+function FlipExerciseCard({ exercise, onEdit, onToggleActive, onDemo }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const { label, icon: Icon, gradient, soft } = MUSCLE_GROUPS[exercise.muscleGroup];
   const flip = () => setIsFlipped((value) => !value);
@@ -62,6 +62,9 @@ function FlipExerciseCard({ exercise, onEdit, onToggleActive }) {
           </h2>
           <p className="mt-2 flex-1 overflow-y-auto text-sm leading-relaxed text-ink-3">{exercise.description}</p>
           <div className="mt-3 flex flex-wrap gap-2">
+            <Button size="sm" icon={Box} tabIndex={isFlipped ? 0 : -1} onClick={() => onDemo(exercise)}>
+              3D demo
+            </Button>
             <Button variant="secondary" size="sm" icon={Pencil} tabIndex={isFlipped ? 0 : -1} onClick={() => onEdit(exercise)}>
               Edit
             </Button>
