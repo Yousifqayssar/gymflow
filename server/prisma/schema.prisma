@@ -39,6 +39,8 @@ model User {
   bookings         Booking[]
   // Gym visits of this member, and check-ins this staff member recorded.
   checkIns         CheckIn[]    @relation("MemberCheckIns")
+  // Monthly body check-ins (height, weight, goal) of this member.
+  bodyCheckIns     BodyCheckIn[]
   recordedCheckIns CheckIn[]    @relation("StaffCheckIns")
 }
 
@@ -185,4 +187,32 @@ model CheckIn {
 
   @@unique([memberId, gymDay])
   @@index([gymDay])
+}
+
+// What a member wants to achieve with their training.
+enum BodyGoal {
+  LOSE_WEIGHT
+  BUILD_MUSCLE
+  GET_FIT
+  IMPROVE_ENDURANCE
+  STAY_HEALTHY
+}
+
+// A member's body information on one day. Members update it every month; each update is a new row,
+// so trainers can follow the progress. At most one per member per day (a second one replaces it).
+model BodyCheckIn {
+  id             Int      @id @default(autoincrement())
+  memberId       Int
+  member         User     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  // The calendar day in the gym's time zone.
+  recordedOn     DateTime @db.Date
+  heightCm       Decimal  @db.Decimal(4, 1)
+  weightKg       Decimal  @db.Decimal(4, 1)
+  goal           BodyGoal
+  // Optional weight the member is aiming for.
+  targetWeightKg Decimal? @db.Decimal(4, 1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([memberId, recordedOn])
 }

@@ -7,6 +7,7 @@ import { addDays, calculateEndDate, todayInGym } from '../src/utils/dates.js';
 import { hashPassword } from '../src/utils/password.js';
 import { seedDemoClasses } from './demo-classes.js';
 import { seedDemoCheckIns } from './demo-check-ins.js';
+import { seedDemoBodies } from './demo-body.js';
 
 export const DEMO_EMAIL_DOMAIN = 'demo.gymflow.local';
 // Every demo account uses this password, so you can log in as any of them.
@@ -189,6 +190,7 @@ export async function seedDemoData(prisma, { today = todayInGym(), now = new Dat
   });
   const classes = await seedDemoClasses(prisma, { today, now, trainers, members });
   const checkIns = await seedDemoCheckIns(prisma, { today, now, members, staffId: trainers.Mert });
+  const bodyCheckIns = await seedDemoBodies(prisma, { today, members });
 
-  return { plans: DEMO_PLANS.length, trainers: DEMO_TRAINERS.length, members: DEMO_MEMBERS.length, classes, checkIns };
+  return { plans: DEMO_PLANS.length, trainers: DEMO_TRAINERS.length, members: DEMO_MEMBERS.length, classes, checkIns, bodyCheckIns };
 }

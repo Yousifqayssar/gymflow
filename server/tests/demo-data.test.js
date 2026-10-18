@@ -41,6 +41,15 @@ describe('seedDemoData', () => {
     await expect(seedDemoData(prisma, { today: parseDate('2026-10-18') })).resolves.toBeDefined();
   });
 
+  it('gives some members a body history, one of them due for the monthly check-in', async () => {
+    await seedDemoData(prisma, { today: parseDate('2026-10-15') });
+
+    const elif = await prisma.user.findFirst({ where: { firstName: 'Elif' }, include: { bodyCheckIns: { orderBy: { recordedOn: 'desc' } } } });
+    expect(elif.bodyCheckIns.length).toBeGreaterThan(1);
+    // Latest check-in 35 days ago: the reminder shows for Elif.
+    expect(elif.bodyCheckIns[0].recordedOn).toEqual(parseDate('2026-09-10'));
+  });
+
   it('gives demo people valid avatars, and leaves some with their initials', async () => {
     await seedDemoData(prisma, { today: parseDate('2026-10-15') });
 
