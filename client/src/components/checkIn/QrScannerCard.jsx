@@ -13,7 +13,12 @@ const CAMERA_ERRORS = {
   'in-use': 'The camera is being used by another app. Close it and try again.',
   'insecure-context': 'The camera only works on localhost or over HTTPS.',
   unsupported: 'This browser cannot use the camera. Type the member number instead.',
+  overconstrained: 'This camera does not support the needed picture size. Type the member number instead.',
 };
+
+// Which camera picture we would like. The back camera on phones; 720p is a wish ("ideal"), not a must:
+// the library's own default demands at least 640 px height, which many 480p laptop webcams cannot give.
+const CAMERA_CONSTRAINTS = { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } };
 
 // Scans member QR codes with the device camera. `onCode` gets the text inside the QR code.
 // The camera only starts when staff press "Start camera", so the browser asks for permission on purpose.
@@ -28,6 +33,8 @@ function QrScannerCard({ onCode, isBusy, children }) {
   }
 
   function handleError(error) {
+    // The exact reason for developers (F12 → Console); staff see the friendly text below.
+    console.warn('Camera problem:', error.kind, error.message);
     setCameraError(CAMERA_ERRORS[error.kind] ?? 'The camera could not be started. Type the member number instead.');
     setIsCameraOn(false);
   }
@@ -50,7 +57,7 @@ function QrScannerCard({ onCode, isBusy, children }) {
             onScan={(codes) => codes[0] && onCode(codes[0].rawValue)}
             onError={handleError}
             formats={['qr_code']}
-            constraints={{ facingMode: 'environment' }}
+            constraints={CAMERA_CONSTRAINTS}
             // Report the same code again (at most once a second): otherwise a member who was refused could
             // not be scanned again after renewing. The page itself ignores quick repeats of one code.
             allowMultiple
