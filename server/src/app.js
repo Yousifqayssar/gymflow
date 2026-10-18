@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { fileURLToPath } from 'node:url';
 import { env } from './config/env.js';
 import healthRoutes from './routes/health.routes.js';
 import authRoutes from './routes/auth.routes.js';
@@ -17,6 +18,7 @@ import exerciseRoutes from './routes/exercise.routes.js';
 import workoutPlanRoutes from './routes/workoutPlan.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { serveClient } from './lib/serveClient.js';
 
 // Builds the Express app without starting it.
 // Keeping this separate from server.js lets tests import the app directly.
@@ -45,6 +47,11 @@ app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/exercises', exerciseRoutes);
 app.use('/api/workout-plans', workoutPlanRoutes);
 
-// 3. Fallbacks (must come after all routes)
+// 3. The built React website (production only, see serveClient.js)
+if (env.NODE_ENV === 'production') {
+  serveClient(app, fileURLToPath(new URL('../../client/dist', import.meta.url)));
+}
+
+// 4. Fallbacks (must come after all routes)
 app.use(notFound);
 app.use(errorHandler);

@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev && prisma generate",
+    "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:seed:demo": "node prisma/seed-demo.js",
     "db:studio": "prisma studio"

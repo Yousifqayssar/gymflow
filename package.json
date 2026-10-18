@@ -1,0 +1,13 @@
+{
+  "name": "gymflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GymFlow – one online service: the Express API also sends the built React website",
+  "scripts": {
+    "build": "npm ci --include=dev --prefix server && npm ci --include=dev --prefix client && npm run build --prefix client && npm run db:deploy --prefix server",
+    "start": "npm start --prefix server"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}
