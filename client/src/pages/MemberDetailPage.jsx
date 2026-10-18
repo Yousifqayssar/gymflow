@@ -53,7 +53,7 @@ function MemberDetailPage() {
       {/* ---------- Who it is ---------- */}
       <Card>
         <div className="flex flex-wrap items-center gap-4">
-          <Avatar firstName={user.firstName} lastName={user.lastName} size="xl" />
+          <Avatar firstName={user.firstName} lastName={user.lastName} avatar={user.avatar} size="xl" />
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">
               {user.firstName} {user.lastName}

@@ -84,7 +84,7 @@ function AdminHome() {
               {data?.users.slice(0, 5).map((member) => (
                 <li key={member.id}>
                   <Link to={`/people/${member.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-surface-2">
-                    <Avatar firstName={member.firstName} lastName={member.lastName} />
+                    <Avatar firstName={member.firstName} lastName={member.lastName} avatar={member.avatar} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-ink">
                         {member.firstName} {member.lastName}

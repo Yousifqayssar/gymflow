@@ -170,7 +170,7 @@ function ClassDetailPage() {
               </Fact>
               <Fact icon={Users} label="Trainer">
                 <span className="flex items-center gap-2">
-                  <Avatar firstName={gymClass.trainer.firstName} lastName={gymClass.trainer.lastName} size="sm" />
+                  <Avatar firstName={gymClass.trainer.firstName} lastName={gymClass.trainer.lastName} avatar={gymClass.trainer.avatar} size="sm" />
                   {gymClass.trainer.firstName} {gymClass.trainer.lastName}
                 </span>
               </Fact>
@@ -192,7 +192,7 @@ function ClassDetailPage() {
                 <ul className="divide-y divide-line-soft">
                   {gymClass.attendees.map((attendee) => (
                     <li key={attendee.id} className="flex items-center gap-3 px-5 py-2.5">
-                      <Avatar firstName={attendee.firstName} lastName={attendee.lastName} size="sm" />
+                      <Avatar firstName={attendee.firstName} lastName={attendee.lastName} avatar={attendee.avatar} size="sm" />
                       <span className="text-sm font-medium text-ink">
                         {attendee.firstName} {attendee.lastName}
                       </span>

@@ -67,6 +67,11 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
-  const value = { user, isLoading, login, register, logout };
+  // After the user changed their own account (e.g. a new avatar): show the new data everywhere.
+  function updateCurrentUser(updatedUser) {
+    setUser(updatedUser);
+  }
+
+  const value = { user, isLoading, login, register, logout, updateCurrentUser };
   return <AuthContext value={value}>{children}</AuthContext>;
 }

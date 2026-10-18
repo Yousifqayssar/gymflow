@@ -9,8 +9,8 @@ function trainersFromClasses(classes) {
   const trainers = new Map();
   for (const gymClass of classes) {
     if (gymClass.isCancelled) continue;
-    const { id, firstName, lastName } = gymClass.trainer;
-    if (!trainers.has(id)) trainers.set(id, { id, firstName, lastName, categories: new Set(), classCount: 0 });
+    const { id, firstName, lastName, avatar } = gymClass.trainer;
+    if (!trainers.has(id)) trainers.set(id, { id, firstName, lastName, avatar, categories: new Set(), classCount: 0 });
     const trainer = trainers.get(id);
     trainer.categories.add(gymClass.category);
     trainer.classCount += 1;
@@ -47,7 +47,7 @@ function TrainersSection() {
                   </div>
                   <div className="px-5 pb-5">
                     <span className="relative -mt-8 inline-block rounded-full bg-surface p-1 shadow-md">
-                      <Avatar firstName={trainer.firstName} lastName={trainer.lastName} size="lg" />
+                      <Avatar firstName={trainer.firstName} lastName={trainer.lastName} avatar={trainer.avatar} size="lg" />
                     </span>
                     <h3 className="mt-2 text-lg font-semibold text-ink">
                       {trainer.firstName} {trainer.lastName}

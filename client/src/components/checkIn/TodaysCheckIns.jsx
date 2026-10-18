@@ -39,7 +39,7 @@ function TodaysCheckIns({ today, error, limit, actions }) {
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center gap-3 px-5 py-3"
             >
-              <Avatar firstName={checkIn.member.firstName} lastName={checkIn.member.lastName} size="sm" />
+              <Avatar firstName={checkIn.member.firstName} lastName={checkIn.member.lastName} avatar={checkIn.member.avatar} size="sm" />
               <p className="min-w-0 flex-1 truncate text-sm font-medium text-ink">
                 {checkIn.member.firstName} {checkIn.member.lastName}
               </p>

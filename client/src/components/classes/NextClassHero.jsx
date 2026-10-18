@@ -50,7 +50,7 @@ function NextClassHero({ gymClass, now, isMine }) {
                   {gymClass.location}
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <Avatar firstName={gymClass.trainer.firstName} lastName={gymClass.trainer.lastName} size="sm" />
+                  <Avatar firstName={gymClass.trainer.firstName} lastName={gymClass.trainer.lastName} avatar={gymClass.trainer.avatar} size="sm" />
                   {gymClass.trainer.firstName} {gymClass.trainer.lastName}
                 </span>
               </p>

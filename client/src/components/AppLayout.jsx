@@ -99,7 +99,7 @@ function AppLayout() {
                 </span>
                 <span className="block text-xs text-muted">{ROLE_LABELS[user.role]}</span>
               </span>
-              <Avatar firstName={user.firstName} lastName={user.lastName} size="sm" />
+              <Avatar firstName={user.firstName} lastName={user.lastName} avatar={user.avatar} size="sm" />
             </Link>
             <button
               type="button"
@@ -167,7 +167,7 @@ function AppLayout() {
 
           <div className="border-t border-line p-4">
             <div className="flex items-center gap-3">
-              <Avatar firstName={user.firstName} lastName={user.lastName} />
+              <Avatar firstName={user.firstName} lastName={user.lastName} avatar={user.avatar} />
               <div className="min-w-0">
                 <p className="truncate font-medium text-ink">
                   {user.firstName} {user.lastName}

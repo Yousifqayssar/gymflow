@@ -84,7 +84,7 @@ function MemberDetails({ result }) {
   return (
     <div className="space-y-4 p-5">
       <div className="flex items-center gap-3">
-        <Avatar firstName={member.firstName} lastName={member.lastName} size="lg" />
+        <Avatar firstName={member.firstName} lastName={member.lastName} avatar={member.avatar} size="lg" />
         <div className="min-w-0">
           <p className="truncate font-semibold text-ink">
             {member.firstName} {member.lastName}

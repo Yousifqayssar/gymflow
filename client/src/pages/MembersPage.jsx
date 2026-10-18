@@ -185,7 +185,7 @@ function MembersPage() {
                 to={`/people/${user.id}`}
                 className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3.5 transition-colors hover:bg-surface-2 sm:px-5"
               >
-                <Avatar firstName={user.firstName} lastName={user.lastName} />
+                <Avatar firstName={user.firstName} lastName={user.lastName} avatar={user.avatar} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-ink">
                     {user.firstName} {user.lastName}

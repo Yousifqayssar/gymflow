@@ -57,7 +57,7 @@ function ClassCard({ gymClass }) {
 
         <div className="flex items-center justify-between gap-3 text-sm">
           <span className="flex min-w-0 items-center gap-2 text-ink-3">
-            <Avatar firstName={gymClass.trainer.firstName} lastName={gymClass.trainer.lastName} size="sm" />
+            <Avatar firstName={gymClass.trainer.firstName} lastName={gymClass.trainer.lastName} avatar={gymClass.trainer.avatar} size="sm" />
             <span className="truncate">
               {gymClass.trainer.firstName} {gymClass.trainer.lastName}
             </span>

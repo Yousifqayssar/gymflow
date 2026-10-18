@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { m } from 'motion/react';
 import {
@@ -9,6 +10,7 @@ import {
   Hash,
   Mail,
   Maximize2,
+  Pencil,
   QrCode,
   ScanLine,
   ShieldCheck,
@@ -23,6 +25,7 @@ import { listUsers } from '../api/users.js';
 import { listTodaysCheckIns } from '../api/checkIns.js';
 import { listClasses } from '../api/classes.js';
 import Avatar from '../components/ui/Avatar.jsx';
+import AvatarPicker from '../components/AvatarPicker.jsx';
 import Button from '../components/ui/Button.jsx';
 import Card from '../components/ui/Card.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
@@ -66,8 +69,9 @@ const noData = () => Promise.resolve(null);
 
 // ---------- shared parts ----------
 
-// The avatar inside a slowly turning colour ring ("motion-safe": it stands still for "reduce motion").
-function AvatarRing({ user }) {
+// The avatar inside a slowly turning colour ring ("motion-safe": it stands still for "reduce motion"),
+// with a pencil button to choose another avatar.
+function AvatarRing({ user, onEdit }) {
   return (
     <span className="relative inline-flex shrink-0 rounded-full p-1 shadow-xl">
       <span
@@ -75,20 +79,31 @@ function AvatarRing({ user }) {
         className="absolute inset-0 rounded-full bg-[conic-gradient(var(--color-brand-400),var(--color-amber-300),var(--color-brand-600),var(--color-sky-400),var(--color-brand-400))] motion-safe:animate-[spin_10s_linear_infinite]"
       />
       <span className="relative rounded-full bg-surface p-1">
-        <Avatar firstName={user.firstName} lastName={user.lastName} size="2xl" />
+        <Avatar firstName={user.firstName} lastName={user.lastName} avatar={user.avatar} size="2xl" />
       </span>
+      <button
+        type="button"
+        onClick={onEdit}
+        aria-label="Change avatar"
+        title="Change avatar"
+        className="absolute right-1 bottom-1 flex size-10 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg ring-4 ring-surface transition hover:scale-110 hover:bg-brand-700 active:scale-95"
+      >
+        <Pencil className="size-4" aria-hidden="true" />
+      </button>
     </span>
   );
 }
 
 // Big header: photo cover in the brand colours, avatar with ring, name, chips and the main action.
 function ProfileHeader({ user, levelName, action }) {
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const role = ROLE_DISPLAY[user.role];
   const level = levelName ? LEVEL_DISPLAY[levelName] : null;
 
   return (
     <section className="overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
       <PageTitle>Profile</PageTitle>
+      <AvatarPicker isOpen={isPickerOpen} onClose={() => setIsPickerOpen(false)} />
       <div className="relative isolate h-40 overflow-hidden sm:h-56">
         <img src={role.cover} alt="" className="absolute inset-0 -z-30 size-full object-cover" />
         <div aria-hidden="true" className="absolute inset-0 -z-20 bg-gradient-to-br from-brand-500/90 via-brand-700/80 to-slate-900/90" />
@@ -110,7 +125,7 @@ function ProfileHeader({ user, levelName, action }) {
         <div className="relative flex flex-wrap items-end justify-between gap-4">
           <div className="flex min-w-0 flex-wrap items-end gap-4 sm:gap-6">
             <span className="-mt-16 sm:-mt-20">
-              <AvatarRing user={user} />
+              <AvatarRing user={user} onEdit={() => setIsPickerOpen(true)} />
             </span>
             <div className="min-w-0 pt-2 pb-1">
               <h1 className="font-display text-4xl font-bold tracking-tight text-ink sm:text-5xl">
