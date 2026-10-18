@@ -7,6 +7,12 @@ export default defineConfig({
   // react(): JSX support + instant updates in the browser when you save a file.
   // tailwindcss(): turns the Tailwind classes we use into real CSS.
   plugins: [react(), tailwindcss()],
+  build: {
+    // The 3D dumbbell on the login page (three.js) is one file of ~540 kB (~130 kB compressed).
+    // It is loaded on its own, only on the login page, after the form is shown – so the warning
+    // limit is raised just above it. The rest of the app stays far below.
+    chunkSizeWarningLimit: 600,
+  },
   server: {
     // During development, forward every request starting with /api to the Express server.
     // The browser only ever talks to localhost:5173, so there are no CORS problems.

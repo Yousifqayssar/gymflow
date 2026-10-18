@@ -1,66 +1,112 @@
-import { CalendarDays, QrCode, TrendingUp } from 'lucide-react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { m } from 'motion/react';
+import { CalendarDays, Gift, QrCode } from 'lucide-react';
 import Logo from './ui/Logo.jsx';
 import PageTitle from './ui/PageTitle.jsx';
+import ThemeToggle from './ui/ThemeToggle.jsx';
+import { GYM } from '../config/gym.js';
+
+// The 3D dumbbell uses three.js (a big library): it is downloaded separately, after the form is
+// already on screen, so logging in never has to wait for it.
+const Dumbbell3D = lazy(() => import('./auth/Dumbbell3D.jsx'));
+
+// The brand panel (and its 3D scene) is only shown on wide screens, the same width as Tailwind's `lg`.
+const wideScreen = window.matchMedia('(min-width: 1024px)');
+
+// True while the window is wide enough for the brand panel; follows resizing.
+function useIsWideScreen() {
+  const [isWide, setIsWide] = useState(wideScreen.matches);
+  useEffect(() => {
+    const handleChange = (event) => setIsWide(event.matches);
+    wideScreen.addEventListener('change', handleChange);
+    return () => wideScreen.removeEventListener('change', handleChange);
+  }, []);
+  return isWide;
+}
 
 // Calculated once when the app loads; components should not read the clock while rendering.
 const CURRENT_YEAR = new Date().getFullYear();
 
 const FEATURES = [
-  { icon: QrCode, text: 'Check in with your personal QR code' },
-  { icon: CalendarDays, text: 'Book your favourite classes' },
-  { icon: TrendingUp, text: 'Follow your plan and see your progress' },
+  { icon: QrCode, text: 'QR check-in' },
+  { icon: CalendarDays, text: 'Class booking' },
+  { icon: Gift, text: 'Loyalty rewards' },
 ];
 
 // Layout of the login and register pages.
-// Desktop: form on the left, green brand panel on the right. Phones: only the form.
+// Desktop: form on the left, a dark brand panel with a turning 3D dumbbell on the right.
+// Phones: the form with a small brand header.
 // `tabTitle` is the browser tab title, e.g. "Log in".
 function AuthCard({ title, tabTitle, subtitle, children }) {
+  // Phones never download or run the 3D scene (it would be hidden anyway and only cost battery).
+  const isWideScreen = useIsWideScreen();
+
   return (
-    <div className="flex min-h-screen bg-surface">
+    <div className="flex min-h-screen bg-canvas">
+      <PageTitle>{tabTitle}</PageTitle>
+
       {/* ---------- Form side ---------- */}
-      <main className="flex flex-1 flex-col justify-center px-6 py-12 sm:px-12 lg:flex-none lg:basis-1/2 xl:px-24">
-        <div className="mx-auto w-full max-w-sm">
+      <main className="relative isolate flex flex-1 flex-col overflow-hidden px-6 py-8 sm:px-12 lg:flex-none lg:basis-[46%] xl:px-20">
+        {/* Soft brand-coloured glow behind the form */}
+        <div aria-hidden="true" className="absolute -top-40 -left-40 -z-10 size-96 rounded-full bg-brand-400/20 blur-3xl" />
+
+        <div className="flex items-center justify-between">
           <Logo />
-          <PageTitle>{tabTitle}</PageTitle>
-          <h1 className="mt-10 font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">{title}</h1>
-          {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
-          <div className="mt-8">{children}</div>
+          <ThemeToggle />
         </div>
+
+        <m.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto my-auto w-full max-w-sm py-10"
+        >
+          <p className="text-sm font-semibold tracking-wide text-brand-700 uppercase dark:text-brand-300">{GYM.name}</p>
+          <h1 className="mt-2 font-display text-4xl font-bold tracking-tight text-ink sm:text-5xl">{title}</h1>
+          {subtitle && <p className="mt-2 text-muted">{subtitle}</p>}
+          <div className="mt-8 rounded-2xl border border-line bg-surface p-6 shadow-xl shadow-slate-900/5 dark:shadow-black/30">{children}</div>
+        </m.div>
+
+        <p className="text-center text-xs text-faint lg:text-left">
+          © {CURRENT_YEAR} {GYM.name}
+        </p>
       </main>
 
       {/* ---------- Brand side (desktop only) ---------- */}
-      <aside className="relative hidden flex-1 overflow-hidden bg-gradient-to-br from-brand-600 to-brand-900 lg:flex lg:flex-col lg:justify-between lg:p-12 xl:p-16">
-        {/* Decorative circles in the background */}
-        <div aria-hidden="true" className="absolute -top-24 -right-24 size-96 rounded-full bg-white/10" />
-        <div aria-hidden="true" className="absolute -bottom-32 -left-16 size-80 rounded-full bg-white/5" />
+      <aside className="relative isolate hidden flex-1 flex-col overflow-hidden border-l border-white/10 bg-slate-950 text-white lg:flex">
+        {/* Green light from below and a fine grid, like a modern gym floor at night */}
+        <div aria-hidden="true" className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_50%_60%,rgb(16_185_129/0.35),transparent_60%)]" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 opacity-20 [background-image:linear-gradient(rgb(255_255_255/0.08)_1px,transparent_1px),linear-gradient(90deg,rgb(255_255_255/0.08)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]"
+        />
 
-        <div className="relative">
-          <Logo inverted />
+        <div className="relative flex-1">
+          {isWideScreen && (
+            <Suspense fallback={<div className="absolute inset-0 m-auto size-48 animate-pulse rounded-full bg-brand-500/20 blur-2xl" />}>
+              <Dumbbell3D className="absolute inset-0" />
+            </Suspense>
+          )}
         </div>
 
-        <div className="relative">
-          <h2 className="text-4xl font-bold leading-tight tracking-tight text-white xl:text-5xl">
+        <div className="relative px-12 pb-12 xl:px-16">
+          <h2 className="font-display text-5xl leading-[0.95] font-bold tracking-tight xl:text-6xl">
             Train smarter.
             <br />
-            Manage easier.
+            <span className="bg-gradient-to-r from-brand-300 to-cyan-300 bg-clip-text text-transparent">Feel stronger.</span>
           </h2>
-          <p className="mt-4 max-w-md text-lg text-brand-100">
-            Memberships, check-ins, classes and workouts – everything your gym needs in one place.
+          <p className="mt-4 max-w-md text-lg text-white/70">
+            Memberships, check-ins, classes and rewards – your whole gym in one app.
           </p>
-
-          <ul className="mt-10 space-y-4">
+          <ul className="mt-8 flex flex-wrap gap-3">
             {FEATURES.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-3 text-white">
-                <span className="flex size-10 items-center justify-center rounded-xl bg-white/15">
-                  <Icon className="size-5" aria-hidden="true" />
-                </span>
+              <li key={text} className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium ring-1 ring-white/15 backdrop-blur-md">
+                <Icon className="size-4 text-brand-300" aria-hidden="true" />
                 {text}
               </li>
             ))}
           </ul>
         </div>
-
-        <p className="relative text-sm text-brand-200">© {CURRENT_YEAR} GymFlow</p>
       </aside>
     </div>
   );
