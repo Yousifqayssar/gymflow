@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router';
 import { CalendarClock, ChevronLeft, History, Mail } from 'lucide-react';
 import { getMember } from '../api/members.js';
 import { listPlans } from '../api/plans.js';
+import { getMemberBody } from '../api/body.js';
+import BodyCard from '../components/body/BodyCard.jsx';
 import AssignMembershipForm from '../components/AssignMembershipForm.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import MembershipStatusBadge from '../components/MembershipStatusBadge.jsx';
@@ -19,9 +21,17 @@ function MemberDetailPage() {
   const [plans, setPlans] = useState([]);
   const [error, setError] = useState('');
   const [reloadCount, setReloadCount] = useState(0);
+  const [body, setBody] = useState(null);
 
   useEffect(() => {
     let ignore = false;
+    getMemberBody(id)
+      .then((result) => {
+        if (!ignore) setBody(result);
+      })
+      .catch(() => {
+        // Trainers and admins only see this for members; for trainer accounts there is no body card.
+      });
     Promise.all([getMember(id), listPlans()])
       .then(([member, planData]) => {
         if (ignore) return;
@@ -84,6 +94,8 @@ function MemberDetailPage() {
         )}
         {!isMember && <p className="mt-4 text-sm text-muted">Trainers don't have memberships.</p>}
       </Card>
+
+      {isMember && <BodyCard overview={body} title="Body details" />}
 
       {isMember && (
         <div className="grid gap-6 lg:grid-cols-2">

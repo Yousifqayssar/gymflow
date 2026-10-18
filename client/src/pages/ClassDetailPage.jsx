@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { Backpack, Ban, CalendarDays, ChevronLeft, Clock, Gauge, HeartPulse, MapPin, Signal, Users } from 'lucide-react';
+import { Backpack, Ban, CalendarDays, ChevronLeft, Clock, Gauge, HeartPulse, MapPin, Scale, Signal, Users } from 'lucide-react';
 import { getClass } from '../api/classes.js';
 import Avatar from '../components/ui/Avatar.jsx';
 import Card from '../components/ui/Card.jsx';
@@ -11,6 +11,7 @@ import StaffClassActions from '../components/classes/StaffClassActions.jsx';
 import { useAuth } from '../auth/useAuth.js';
 import SpotsBar from '../components/classes/SpotsBar.jsx';
 import PageTitle from '../components/ui/PageTitle.jsx';
+import MemberBodyModal from '../components/body/MemberBodyModal.jsx';
 import {
   CATEGORY_DISPLAY,
   formatDuration,
@@ -55,6 +56,7 @@ function ClassDetailPage() {
   const { id } = useParams();
   const [gymClass, setGymClass] = useState(null);
   const [error, setError] = useState('');
+  const [bodyMember, setBodyMember] = useState(null); // booked member whose body details are open
 
   useEffect(() => {
     let ignore = false;
@@ -193,15 +195,24 @@ function ClassDetailPage() {
                   {gymClass.attendees.map((attendee) => (
                     <li key={attendee.id} className="flex items-center gap-3 px-5 py-2.5">
                       <Avatar firstName={attendee.firstName} lastName={attendee.lastName} avatar={attendee.avatar} size="sm" />
-                      <span className="text-sm font-medium text-ink">
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">
                         {attendee.firstName} {attendee.lastName}
                       </span>
+                      <button
+                        type="button"
+                        onClick={() => setBodyMember(attendee)}
+                        className="inline-flex min-h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-brand-500/10"
+                      >
+                        <Scale className="size-3.5" aria-hidden="true" />
+                        Body info
+                      </button>
                     </li>
                   ))}
                 </ul>
               )}
             </Card>
           )}
+          <MemberBodyModal member={bodyMember} onClose={() => setBodyMember(null)} />
         </div>
       </div>
     </div>

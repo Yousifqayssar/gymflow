@@ -14,6 +14,7 @@ import TodaysCheckIns from '../components/checkIn/TodaysCheckIns.jsx';
 import AboutSection from '../components/home/AboutSection.jsx';
 import TrainersSection from '../components/home/TrainersSection.jsx';
 import WelcomeHero from '../components/home/WelcomeHero.jsx';
+import BodyReminder from '../components/body/BodyReminder.jsx';
 import PageTitle from '../components/ui/PageTitle.jsx';
 
 // "Open now" in the banner is refreshed this often.
@@ -63,6 +64,7 @@ function MemberDashboard() {
 
   return (
     <section>
+      <BodyReminder />
       <h2 className="mb-4 font-display text-3xl font-bold tracking-tight text-ink">Your training</h2>
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="space-y-6 lg:col-span-3">

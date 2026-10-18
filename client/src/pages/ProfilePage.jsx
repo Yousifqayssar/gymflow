@@ -21,6 +21,8 @@ import {
 import { useAuth } from '../auth/useAuth.js';
 import { useApiData } from '../hooks/useApiData.js';
 import { getMyVisits, listMyBookings } from '../api/me.js';
+import { getMyBody } from '../api/body.js';
+import BodyCard from '../components/body/BodyCard.jsx';
 import { listUsers } from '../api/users.js';
 import { listTodaysCheckIns } from '../api/checkIns.js';
 import { listClasses } from '../api/classes.js';
@@ -234,6 +236,7 @@ function ShortcutTiles({ shortcuts }) {
 function MemberProfile({ user }) {
   const { data: visits } = useApiData(getMyVisits);
   const { data: bookings } = useApiData(listMyBookings);
+  const { data: body, reload: reloadBody } = useApiData(getMyBody);
 
   const stats = [
     { label: 'Visits', value: visits?.visits, icon: Footprints, tone: 'brand' },
@@ -261,6 +264,7 @@ function MemberProfile({ user }) {
             <LevelCard visits={visits} />
             <MyMembershipCard />
           </div>
+          <BodyCard overview={body} canEdit onSaved={reloadBody} />
           <RecentVisits visits={visits} />
         </div>
 
