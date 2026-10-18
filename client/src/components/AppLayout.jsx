@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { CalendarDays, CreditCard, Gift, House, LogOut, MapPin, Menu, QrCode, ScanLine, UserRound, Users, X } from 'lucide-react';
+import { Apple, CalendarDays, CreditCard, Gift, House, LogOut, MapPin, Menu, QrCode, ScanLine, UserRound, Users, X } from 'lucide-react';
 import { useAuth } from '../auth/useAuth.js';
 import Avatar from './ui/Avatar.jsx';
 import Logo from './ui/Logo.jsx';
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { to: '/rewards', label: 'Rewards', icon: Gift, roles: ['MEMBER'] },
   { to: '/check-in', label: 'Check-in', icon: ScanLine, roles: ['ADMIN', 'TRAINER'] },
   { to: '/classes', label: 'Classes', icon: CalendarDays, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
+  { to: '/food', label: 'Food', icon: Apple, roles: ['MEMBER', 'TRAINER'] },
   { to: '/people', label: 'People', icon: Users, roles: ['ADMIN'] },
   { to: '/plans', label: 'Plans', icon: CreditCard, roles: ['ADMIN'] },
   { to: '/locations', label: 'Locations', icon: MapPin, roles: ['ADMIN'] },

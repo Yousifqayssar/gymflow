@@ -20,6 +20,7 @@ const ClassFormPage = lazy(() => import('./pages/ClassFormPage.jsx'));
 const MyQrPage = lazy(() => import('./pages/MyQrPage.jsx'));
 const RewardsPage = lazy(() => import('./pages/RewardsPage.jsx'));
 const LocationsPage = lazy(() => import('./pages/LocationsPage.jsx'));
+const NutritionPage = lazy(() => import('./pages/NutritionPage.jsx'));
 const CheckInPage = lazy(() => import('./pages/CheckInPage.jsx'));
 
 // Which page is shown for which URL.
@@ -39,6 +40,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/classes" element={<ClassesPage />} />
           <Route path="/classes/:id" element={<ClassDetailPage />} />
+          <Route path="/food" element={<NutritionPage />} />
 
           {/* Member pages */}
           <Route element={<ProtectedRoute roles={['MEMBER']} />}>
