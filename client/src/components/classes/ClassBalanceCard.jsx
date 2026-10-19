@@ -22,7 +22,7 @@ function ClassBalanceCard({ showUpgrade = true, className = '' }) {
         </span>
         <div className="min-w-0 flex-1 basis-56">
           <p className="font-semibold text-ink">Your Basic plan is gym only</p>
-          <p className="text-sm text-muted">Group classes are included in Premium plans – 10 classes every month.</p>
+          <p className="text-sm text-muted">Pay per class when you book one – or go Premium for 10 classes every month.</p>
         </div>
         {showUpgrade && (
           <Button as={Link} to="/membership" icon={Crown} variant="secondary" className="w-full sm:w-auto">
@@ -62,6 +62,7 @@ function ClassBalanceCard({ showUpgrade = true, className = '' }) {
         <p className="text-sm text-muted">
           {balance.resetsOn ? `New classes on ${formatDate(balance.resetsOn)}` : `Until your membership ends on ${formatDate(balance.monthEnd)}`}
           {' · '}unused classes don’t carry over
+          {isEmpty && ' · extra classes are 30% off'}
         </p>
       </div>
 

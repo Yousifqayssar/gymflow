@@ -28,7 +28,7 @@ export function bookClass(id) {
   return apiRequest(`/classes/${id}/book`, { method: 'POST' });
 }
 
-// DELETE /api/classes/:id/book (Member) – returns the updated class
+// DELETE /api/classes/:id/book (Member) – { class, refunded } (refunded: amount of a paid class, e.g. "150.00", or null)
 export function cancelBooking(id) {
   return apiRequest(`/classes/${id}/book`, { method: 'DELETE' });
 }
@@ -51,4 +51,16 @@ export function markAttendance(id, memberId, present) {
 // POST /api/classes/:id/attend (Member) – the member scanned the trainer's QR code
 export function attendClass(id, code) {
   return apiRequest(`/classes/${id}/attend`, { method: 'POST', body: { code } });
+}
+
+// GET /api/classes/:id/booking-quote (Member) – free with the membership, or the price to pay:
+// { quote: { mustPay, reason: null | 'BASIC_PLAN' | 'NO_CLASSES_LEFT', listPrice, discountPercent, price, resetsOn } | null }
+export function getBookingQuote(id) {
+  return apiRequest(`/classes/${id}/booking-quote`);
+}
+
+// POST /api/classes/:id/book-and-pay (Member) – pay one class by card and book it: { class, payment }
+// body: { checkoutId, card }. A declined card throws ApiError 402 with code 'CARD_DECLINED'.
+export function bookAndPay(id, body) {
+  return apiRequest(`/classes/${id}/book-and-pay`, { method: 'POST', body });
 }

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { Backpack, Ban, CalendarDays, ChevronLeft, Clock, Gauge, HeartPulse, MapPin, QrCode, Scale, Signal, Users } from 'lucide-react';
-import { getClass } from '../api/classes.js';
-import { getMyClassBalance } from '../api/me.js';
+import { Backpack, Ban, Banknote, CalendarDays, ChevronLeft, Clock, Gauge, HeartPulse, MapPin, QrCode, Scale, Signal, Users } from 'lucide-react';
+import { getBookingQuote, getClass } from '../api/classes.js';
+import { formatPrice } from '../utils/format.js';
 import { useApiData } from '../hooks/useApiData.js';
 import Avatar from '../components/ui/Avatar.jsx';
 import Card from '../components/ui/Card.jsx';
@@ -54,8 +54,6 @@ function IntensityDots({ intensity }) {
   );
 }
 
-const loadNothing = () => Promise.resolve(null);
-
 // Everything about one class, so members understand it before booking.
 function ClassDetailPage() {
   const { user } = useAuth();
@@ -64,11 +62,13 @@ function ClassDetailPage() {
   const [error, setError] = useState('');
   const [bodyMember, setBodyMember] = useState(null); // booked member whose body details are open
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
-  // Members: Basic or Premium and classes left this month (staff do not book, so nothing is loaded for them).
-  const { data: balanceData, reload: reloadBalance } = useApiData(user.role === 'MEMBER' ? getMyClassBalance : loadNothing);
+  // Members: is booking this class free with their membership, or what does it cost?
+  // (Staff do not book, so nothing is loaded for them.)
+  const loadQuote = useCallback(() => (user.role === 'MEMBER' ? getBookingQuote(id) : Promise.resolve(null)), [id, user.role]);
+  const { data: quoteData, reload: reloadQuote } = useApiData(loadQuote);
   const handleBookingChange = (updated) => {
     setGymClass(updated);
-    reloadBalance(); // a booking or cancellation changes the classes left
+    reloadQuote(); // a booking or cancellation changes the classes left, and so the price of the next one
   };
   const closeAttendance = useCallback(() => setIsAttendanceOpen(false), []);
 
@@ -167,10 +167,10 @@ function ClassDetailPage() {
             <>
               {/* Desktop: card at the top of the side column. Phones: bar fixed to the bottom. */}
               <div className="hidden lg:block">
-                <BookingPanel gymClass={gymClass} balance={balanceData?.balance} onChange={handleBookingChange} />
+                <BookingPanel gymClass={gymClass} quote={quoteData?.quote} onChange={handleBookingChange} />
               </div>
               <div className="lg:hidden">
-                <BookingPanel gymClass={gymClass} balance={balanceData?.balance} onChange={handleBookingChange} variant="bar" />
+                <BookingPanel gymClass={gymClass} quote={quoteData?.quote} onChange={handleBookingChange} variant="bar" />
               </div>
             </>
           )}
@@ -192,6 +192,9 @@ function ClassDetailPage() {
               </Fact>
               <Fact icon={Gauge} label="Intensity">
                 <IntensityDots intensity={gymClass.intensity} />
+              </Fact>
+              <Fact icon={Banknote} label="Price">
+                {formatPrice(gymClass.price)} <span className="font-normal text-muted">per class · included in Premium</span>
               </Fact>
               <Fact icon={Users} label="Trainer">
                 <span className="flex items-center gap-2">

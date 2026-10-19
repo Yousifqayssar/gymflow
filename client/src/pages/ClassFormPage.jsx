@@ -32,6 +32,7 @@ const EMPTY_FORM = {
   time: '',
   durationMinutes: '60',
   capacity: '12',
+  price: '200',
   level: 'ALL_LEVELS',
   intensity: 'MEDIUM',
   whatToBring: '',
@@ -50,6 +51,7 @@ function formFromClass(gymClass) {
     location: gymClass.location,
     durationMinutes: String(gymClass.durationMinutes),
     capacity: String(gymClass.capacity),
+    price: String(Number(gymClass.price)),
     level: gymClass.level,
     intensity: gymClass.intensity,
     whatToBring: gymClass.whatToBring,
@@ -115,6 +117,7 @@ function ClassFormPage() {
       startsAt: toGymDateTime(form.date, form.time),
       durationMinutes: Number(form.durationMinutes),
       capacity: Number(form.capacity),
+      price: Number(form.price),
       level: form.level,
       intensity: form.intensity,
       whatToBring: form.whatToBring,
@@ -220,6 +223,18 @@ function ClassFormPage() {
                 value={form.capacity}
                 onChange={handleChange}
                 error={fieldErrors.capacity}
+              />
+              <FormField
+                label="Price per class (₺)"
+                name="price"
+                type="number"
+                min={0.01}
+                step={0.01}
+                required
+                hint="Paid by Basic members; Premium members pay it with a discount once their monthly classes are used."
+                value={form.price}
+                onChange={handleChange}
+                error={fieldErrors.price}
               />
               <SelectField
                 label="Level"
