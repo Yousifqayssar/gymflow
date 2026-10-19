@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { assignMembership, previewMembership } from '../api/members.js';
 import ErrorMessage from './ErrorMessage.jsx';
 import { formatDate, formatPrice } from '../utils/format.js';
+import { planType } from '../utils/planType.js';
 import Button from './ui/Button.jsx';
 
 // Form to sell a plan to a member. While the admin chooses a plan and start date,
@@ -80,7 +81,7 @@ function AssignMembershipForm({ memberId, plans, onAssigned }) {
             <option value="">Choose a plan…</option>
             {plans.map((plan) => (
               <option key={plan.id} value={plan.id}>
-                {plan.name} – {formatPrice(plan.price)}
+                {plan.name} – {formatPrice(plan.price)} – {planType(plan.classesPerMonth).detail}
               </option>
             ))}
           </select>

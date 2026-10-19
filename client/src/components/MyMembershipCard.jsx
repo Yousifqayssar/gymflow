@@ -7,6 +7,7 @@ import MembershipStatusBadge from './MembershipStatusBadge.jsx';
 import Logo from './ui/Logo.jsx';
 import { formatDate, formatMemberNumber } from '../utils/format.js';
 import { AnimatedNumber, ProgressFill } from './ui/motion.jsx';
+import { planType } from '../utils/planType.js';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -83,9 +84,14 @@ function MyMembershipCard() {
             <p className="text-sm text-white/70">Plan</p>
             <p className="font-display text-3xl font-bold">{current ? current.plan.name : 'No membership'}</p>
             {current && (
-              <p className="mt-1 text-sm text-white/80">
-                {formatDate(current.startDate)} – {formatDate(current.endDate)}
-              </p>
+              <>
+                <p className="mt-1 text-sm text-white/80">
+                  {formatDate(current.startDate)} – {formatDate(current.endDate)}
+                </p>
+                <p className="mt-2 inline-block rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold">
+                  {planType(current.classesPerMonth).label} · {planType(current.classesPerMonth).detail}
+                </p>
+              </>
             )}
           </div>
           {isValidToday && (

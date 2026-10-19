@@ -26,3 +26,9 @@ export function resetMyQrCode() {
 export function getMyVisits() {
   return apiRequest('/me/visits');
 }
+
+// GET /api/me/class-balance – classes left this membership month:
+// { balance: { planName, type: 'BASIC' | 'PREMIUM', classesPerMonth, used, left, monthStart, monthEnd, resetsOn } } or { balance: null }
+export function getMyClassBalance() {
+  return apiRequest('/me/class-balance');
+}

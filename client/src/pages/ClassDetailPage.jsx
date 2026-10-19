@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { Backpack, Ban, CalendarDays, ChevronLeft, Clock, Gauge, HeartPulse, MapPin, QrCode, Scale, Signal, Users } from 'lucide-react';
 import { getClass } from '../api/classes.js';
+import { getMyClassBalance } from '../api/me.js';
+import { useApiData } from '../hooks/useApiData.js';
 import Avatar from '../components/ui/Avatar.jsx';
 import Card from '../components/ui/Card.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
@@ -52,6 +54,8 @@ function IntensityDots({ intensity }) {
   );
 }
 
+const loadNothing = () => Promise.resolve(null);
+
 // Everything about one class, so members understand it before booking.
 function ClassDetailPage() {
   const { user } = useAuth();
@@ -60,6 +64,12 @@ function ClassDetailPage() {
   const [error, setError] = useState('');
   const [bodyMember, setBodyMember] = useState(null); // booked member whose body details are open
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
+  // Members: Basic or Premium and classes left this month (staff do not book, so nothing is loaded for them).
+  const { data: balanceData, reload: reloadBalance } = useApiData(user.role === 'MEMBER' ? getMyClassBalance : loadNothing);
+  const handleBookingChange = (updated) => {
+    setGymClass(updated);
+    reloadBalance(); // a booking or cancellation changes the classes left
+  };
   const closeAttendance = useCallback(() => setIsAttendanceOpen(false), []);
 
   useEffect(() => {
@@ -157,10 +167,10 @@ function ClassDetailPage() {
             <>
               {/* Desktop: card at the top of the side column. Phones: bar fixed to the bottom. */}
               <div className="hidden lg:block">
-                <BookingPanel gymClass={gymClass} onChange={setGymClass} />
+                <BookingPanel gymClass={gymClass} balance={balanceData?.balance} onChange={handleBookingChange} />
               </div>
               <div className="lg:hidden">
-                <BookingPanel gymClass={gymClass} onChange={setGymClass} variant="bar" />
+                <BookingPanel gymClass={gymClass} balance={balanceData?.balance} onChange={handleBookingChange} variant="bar" />
               </div>
             </>
           )}

@@ -9,6 +9,7 @@ import CategoryFilter from '../components/classes/CategoryFilter.jsx';
 import ClassCard from '../components/classes/ClassCard.jsx';
 import DayPicker from '../components/classes/DayPicker.jsx';
 import NextClassHero from '../components/classes/NextClassHero.jsx';
+import ClassBalanceCard from '../components/classes/ClassBalanceCard.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import PageHeader from '../components/ui/PageHeader.jsx';
@@ -91,6 +92,8 @@ function ClassesPage() {
           )
         }
       />
+
+      {!isStaff && <ClassBalanceCard className="mb-6" />}
 
       {nextClass && <NextClassHero gymClass={nextClass} now={now} isMine={Boolean(nextMine)} />}
 

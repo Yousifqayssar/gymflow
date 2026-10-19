@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { CalendarCheck, CircleAlert, CircleCheck, Clock, Flag, QrCode } from 'lucide-react';
+import { CalendarCheck, CircleAlert, CircleCheck, Clock, Crown, Flag, QrCode } from 'lucide-react';
 import { bookClass, cancelBooking } from '../../api/classes.js';
 import Button from '../ui/Button.jsx';
 import ErrorMessage from '../ErrorMessage.jsx';
 import Modal from '../ui/Modal.jsx';
 import { useToast } from '../ui/useToast.js';
+import { formatDate } from '../../utils/format.js';
 
 // What the member can do with this class right now. The server checks every rule again;
 // this only decides which button to show.
 // `now` decides whether class check-in (scanning the trainer's QR) is open.
-function bookingState(gymClass, now) {
+// `balance` (GET /api/me/class-balance): Basic members cannot book; Premium members with no classes left
+// this month cannot book a class before their new balance starts.
+function bookingState(gymClass, now, balance) {
   if (gymClass.isCancelled) return 'CANCELLED';
   if (gymClass.myAttendance === 'ATTENDED') return 'ATTENDED';
   if (gymClass.myAttendance === 'MISSED') return 'MISSED';
@@ -20,15 +23,20 @@ function bookingState(gymClass, now) {
   if (gymClass.hasStarted) return 'STARTED';
   if (gymClass.isBookedByMe) return 'BOOKED';
   if (gymClass.spotsLeft === 0) return 'FULL';
+  if (balance?.type === 'BASIC') return 'BASIC';
+  // Classes from the reset day on use next month's balance ("2026-11-09" > "2026-11-08…" as text works for ISO dates).
+  if (balance?.type === 'PREMIUM' && balance.left === 0 && (!balance.resetsOn || gymClass.startsAt < balance.resetsOn)) return 'NO_CLASSES_LEFT';
   return 'OPEN';
 }
 
 // Book / cancel booking for members. `variant="card"` for desktop, `variant="bar"` for the
 // bar fixed to the bottom of the screen on phones. `onChange` receives the updated class.
-function BookingPanel({ gymClass, onChange, variant = 'card' }) {
+//   balance: the member's class balance (Basic / Premium, classes left), loaded by the class page.
+function BookingPanel({ gymClass, balance, onChange, variant = 'card' }) {
   const showToast = useToast();
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState('');
+  const [errorCode, setErrorCode] = useState(null); // e.g. 'BASIC_PLAN' or 'NO_CLASSES_LEFT' from the server
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
@@ -38,18 +46,20 @@ function BookingPanel({ gymClass, onChange, variant = 'card' }) {
     return () => clearInterval(id);
   }, []);
 
-  const state = bookingState(gymClass, now);
+  const state = bookingState(gymClass, now, balance);
   if (state === 'CANCELLED') return null; // the page already shows a "cancelled" banner
 
   async function run(action, successMessage) {
     setIsBusy(true);
     setError('');
+    setErrorCode(null);
     try {
       const data = await action(gymClass.id);
       onChange(data.class);
       showToast(successMessage);
     } catch (err) {
       setError(err.message);
+      setErrorCode(err.code);
     } finally {
       setIsBusy(false);
     }
@@ -62,6 +72,12 @@ function BookingPanel({ gymClass, onChange, variant = 'card' }) {
   };
 
   const spotsText = state === 'FULL' ? 'No spots left' : `${gymClass.spotsLeft} of ${gymClass.capacity} spots left`;
+
+  const upgradeLink = (
+    <Button as={Link} to="/membership" icon={Crown} variant="secondary" className="w-full">
+      See Premium plans
+    </Button>
+  );
 
   const content = (
     <>
@@ -111,6 +127,29 @@ function BookingPanel({ gymClass, onChange, variant = 'card' }) {
       )}
       {(state === 'OPEN' || state === 'FULL') && <p className="text-sm text-muted">{spotsText}</p>}
 
+      {state === 'BASIC' && (
+        <>
+          <p className="text-sm text-ink-3">
+            <strong className="text-ink">Your Basic plan is gym only.</strong> Group classes come with Premium – 10 classes every month.
+          </p>
+          {upgradeLink}
+        </>
+      )}
+      {state === 'NO_CLASSES_LEFT' && (
+        <>
+          <p className="flex gap-2 text-sm text-amber-800 dark:text-amber-300">
+            <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            <span>
+              You have used all {balance.classesPerMonth} classes of this month.
+              {balance.resetsOn && ` New classes on ${formatDate(balance.resetsOn)}.`}
+            </span>
+          </p>
+          <Button disabled variant="secondary" className="w-full py-3">
+            No classes left
+          </Button>
+        </>
+      )}
+
       {state === 'OPEN' && (
         <Button icon={CalendarCheck} onClick={handleBook} disabled={isBusy} className="w-full py-3 text-base">
           {isBusy ? 'Booking…' : 'Book this class'}
@@ -141,12 +180,14 @@ function BookingPanel({ gymClass, onChange, variant = 'card' }) {
         <section className="space-y-3 rounded-2xl border border-line bg-surface p-5 shadow-sm">
           {content}
           <ErrorMessage>{error}</ErrorMessage>
+          {errorCode === 'BASIC_PLAN' && upgradeLink}
         </section>
       ) : (
         // Sits right on top of the bottom tab bar (4rem high, plus the phone's safe area).
         <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-line bg-surface/95 px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur">
           <div className="mx-auto max-w-md space-y-2">
             <ErrorMessage>{error}</ErrorMessage>
+            {errorCode === 'BASIC_PLAN' && upgradeLink}
             {content}
           </div>
         </div>

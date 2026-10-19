@@ -1,5 +1,7 @@
 import { Check, Sparkles } from 'lucide-react';
 import { formatMonths, formatPrice } from '../../utils/format.js';
+import PlanTypeBadge from '../PlanTypeBadge.jsx';
+import { planType } from '../../utils/planType.js';
 
 // Choose a plan to buy. Native radio buttons (styled as cards), so the keyboard and screen readers work.
 //   discountPercent: the member's loyalty discount, to show the price they will really pay
@@ -42,7 +44,12 @@ function PlanPicker({ plans, selectedId, onSelect, discountPercent = 0 }) {
                 {isSelected && <Check className="size-4" strokeWidth={3} />}
               </span>
             </span>
-            <span className="mt-4 flex flex-wrap items-baseline gap-x-2">
+            <span className="mt-3 flex flex-col items-start gap-1">
+              {/* Short badge + the detail on its own line: the cards are narrow on some screens */}
+              <PlanTypeBadge classesPerMonth={plan.classesPerMonth} withDetail={false} />
+              <span className="text-sm text-ink-3">{planType(plan.classesPerMonth).detail}</span>
+            </span>
+            <span className="mt-3 flex flex-wrap items-baseline gap-x-2">
               <span className="font-display text-4xl font-bold text-ink">{formatPrice(yourPrice)}</span>
               {discountPercent > 0 && <span className="text-sm text-faint line-through">{formatPrice(price)}</span>}
             </span>

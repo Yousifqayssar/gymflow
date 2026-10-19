@@ -5,16 +5,18 @@ import ErrorMessage from './ErrorMessage.jsx';
 import { toFieldErrors } from '../utils/fieldErrors.js';
 import Button from './ui/Button.jsx';
 
-const EMPTY_PLAN = { name: '', description: '', durationMonths: '', price: '' };
+const EMPTY_PLAN = { name: '', description: '', durationMonths: '', price: '', classesPerMonth: 10 };
 
 // Form for creating or editing a membership plan.
-// `onSubmit` receives { name, description, durationMonths, price } and may throw an ApiError.
+// `onSubmit` receives { name, description, durationMonths, price, classesPerMonth } and may throw an ApiError.
+// classesPerMonth: 0 = Basic (gym only), e.g. 10 = Premium.
 function PlanForm({ initialPlan = EMPTY_PLAN, submitLabel, onSubmit, onCancel }) {
   const [form, setForm] = useState({
     name: initialPlan.name,
     description: initialPlan.description ?? '',
     durationMonths: String(initialPlan.durationMonths),
     price: String(initialPlan.price),
+    classesPerMonth: String(initialPlan.classesPerMonth ?? 0),
   });
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
@@ -37,6 +39,7 @@ function PlanForm({ initialPlan = EMPTY_PLAN, submitLabel, onSubmit, onCancel })
         description: form.description,
         durationMonths: Number(form.durationMonths),
         price: Number(form.price),
+        classesPerMonth: Number(form.classesPerMonth),
       });
     } catch (err) {
       setError(err.message);
@@ -49,12 +52,12 @@ function PlanForm({ initialPlan = EMPTY_PLAN, submitLabel, onSubmit, onCancel })
     <form onSubmit={handleSubmit} className="space-y-4">
       <ErrorMessage>{error}</ErrorMessage>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <FormField
           label="Plan name"
           name="name"
           required
-          placeholder="e.g. 3 Months"
+          placeholder="e.g. Premium 3 Months"
           value={form.name}
           onChange={handleChange}
           error={fieldErrors.name}
@@ -81,6 +84,19 @@ function PlanForm({ initialPlan = EMPTY_PLAN, submitLabel, onSubmit, onCancel })
           value={form.price}
           onChange={handleChange}
           error={fieldErrors.price}
+        />
+        <FormField
+          label="Classes per month"
+          name="classesPerMonth"
+          type="number"
+          required
+          min={0}
+          max={60}
+          step={1}
+          hint="0 = Basic (gym only)"
+          value={form.classesPerMonth}
+          onChange={handleChange}
+          error={fieldErrors.classesPerMonth}
         />
       </div>
 

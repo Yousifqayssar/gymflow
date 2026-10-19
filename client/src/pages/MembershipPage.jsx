@@ -6,6 +6,7 @@ import { getMyVisits } from '../api/me.js';
 import { listMyPayments, previewMyMembership } from '../api/payments.js';
 import { useApiData } from '../hooks/useApiData.js';
 import MyMembershipCard from '../components/MyMembershipCard.jsx';
+import ClassBalanceCard from '../components/classes/ClassBalanceCard.jsx';
 import CheckoutPanel from '../components/payments/CheckoutPanel.jsx';
 import PaymentHistory from '../components/payments/PaymentHistory.jsx';
 import PaymentReceipt from '../components/payments/PaymentReceipt.jsx';
@@ -104,8 +105,9 @@ function MembershipPage() {
         {step === 'choose' && (
           <m.div key="choose" {...STEP_MOTION} className="space-y-8">
             <div className="grid gap-6 lg:grid-cols-5">
-              <div className="lg:col-span-2">
+              <div className="space-y-4 lg:col-span-2">
                 <MyMembershipCard key={refreshKey} />
+                <ClassBalanceCard key={`balance-${refreshKey}`} showUpgrade={false} />
               </div>
               <section className="space-y-4 lg:col-span-3" aria-labelledby="plans-title">
                 <div className="flex flex-wrap items-end justify-between gap-3">

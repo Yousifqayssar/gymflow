@@ -3,6 +3,7 @@ import { createPlan, listPlans, updatePlan } from '../api/plans.js';
 import Badge from '../components/Badge.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import PlanForm from '../components/PlanForm.jsx';
+import PlanTypeBadge from '../components/PlanTypeBadge.jsx';
 import { formatMonths, formatPrice } from '../utils/format.js';
 import { CreditCard, Eye, EyeOff, Pencil, Plus } from 'lucide-react';
 import Button from '../components/ui/Button.jsx';
@@ -127,7 +128,10 @@ function PlansPage() {
                   <Badge tone={plan.isActive ? 'green' : 'gray'}>{plan.isActive ? 'Active' : 'Inactive'}</Badge>
                 </div>
 
-                <p className="mt-4 font-display text-4xl font-bold tracking-tight text-ink">{formatPrice(plan.price)}</p>
+                <div className="mt-3">
+                  <PlanTypeBadge classesPerMonth={plan.classesPerMonth} />
+                </div>
+                <p className="mt-3 font-display text-4xl font-bold tracking-tight text-ink">{formatPrice(plan.price)}</p>
                 {plan.description && <p className="mt-2 text-sm text-ink-3">{plan.description}</p>}
 
                 <div className="mt-auto flex gap-2 pt-5">
