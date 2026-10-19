@@ -3,12 +3,13 @@ import { Printer } from 'lucide-react';
 import CardBrandLogo from './CardBrandLogo.jsx';
 import Button from '../ui/Button.jsx';
 import { formatDate, formatPrice } from '../../utils/format.js';
+import { paymentItem } from '../../utils/paymentDisplay.js';
 
 // Shown right after a successful payment: an animated tick and the receipt.
 function PaymentReceipt({ payment, onDone }) {
   const rows = [
     { label: 'Receipt', value: <span className="font-mono">{payment.reference}</span> },
-    { label: 'Plan', value: payment.plan.name },
+    { label: payment.kind === 'CLASS' ? 'Class' : 'Plan', value: paymentItem(payment) },
     { label: 'Valid', value: `${formatDate(payment.membership.startDate)} – ${formatDate(payment.membership.endDate)}` },
     {
       label: 'Paid with',

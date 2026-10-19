@@ -1,10 +1,18 @@
 import { Link } from 'react-router';
-import { Banknote, CheckCircle2, ReceiptText, XCircle } from 'lucide-react';
+import { Banknote, CheckCircle2, ReceiptText, RotateCcw, XCircle } from 'lucide-react';
 import CardBrandLogo from './CardBrandLogo.jsx';
 import Card from '../ui/Card.jsx';
 import EmptyState from '../ui/EmptyState.jsx';
 import Avatar from '../ui/Avatar.jsx';
 import { formatDate, formatPrice } from '../../utils/format.js';
+import { paymentItem, paymentItemDetail } from '../../utils/paymentDisplay.js';
+
+// How each payment status looks on the right side of a row.
+const STATUS = {
+  PAID: { label: 'Paid', icon: CheckCircle2, className: 'text-brand-700 dark:text-brand-300' },
+  DECLINED: { label: 'Declined', icon: XCircle, className: 'text-red-700 dark:text-red-300' },
+  REFUNDED: { label: 'Refunded', icon: RotateCcw, className: 'text-amber-700 dark:text-amber-300' },
+};
 
 // "Visa •••• 4242" or "Paid at the front desk"
 function PaidWith({ payment }) {
@@ -44,6 +52,8 @@ function PaymentHistory({ payments, title = 'Payment history', description, show
         <ul className="divide-y divide-line-soft">
           {payments.map((payment) => {
             const isPaid = payment.status === 'PAID';
+            const status = STATUS[payment.status];
+            const detail = paymentItemDetail(payment);
             return (
               <li key={payment.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5">
                 {showMember && payment.member && (
@@ -59,8 +69,9 @@ function PaymentHistory({ payments, title = 'Payment history', description, show
                         {' · '}
                       </>
                     )}
-                    {payment.plan.name}
+                    {paymentItem(payment)}
                   </p>
+                  {detail && <p className="text-xs text-ink-3">{detail}</p>}
                   <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted">
                     <span>{formatDate(payment.createdAt)}</span>
                     <span aria-hidden="true">·</span>
@@ -68,15 +79,16 @@ function PaymentHistory({ payments, title = 'Payment history', description, show
                     <span aria-hidden="true">·</span>
                     <span className="font-mono">{payment.reference}</span>
                   </p>
-                  {!isPaid && payment.declineReason && <p className="mt-0.5 text-xs text-red-700 dark:text-red-300">{payment.declineReason}</p>}
+                  {payment.status === 'DECLINED' && payment.declineReason && <p className="mt-0.5 text-xs text-red-700 dark:text-red-300">{payment.declineReason}</p>}
+                  {payment.status === 'REFUNDED' && payment.refundedAt && (
+                    <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-300">Booking cancelled – refunded on {formatDate(payment.refundedAt)}</p>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className={`font-semibold ${isPaid ? 'text-ink' : 'text-faint line-through'}`}>{formatPrice(payment.amount)}</p>
-                  <p
-                    className={`inline-flex items-center gap-1 text-xs font-medium ${isPaid ? 'text-brand-700 dark:text-brand-300' : 'text-red-700 dark:text-red-300'}`}
-                  >
-                    {isPaid ? <CheckCircle2 className="size-3.5" aria-hidden="true" /> : <XCircle className="size-3.5" aria-hidden="true" />}
-                    {isPaid ? 'Paid' : 'Declined'}
+                  <p className={`inline-flex items-center gap-1 text-xs font-medium ${status.className}`}>
+                    <status.icon className="size-3.5" aria-hidden="true" />
+                    {status.label}
                   </p>
                 </div>
               </li>

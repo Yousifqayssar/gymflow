@@ -6,12 +6,14 @@ import PaymentHistory from '../components/payments/PaymentHistory.jsx';
 import PageHeader from '../components/ui/PageHeader.jsx';
 import StatCard from '../components/ui/StatCard.jsx';
 import { formatPrice } from '../utils/format.js';
+import { paymentItem } from '../utils/paymentDisplay.js';
 
 // Status filters ('' = all). The server filters; the counts come from the totals.
 const STATUS_FILTERS = [
   { value: '', label: 'All' },
   { value: 'PAID', label: 'Paid' },
   { value: 'DECLINED', label: 'Declined' },
+  { value: 'REFUNDED', label: 'Refunded' },
 ];
 
 // Admin: every payment (online card payments and front-desk sales), with this month's revenue.
@@ -41,7 +43,7 @@ function PaymentsPage() {
     const words = search.trim().toLowerCase();
     if (!data?.payments || !words) return data?.payments ?? null;
     return data.payments.filter((p) =>
-      [p.member ? `${p.member.firstName} ${p.member.lastName}` : '', p.reference, p.plan.name].some((text) => text.toLowerCase().includes(words)),
+      [p.member ? `${p.member.firstName} ${p.member.lastName}` : '', p.reference, paymentItem(p)].some((text) => text.toLowerCase().includes(words)),
     );
   }, [data, search]);
 
@@ -54,7 +56,7 @@ function PaymentsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Payments" description="Online card payments and front-desk sales. Declined cards are listed too." />
+      <PageHeader title="Payments" description="Memberships and single classes – paid online or at the front desk. Declined cards and refunds are listed too." />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Revenue this month" value={totals && formatPrice(totals.revenueThisMonth)} icon={Banknote} />
@@ -91,8 +93,8 @@ function PaymentsPage() {
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-faint" aria-hidden="true" />
           <input
             type="search"
-            placeholder="Search member, plan or reference…"
-            aria-label="Search member, plan or reference"
+            placeholder="Search member, plan, class or reference…"
+            aria-label="Search member, plan, class or reference"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="w-full rounded-lg border border-line-strong bg-surface py-2 pr-3 pl-9 text-ink shadow-sm outline-none transition placeholder:text-faint focus:border-brand-500 focus:ring-4 focus:ring-brand-100 dark:focus:ring-brand-500/25"
