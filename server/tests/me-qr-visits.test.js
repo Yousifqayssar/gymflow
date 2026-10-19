@@ -67,11 +67,13 @@ describe('GET /api/me/visits', () => {
 
     expect(response.body).toEqual({
       visits: 0,
+      noShows: 0,
       points: 0,
       level: 'Bronze',
       nextLevel: 'Silver',
       pointsToNextLevel: 100,
       discountPercent: 0,
+      missedClasses: [],
       recentVisits: [],
     });
   });

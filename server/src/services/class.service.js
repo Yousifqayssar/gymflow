@@ -1,14 +1,15 @@
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../utils/AppError.js';
+import { isNoShow, OPENS_BEFORE_START_MS } from './attendance.service.js';
 
 const MS_PER_MINUTE = 60 * 1000;
 // Without a date range, the schedule shows the next 14 days.
 const DEFAULT_RANGE_DAYS = 14;
 
-// What every class query loads: the trainer's name and the booked member ids.
+// What every class query loads: the trainer's name and the bookings (who, and whether they came).
 export const CLASS_INCLUDE = {
   trainer: { select: { id: true, firstName: true, lastName: true, avatar: true } },
-  bookings: { select: { memberId: true } },
+  bookings: { select: { memberId: true, attendedAt: true } },
 };
 
 const hasStarted = (gymClass, now) => gymClass.startsAt <= now;
@@ -16,6 +17,7 @@ const hasStarted = (gymClass, now) => gymClass.startsAt <= now;
 // A class as sent to clients. `viewer` is the logged-in user (to show "booked by me").
 export function toPublicClass(gymClass, viewer, now = new Date()) {
   const bookedCount = gymClass.bookings.length;
+  const myBooking = gymClass.bookings.find((booking) => booking.memberId === viewer.id);
   return {
     id: gymClass.id,
     title: gymClass.title,
@@ -34,7 +36,11 @@ export function toPublicClass(gymClass, viewer, now = new Date()) {
     healthNotes: gymClass.healthNotes,
     isCancelled: gymClass.isCancelled,
     hasStarted: hasStarted(gymClass, now),
-    isBookedByMe: gymClass.bookings.some((booking) => booking.memberId === viewer.id),
+    isBookedByMe: Boolean(myBooking),
+    // For the member who booked: ATTENDED (scanned the QR), MISSED (no-show, −10 points) or null (not decided yet).
+    myAttendance: myBooking ? (myBooking.attendedAt ? 'ATTENDED' : isNoShow(myBooking, gymClass, now) ? 'MISSED' : null) : null,
+    // From this moment members can scan the trainer's attendance QR.
+    attendanceOpensAt: new Date(gymClass.startsAt.getTime() - OPENS_BEFORE_START_MS).toISOString(),
     trainer: gymClass.trainer,
   };
 }
@@ -65,7 +71,13 @@ export async function getClass(id, viewer) {
     include: {
       ...CLASS_INCLUDE,
       bookings: {
-        select: { memberId: true, createdAt: true, member: { select: { id: true, firstName: true, lastName: true, avatar: true } } },
+        select: {
+          memberId: true,
+          createdAt: true,
+          attendedAt: true,
+          attendanceMethod: true,
+          member: { select: { id: true, firstName: true, lastName: true, avatar: true } },
+        },
         orderBy: { createdAt: 'asc' },
       },
     },
@@ -76,7 +88,13 @@ export async function getClass(id, viewer) {
 
   const result = toPublicClass(gymClass, viewer);
   if (canManage(gymClass, viewer)) {
-    result.attendees = gymClass.bookings.map((booking) => ({ ...booking.member, bookedAt: booking.createdAt }));
+    result.attendanceTaken = Boolean(gymClass.attendanceOpenedAt);
+    result.attendees = gymClass.bookings.map((booking) => ({
+      ...booking.member,
+      bookedAt: booking.createdAt,
+      attendedAt: booking.attendedAt,
+      attendanceMethod: booking.attendanceMethod,
+    }));
   }
   return result;
 }

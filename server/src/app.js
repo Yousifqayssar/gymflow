@@ -16,6 +16,7 @@ import partnerGymRoutes from './routes/partnerGym.routes.js';
 import nutritionRoutes from './routes/nutrition.routes.js';
 import exerciseRoutes from './routes/exercise.routes.js';
 import workoutPlanRoutes from './routes/workoutPlan.routes.js';
+import paymentRoutes from './routes/payment.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { serveClient } from './lib/serveClient.js';
@@ -46,6 +47,7 @@ app.use('/api/partner-gyms', partnerGymRoutes);
 app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/exercises', exerciseRoutes);
 app.use('/api/workout-plans', workoutPlanRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // 3. The built React website (production only, see serveClient.js)
 if (env.NODE_ENV === 'production') {

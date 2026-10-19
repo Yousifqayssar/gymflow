@@ -6,6 +6,8 @@ import { listMyWorkoutPlans } from '../controllers/workoutPlan.controller.js';
 import { listMyWorkouts, logWorkout } from '../controllers/workoutLog.controller.js';
 import { logWorkoutSchema } from '../validation/workoutLog.schemas.js';
 import { getMyProgress } from '../controllers/progress.controller.js';
+import { checkout, listMyPayments, previewMyMembership } from '../controllers/payment.controller.js';
+import { checkoutSchema } from '../validation/payment.schemas.js';
 import { validate } from '../middleware/validate.js';
 import { bodyCheckInSchema } from '../validation/body.schemas.js';
 import { authenticate } from '../middleware/authenticate.js';
@@ -17,6 +19,9 @@ const router = Router();
 router.use(authenticate, authorize('MEMBER'));
 
 router.get('/membership', getMyMembership);
+router.get('/membership/preview', previewMyMembership);
+router.post('/checkout', validate(checkoutSchema), checkout);
+router.get('/payments', listMyPayments);
 router.get('/bookings', listMyBookings);
 router.get('/qr', getMyQrCode);
 router.post('/qr/reset', resetMyQrCode);

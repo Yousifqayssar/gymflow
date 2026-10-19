@@ -4,7 +4,8 @@ import { addDays, calculateEndDate, daysBetween, formatDate, formatReadableDate,
 import { toPublicUser } from '../utils/publicUser.js';
 import { daysRemaining, getMembershipStatus, pickCurrentMembership } from './membershipStatus.js';
 import { findPlanOrThrow } from './plan.service.js';
-import { pointsSummary } from './points.js';
+import { memberPoints } from './attendance.service.js';
+import { newPaymentReference } from './cardGateway.js';
 
 // A membership as sent to clients, including its status on `today`.
 export function toPublicMembership(membership, today) {
@@ -46,8 +47,8 @@ export async function getMemberWithMemberships(userId) {
 
 // Works out the dates and price of a new membership and checks every business rule,
 // without saving anything. Used for the preview AND before saving, so both always agree.
-// `db` is the Prisma client or a transaction.
-async function planMembership(db, userId, { planId, startDate }) {
+// `db` is the Prisma client or a transaction. Also used by the online card checkout (payment.service.js).
+export async function planMembership(db, userId, { planId, startDate }) {
   const user = await db.user.findUnique({ where: { id: userId }, include: { memberships: true } });
   if (!user) {
     throw new AppError(404, 'User not found');
@@ -78,9 +79,8 @@ async function planMembership(db, userId, { planId, startDate }) {
     );
   }
 
-  // Loyalty reward: the member's level (from their visits) gives a discount on the plan price.
-  const visits = await db.checkIn.count({ where: { memberId: userId } });
-  const { level, discountPercent } = pointsSummary(visits);
+  // Loyalty reward: the member's level (visits minus missed classes) gives a discount on the plan price.
+  const { level, discountPercent } = await memberPoints(db, userId);
   const price = plan.price.mul(100 - discountPercent).div(100).toDecimalPlaces(2);
 
   return { plan, startDate: start, endDate: end, listPrice: plan.price, level, discountPercent, price };
@@ -118,7 +118,7 @@ export async function assignMembership(userId, input) {
 
     const planned = await planMembership(tx, userId, input);
 
-    return tx.membership.create({
+    const created = await tx.membership.create({
       data: {
         userId,
         planId: planned.plan.id,
@@ -129,6 +129,20 @@ export async function assignMembership(userId, input) {
       },
       include: { plan: true },
     });
+    // Paid at the front desk: recorded too, so the revenue report includes every sale.
+    await tx.payment.create({
+      data: {
+        reference: newPaymentReference(),
+        userId,
+        planId: planned.plan.id,
+        membershipId: created.id,
+        amount: planned.price,
+        discountPercent: planned.discountPercent,
+        method: 'DESK',
+        status: 'PAID',
+      },
+    });
+    return created;
   });
 
   return toPublicMembership(membership, todayInGym());

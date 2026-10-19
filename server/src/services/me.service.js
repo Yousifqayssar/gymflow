@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { prisma } from '../lib/prisma.js';
-import { pointsSummary } from './points.js';
+import { memberPoints } from './attendance.service.js';
 import { QR_PREFIX } from './checkIn.service.js';
 
 const RECENT_VISITS = 10;
@@ -22,10 +22,10 @@ export async function resetMyQrCode(userId) {
   return { qrContent: `${QR_PREFIX}${user.qrToken}` };
 }
 
-// GET /api/me/visits – points, level and the most recent visits.
+// GET /api/me/visits – points, level, the most recent visits and the classes the member missed.
 export async function getMyVisits(userId) {
-  const [visits, recent] = await Promise.all([
-    prisma.checkIn.count({ where: { memberId: userId } }),
+  const [points, recent] = await Promise.all([
+    memberPoints(prisma, userId),
     prisma.checkIn.findMany({
       where: { memberId: userId },
       orderBy: { checkedInAt: 'desc' },
@@ -33,5 +33,5 @@ export async function getMyVisits(userId) {
       select: { id: true, checkedInAt: true, method: true },
     }),
   ]);
-  return { ...pointsSummary(visits), recentVisits: recent };
+  return { ...points, missedClasses: points.missedClasses.slice(0, RECENT_VISITS), recentVisits: recent };
 }

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { cancelClass, createClass, getClass, listClasses, updateClass } from '../controllers/class.controller.js';
 import { bookClass, cancelBooking } from '../controllers/booking.controller.js';
+import { attendClass, getAttendance, markAttendance } from '../controllers/attendance.controller.js';
+import { attendSchema, markAttendanceSchema } from '../validation/attendance.schemas.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { authorize } from '../middleware/authorize.js';
 import { validate } from '../middleware/validate.js';
@@ -24,5 +26,11 @@ router.post('/:id/cancel', staff, cancelClass);
 // Booking a spot: members only. All booking rules are checked in the booking service.
 router.post('/:id/book', authorize('MEMBER'), bookClass);
 router.delete('/:id/book', authorize('MEMBER'), cancelBooking);
+
+// Attendance: the trainer shows a changing QR, members who booked scan it (no-shows lose points).
+// Whether a trainer may take attendance for a class (only their own) is checked in the service.
+router.get('/:id/attendance', staff, getAttendance);
+router.put('/:id/attendance/:memberId', staff, validate(markAttendanceSchema), markAttendance);
+router.post('/:id/attend', authorize('MEMBER'), validate(attendSchema), attendClass);
 
 export default router;

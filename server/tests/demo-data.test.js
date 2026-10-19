@@ -7,7 +7,7 @@ import request from 'supertest';
 import { app } from '../src/app.js';
 import { prisma } from '../src/lib/prisma.js';
 import { parseDate } from '../src/utils/dates.js';
-import { assertNotProduction, DEMO_PASSWORD, removeDemoData, seedDemoData } from '../prisma/demo-data.js';
+import { assertNotProduction, DEMO_EMAIL_DOMAIN, DEMO_PASSWORD, removeDemoData, seedDemoData } from '../prisma/demo-data.js';
 import { resetDatabase } from './helpers/database.js';
 import { createUser, bearer } from './helpers/users.js';
 import { createPlan } from './helpers/plans.js';
@@ -144,6 +144,31 @@ describe('seedDemoData', () => {
     expect(real.memberships).toHaveLength(1);
     expect(await prisma.user.count({ where: { email: { endsWith: '@gym.com' } } })).toBe(2);
   });
+
+  it('adds past classes with attendance taken, where Elif and Ayse each missed one (−10 points)', async () => {
+    const result = await seedDemoData(prisma, { today: parseDate('2026-10-15'), now: new Date('2026-10-15T09:00:00Z') });
+
+    expect(result).toMatchObject({ pastClasses: 3, noShows: 2 });
+    const missed = await prisma.booking.findMany({
+      where: { attendedAt: null, gymClass: { attendanceOpenedAt: { not: null } } },
+      include: { member: true },
+    });
+    expect(missed.map((b) => b.member.firstName).sort()).toEqual(['Ayse', 'Elif']);
+    expect(await prisma.booking.count({ where: { attendanceMethod: 'TRAINER' } })).toBe(3);
+  });
+
+  it('gives every membership one payment (card or desk), plus one declined card attempt for Elif', async () => {
+    await seedDemoData(prisma, { today: parseDate('2026-10-15') });
+
+    // Only demo members: the real member created in beforeEach was never part of the demo.
+    const memberships = await prisma.membership.findMany({ where: { user: { email: { endsWith: `@${DEMO_EMAIL_DOMAIN}` } } }, include: { payment: true } });
+    expect(memberships.length).toBeGreaterThan(10);
+    expect(memberships.every((m) => m.payment?.status === 'PAID' && m.payment.amount.equals(m.price))).toBe(true);
+    const methods = new Set(memberships.map((m) => m.payment.method));
+    expect(methods).toEqual(new Set(['CARD', 'DESK']));
+    const declined = await prisma.payment.findMany({ where: { status: 'DECLINED' }, include: { user: true } });
+    expect(declined.map((p) => p.user.firstName)).toEqual(['Elif']);
+  });
 });
 
 describe('demo classes', () => {
@@ -152,12 +177,13 @@ describe('demo classes', () => {
   it('creates future class sessions with full information', async () => {
     const { classes } = await seedDemoData(prisma, { today });
 
-    const running = await prisma.gymClass.findFirst({ where: { title: 'Running Club' }, orderBy: { startsAt: 'asc' } });
+    const running = await prisma.gymClass.findFirst({ where: { title: 'Running Club', startsAt: { gt: new Date() } }, orderBy: { startsAt: 'asc' } });
     expect(classes).toBeGreaterThan(10);
     expect(running.startsAt.toISOString()).toBe('2026-10-17T05:00:00.000Z'); // Saturday 08:00 in Istanbul
     expect(running.location).toBe('Bebek Park, main entrance');
     expect(running.healthNotes).not.toBe('');
-    expect(await prisma.gymClass.count({ where: { startsAt: { lte: new Date() } } })).toBe(0);
+    // The only past classes are the attendance history (see demo-attendance.js).
+    expect(await prisma.gymClass.count({ where: { startsAt: { lte: new Date() }, attendanceOpenedAt: null } })).toBe(0);
   });
 
   it('never books more members than a class has places', async () => {
@@ -193,7 +219,7 @@ describe('demo classes', () => {
     const first = await seedDemoData(prisma, { today });
     await seedDemoData(prisma, { today });
 
-    expect(await prisma.gymClass.count()).toBe(first.classes + 1);
+    expect(await prisma.gymClass.count()).toBe(first.classes + first.pastClasses + 1);
     expect(await prisma.gymClass.count({ where: { title: 'Real class' } })).toBe(1);
 
     await removeDemoData(prisma);

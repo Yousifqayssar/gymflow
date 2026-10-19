@@ -35,17 +35,18 @@ model User {
 
   memberships      Membership[]
   // Classes this user teaches (trainers) and classes this user booked (members).
-  taughtClasses    GymClass[]   @relation("ClassTrainer")
+  taughtClasses    GymClass[]    @relation("ClassTrainer")
   bookings         Booking[]
   // Gym visits of this member, and check-ins this staff member recorded.
-  checkIns         CheckIn[]    @relation("MemberCheckIns")
+  checkIns         CheckIn[]     @relation("MemberCheckIns")
   // Monthly body check-ins (height, weight, goal) of this member.
   bodyCheckIns     BodyCheckIn[]
   // Workout plans this member follows, and plans this trainer/admin wrote.
   workoutPlans     WorkoutPlan[] @relation("MemberWorkoutPlans")
   writtenPlans     WorkoutPlan[] @relation("PlanAuthor")
   workoutLogs      WorkoutLog[]
-  recordedCheckIns CheckIn[]    @relation("StaffCheckIns")
+  payments         Payment[]
+  recordedCheckIns CheckIn[]     @relation("StaffCheckIns")
 }
 
 // A product the gym sells, e.g. "3 Months – 2500 TRY".
@@ -64,28 +65,82 @@ model MembershipPlan {
   updatedAt      DateTime @updatedAt
 
   memberships Membership[]
+  payments    Payment[]
 }
 
 // A plan sold to one member for a specific period.
 // The status (active, expiring soon, expired) is calculated from the dates, not stored.
 model Membership {
-  id        Int            @id @default(autoincrement())
-  userId    Int
+  id              Int            @id @default(autoincrement())
+  userId          Int
   // Deleting a user also deletes their memberships.
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  planId    Int
-  plan      MembershipPlan @relation(fields: [planId], references: [id])
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId          Int
+  plan            MembershipPlan @relation(fields: [planId], references: [id])
   // Calendar dates without time. Valid from startDate to endDate, both inclusive.
-  startDate DateTime       @db.Date
+  startDate       DateTime       @db.Date
   // Always after startDate (database check constraint in the migration).
-  endDate   DateTime       @db.Date
+  endDate         DateTime       @db.Date
   // The price at the time of sale, so later price changes don't rewrite history.
-  price     Decimal        @db.Decimal(10, 2)
+  price           Decimal        @db.Decimal(10, 2)
   // Loyalty discount the member got on this sale (0, 5, 10 or 15 %), already included in `price`.
-  discountPercent Int      @default(0)
-  createdAt DateTime       @default(now())
+  discountPercent Int            @default(0)
+  createdAt       DateTime       @default(now())
+  // How it was paid (missing for memberships sold before payments existed).
+  payment         Payment?
 
   @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Payments
+// ---------------------------------------------------------------------------
+
+// CARD = the member paid online with a card; DESK = the admin sold it at the front desk.
+enum PaymentMethod {
+  CARD
+  DESK
+}
+
+enum PaymentStatus {
+  PAID
+  DECLINED
+}
+
+enum CardBrand {
+  VISA
+  MASTERCARD
+}
+
+// One payment attempt for a membership. Declined attempts are kept too (they create no membership).
+// The full card number and the CVC are NEVER stored – only the brand and the last 4 digits.
+model Payment {
+  id              Int            @id @default(autoincrement())
+  // Short code printed on the receipt, e.g. "GF-7K2Q9X".
+  reference       String         @unique
+  // Random id made by the checkout page when it opens (online payments only). Unique, so a
+  // double click or a retried request can never charge the same checkout twice.
+  checkoutId      String?        @unique
+  userId          Int
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId          Int
+  plan            MembershipPlan @relation(fields: [planId], references: [id])
+  // The membership this payment bought (empty for declined attempts).
+  membershipId    Int?           @unique
+  membership      Membership?    @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  // The amount charged, after the loyalty discount.
+  amount          Decimal        @db.Decimal(10, 2)
+  discountPercent Int            @default(0)
+  method          PaymentMethod
+  status          PaymentStatus
+  cardBrand       CardBrand?
+  cardLast4       String?
+  // Why the bank refused the card, shown to the member (only for DECLINED).
+  declineReason   String?
+  createdAt       DateTime       @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 // ---------------------------------------------------------------------------
@@ -120,45 +175,58 @@ enum ClassIntensity {
 // One session of a group class, e.g. "Running Club" on Saturday 24 October at 08:00.
 // Everything a member needs to decide whether to book is stored here.
 model GymClass {
-  id              Int            @id @default(autoincrement())
-  title           String
-  category        ClassCategory
+  id                 Int            @id @default(autoincrement())
+  title              String
+  category           ClassCategory
   // What happens in the class, in plain language.
-  description     String
+  description        String
   // Where to meet, e.g. "Studio 2" or "Bebek Park, main entrance".
-  location        String
+  location           String
   // The exact moment the class starts (stored with time zone).
-  startsAt        DateTime       @db.Timestamptz(3)
+  startsAt           DateTime       @db.Timestamptz(3)
   // 15–300 minutes (database check constraint in the migration).
-  durationMinutes Int
+  durationMinutes    Int
   // Maximum number of bookings; > 0 (database check constraint).
-  capacity        Int
-  level           ClassLevel
-  intensity       ClassIntensity
-  whatToBring     String         @default("")
+  capacity           Int
+  level              ClassLevel
+  intensity          ClassIntensity
+  whatToBring        String         @default("")
   // Who should be careful or not join, e.g. "Not suitable for knee injuries".
-  healthNotes     String         @default("")
+  healthNotes        String         @default("")
   // A class with bookings is cancelled, never deleted, so members can see what happened.
-  isCancelled     Boolean        @default(false)
-  trainerId       Int
+  isCancelled        Boolean        @default(false)
+  // When the trainer first opened the attendance QR. Only then can members miss the class (no-show penalty):
+  // if attendance was never taken, nobody loses points.
+  attendanceOpenedAt DateTime?      @db.Timestamptz(3)
+  trainerId          Int
   // A trainer who still has classes cannot be deleted (RESTRICT).
-  trainer         User           @relation("ClassTrainer", fields: [trainerId], references: [id], onDelete: Restrict)
-  bookings        Booking[]
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  trainer            User           @relation("ClassTrainer", fields: [trainerId], references: [id], onDelete: Restrict)
+  bookings           Booking[]
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
   @@index([startsAt])
   @@index([trainerId])
 }
 
 // A member's spot in a class.
+// How a member was marked present at a class.
+enum AttendanceMethod {
+  QR // scanned the trainer's attendance QR with their phone
+  TRAINER // the trainer marked them present by hand
+}
+
 model Booking {
-  id        Int      @id @default(autoincrement())
-  classId   Int
-  gymClass  GymClass @relation(fields: [classId], references: [id], onDelete: Cascade)
-  memberId  Int
-  member    User     @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id               Int               @id @default(autoincrement())
+  classId          Int
+  gymClass         GymClass          @relation(fields: [classId], references: [id], onDelete: Cascade)
+  memberId         Int
+  member           User              @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  createdAt        DateTime          @default(now())
+  // When the member was marked present: by scanning the trainer's QR, or by the trainer.
+  // Empty after the class (with attendance taken) = no-show, which costs loyalty points.
+  attendedAt       DateTime?         @db.Timestamptz(3)
+  attendanceMethod AttendanceMethod?
 
   // Business rule "a member cannot book the same class twice", enforced by the database.
   @@unique([classId, memberId])

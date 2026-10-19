@@ -2,7 +2,7 @@ import { prisma } from '../lib/prisma.js';
 import { AppError } from '../utils/AppError.js';
 import { formatDate, formatReadableDate, todayInGym } from '../utils/dates.js';
 import { getMembershipStatus, MembershipStatus, pickCurrentMembership, daysRemaining } from './membershipStatus.js';
-import { pointsSummary } from './points.js';
+import { memberPoints } from './attendance.service.js';
 
 // What is written in a member's QR code: "GYMFLOW:" followed by their secret token.
 export const QR_PREFIX = 'GYMFLOW:';
@@ -44,7 +44,8 @@ function refusalMessage(member, current, status) {
 
 // The information staff see after a scan.
 async function checkInResult(member, current, today, checkIn, alreadyCheckedIn) {
-  const visits = await prisma.checkIn.count({ where: { memberId: member.id } });
+  // missedClasses is left out: staff only need the totals.
+  const { missedClasses, ...points } = await memberPoints(prisma, member.id);
   return {
     alreadyCheckedIn,
     checkIn: { id: checkIn.id, checkedInAt: checkIn.checkedInAt, method: checkIn.method },
@@ -60,7 +61,7 @@ async function checkInResult(member, current, today, checkIn, alreadyCheckedIn) 
         daysRemaining: daysRemaining(current, today),
       },
     },
-    ...pointsSummary(visits),
+    ...points,
   };
 }
 
