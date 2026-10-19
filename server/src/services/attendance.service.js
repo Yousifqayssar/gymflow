@@ -109,6 +109,8 @@ export async function getAttendance(classId, actor, now = new Date()) {
 
   return {
     classId,
+    // The server's clock: the trainer's screen uses it so the countdown matches even if the device clock is off.
+    serverTime: now.toISOString(),
     isOpen: open,
     opensAt: opensAt(gymClass).toISOString(),
     closesAt: endsAt(gymClass).toISOString(),

@@ -59,6 +59,7 @@ describe('GET /api/classes/:id/attendance (trainer screen)', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
+      serverTime: expect.any(String),
       isOpen: true,
       attendanceTaken: true,
       qr: { code: expect.any(String), path: `/attend/${gymClass.id}`, expiresAt: expect.any(String) },
