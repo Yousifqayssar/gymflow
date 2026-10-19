@@ -15,7 +15,8 @@ function ProtectedRoute({ roles }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    // Keep the ?query too: a member who scans a class QR while logged out comes back to it with the code.
+    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   }
 
   if (roles && !roles.includes(user.role)) {
