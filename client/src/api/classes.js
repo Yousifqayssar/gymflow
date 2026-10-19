@@ -37,3 +37,18 @@ export function cancelBooking(id) {
 export function cancelClass(id) {
   return apiRequest(`/classes/${id}/cancel`, { method: 'POST' });
 }
+
+// GET /api/classes/:id/attendance (Admin, the class's own trainer) – who is present + the current QR code
+export function getAttendance(id) {
+  return apiRequest(`/classes/${id}/attendance`);
+}
+
+// PUT /api/classes/:id/attendance/:memberId (Admin, the class's own trainer) – mark a member present or not
+export function markAttendance(id, memberId, present) {
+  return apiRequest(`/classes/${id}/attendance/${memberId}`, { method: 'PUT', body: { present } });
+}
+
+// POST /api/classes/:id/attend (Member) – the member scanned the trainer's QR code
+export function attendClass(id, code) {
+  return apiRequest(`/classes/${id}/attend`, { method: 'POST', body: { code } });
+}

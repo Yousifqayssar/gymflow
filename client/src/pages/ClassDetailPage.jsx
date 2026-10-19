@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { Backpack, Ban, CalendarDays, ChevronLeft, Clock, Gauge, HeartPulse, MapPin, Scale, Signal, Users } from 'lucide-react';
+import { Backpack, Ban, CalendarDays, ChevronLeft, Clock, Gauge, HeartPulse, MapPin, QrCode, Scale, Signal, Users } from 'lucide-react';
 import { getClass } from '../api/classes.js';
 import Avatar from '../components/ui/Avatar.jsx';
 import Card from '../components/ui/Card.jsx';
@@ -8,6 +8,8 @@ import ErrorMessage from '../components/ErrorMessage.jsx';
 import ClassBanner from '../components/classes/ClassBanner.jsx';
 import BookingPanel from '../components/classes/BookingPanel.jsx';
 import StaffClassActions from '../components/classes/StaffClassActions.jsx';
+import AttendanceScreen from '../components/classes/AttendanceScreen.jsx';
+import Button from '../components/ui/Button.jsx';
 import { useAuth } from '../auth/useAuth.js';
 import SpotsBar from '../components/classes/SpotsBar.jsx';
 import PageTitle from '../components/ui/PageTitle.jsx';
@@ -57,6 +59,8 @@ function ClassDetailPage() {
   const [gymClass, setGymClass] = useState(null);
   const [error, setError] = useState('');
   const [bodyMember, setBodyMember] = useState(null); // booked member whose body details are open
+  const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
+  const closeAttendance = useCallback(() => setIsAttendanceOpen(false), []);
 
   useEffect(() => {
     let ignore = false;
@@ -87,7 +91,16 @@ function ClassDetailPage() {
           All classes
         </Link>
         {/* The API only sends `attendees` to people who may manage this class. */}
-        {gymClass.attendees && <StaffClassActions gymClass={gymClass} onChange={setGymClass} />}
+        {gymClass.attendees && (
+          <div className="flex flex-wrap gap-2">
+            {!gymClass.isCancelled && (
+              <Button icon={QrCode} onClick={() => setIsAttendanceOpen(true)}>
+                Attendance QR
+              </Button>
+            )}
+            <StaffClassActions gymClass={gymClass} onChange={setGymClass} />
+          </div>
+        )}
       </div>
 
       {gymClass.isCancelled && (
@@ -213,6 +226,7 @@ function ClassDetailPage() {
             </Card>
           )}
           <MemberBodyModal member={bodyMember} onClose={() => setBodyMember(null)} />
+          {isAttendanceOpen && <AttendanceScreen gymClass={gymClass} onClose={closeAttendance} />}
         </div>
       </div>
     </div>
