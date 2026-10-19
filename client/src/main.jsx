@@ -14,6 +14,12 @@ import { ThemeProvider } from './theme/ThemeProvider.jsx';
 // Animation features are downloaded separately (see utils/motionFeatures.js).
 const loadMotionFeatures = () => import('./utils/motionFeatures.js').then((module) => module.default);
 
+// Installable app (PWA): register the service worker (public/sw.js). Only in the built app –
+// in development it could get in the way of Vite's live reloading.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     {/* LazyMotion: loads only the animation features we use (smaller download).

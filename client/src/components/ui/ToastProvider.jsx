@@ -57,7 +57,8 @@ export function ToastProvider({ children }) {
       {/* aria-live: screen readers read new messages out loud */}
       <div
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex flex-col items-center gap-2 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:items-end"
+        // Phones and tablets: above the bottom tab bar. Desktop: bottom right.
+        className="pointer-events-none fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-50 flex flex-col items-center gap-2 sm:inset-x-auto sm:right-6 sm:items-end lg:bottom-6"
       >
         {/* AnimatePresence keeps a removed toast on screen until its exit animation has finished */}
         <AnimatePresence>

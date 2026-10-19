@@ -143,7 +143,8 @@ function BookingPanel({ gymClass, onChange, variant = 'card' }) {
           <ErrorMessage>{error}</ErrorMessage>
         </section>
       ) : (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur">
+        // Sits right on top of the bottom tab bar (4rem high, plus the phone's safe area).
+        <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t border-line bg-surface/95 px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur">
           <div className="mx-auto max-w-md space-y-2">
             <ErrorMessage>{error}</ErrorMessage>
             {content}
