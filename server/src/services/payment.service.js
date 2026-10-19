@@ -74,6 +74,7 @@ export async function checkout(memberId, { planId, checkoutId, card }) {
         endDate: planned.endDate,
         price: planned.price,
         discountPercent: planned.discountPercent,
+        classesPerMonth: planned.plan.classesPerMonth,
       },
       include: { plan: true },
     });

@@ -20,13 +20,20 @@ const price = z
   .max(99_999_999.99, 'Price is too large')
   .multipleOf(0.01, 'Price can have at most 2 decimals');
 
+// Group classes per membership month: 0 = Basic (gym only), e.g. 10 = Premium.
+const classesPerMonth = z
+  .number({ error: 'Classes per month must be a number' })
+  .int('Classes per month must be a whole number')
+  .min(0, 'Classes per month cannot be negative')
+  .max(60, 'Classes per month must be at most 60');
+
 // What the plan includes, e.g. "Unlimited gym access and all group classes." Optional.
 const description = z
   .string({ error: 'Description must be text' })
   .trim()
   .max(500, 'Description must be at most 500 characters');
 
-export const createPlanSchema = z.object({ name, description: description.default(''), durationMonths, price });
+export const createPlanSchema = z.object({ name, description: description.default(''), durationMonths, price, classesPerMonth: classesPerMonth.default(0) });
 
 // Every field is optional when editing, but at least one must be sent.
 export const updatePlanSchema = z
@@ -35,6 +42,7 @@ export const updatePlanSchema = z
     description: description.optional(),
     durationMonths: durationMonths.optional(),
     price: price.optional(),
+    classesPerMonth: classesPerMonth.optional(),
     isActive: z.boolean({ error: 'isActive must be true or false' }).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, 'Send at least one field to change');

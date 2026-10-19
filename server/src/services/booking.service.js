@@ -1,12 +1,9 @@
 import { prisma } from '../lib/prisma.js';
-import { env } from '../config/env.js';
 import { AppError } from '../utils/AppError.js';
-import { todayInTimeZone } from '../utils/dates.js';
 import { CLASS_INCLUDE, toPublicClass } from './class.service.js';
-
-// The calendar day of a class in the gym's time zone. A class at 00:30 on 1 November in
+// classDay: the calendar day of a class in the gym's time zone. A class at 00:30 on 1 November in
 // Istanbul is on 1 November, even though it is still 31 October in UTC.
-const classDay = (gymClass) => todayInTimeZone(env.GYM_TIMEZONE, gymClass.startsAt);
+import { assertCanUseClass, classDay } from './classBalance.service.js';
 
 async function loadPublicClass(db, classId, member) {
   const gymClass = await db.gymClass.findUnique({ where: { id: classId }, include: CLASS_INCLUDE });
@@ -19,6 +16,8 @@ async function loadPublicClass(db, classId, member) {
 export async function bookClass(classId, member) {
   return prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "GymClass" WHERE id = ${classId} FOR UPDATE`;
+    // Also lock the member: two quick bookings of different classes cannot both use the last class of the month.
+    await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${member.id} FOR UPDATE`;
 
     const gymClass = await tx.gymClass.findUnique({ where: { id: classId }, include: { bookings: true } });
     if (!gymClass) {
@@ -49,6 +48,8 @@ export async function bookClass(classId, member) {
     if (gymClass.bookings.length >= gymClass.capacity) {
       throw new AppError(409, 'This class is full');
     }
+    // Membership type: Basic has no classes; Premium has a number of classes per membership month.
+    await assertCanUseClass(tx, validMembership, gymClass);
 
     await tx.booking.create({ data: { classId, memberId: member.id } });
     return loadPublicClass(tx, classId, member);

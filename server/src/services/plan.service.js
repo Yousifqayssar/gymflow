@@ -10,6 +10,7 @@ export function toPublicPlan(plan) {
     description: plan.description,
     durationMonths: plan.durationMonths,
     price: plan.price.toFixed(2),
+    classesPerMonth: plan.classesPerMonth, // 0 = Basic (gym only)
     isActive: plan.isActive,
   };
 }
@@ -23,10 +24,10 @@ export async function listPlans({ includeInactive }) {
   return plans.map(toPublicPlan);
 }
 
-export async function createPlan({ name, description, durationMonths, price }) {
+export async function createPlan({ name, description, durationMonths, price, classesPerMonth }) {
   await assertNameIsFree(name);
 
-  const plan = await prisma.membershipPlan.create({ data: { name, description, durationMonths, price } });
+  const plan = await prisma.membershipPlan.create({ data: { name, description, durationMonths, price, classesPerMonth } });
   return toPublicPlan(plan);
 }
 
@@ -36,7 +37,7 @@ export async function updatePlan(id, changes) {
     await assertNameIsFree(changes.name, id);
   }
 
-  // Changing the price only affects future sales: each membership keeps its own price.
+  // Changing the price or classes per month only affects future sales: each membership keeps its own.
   const plan = await prisma.membershipPlan.update({ where: { id }, data: changes });
   return toPublicPlan(plan);
 }

@@ -16,11 +16,12 @@ let trainer;
 let member;
 let plan;
 
-// A member with a membership valid for the whole of October.
+// A member with a Premium membership (10 classes a month) valid for the whole of October.
+// The class limits themselves are tested in class-balance.test.js.
 async function memberWithMembership(start = '2026-10-01', end = '2026-10-31') {
   const created = await createUser({ role: 'MEMBER' });
   await prisma.membership.create({
-    data: { userId: created.user.id, planId: plan.id, startDate: parseDate(start), endDate: parseDate(end), price: 1000 },
+    data: { userId: created.user.id, planId: plan.id, startDate: parseDate(start), endDate: parseDate(end), price: 1000, classesPerMonth: 10 },
   });
   return created;
 }

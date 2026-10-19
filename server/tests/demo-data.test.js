@@ -6,7 +6,8 @@ vi.setConfig({ testTimeout: 20_000 });
 import request from 'supertest';
 import { app } from '../src/app.js';
 import { prisma } from '../src/lib/prisma.js';
-import { parseDate } from '../src/utils/dates.js';
+import { formatDate, parseDate } from '../src/utils/dates.js';
+import { membershipMonthOn } from '../src/services/classBalance.service.js';
 import { assertNotProduction, DEMO_EMAIL_DOMAIN, DEMO_PASSWORD, removeDemoData, seedDemoData } from '../prisma/demo-data.js';
 import { resetDatabase } from './helpers/database.js';
 import { createUser, bearer } from './helpers/users.js';
@@ -134,7 +135,16 @@ describe('seedDemoData', () => {
     await seedDemoData(prisma, { today: parseDate('2026-10-15') });
 
     expect(await prisma.user.count({ where: { email: { endsWith: '@demo.gymflow.local' } } })).toBe(14);
-    expect(await prisma.membershipPlan.count({ where: { name: 'Monthly' } })).toBe(1);
+    expect(await prisma.membershipPlan.count({ where: { name: 'Premium Monthly' } })).toBe(1);
+  });
+
+  it('renames a plan from before membership types ("Monthly") to its Premium version, keeping its sales', async () => {
+    const old = await createPlan({ name: 'Monthly', classesPerMonth: 10 });
+
+    await seedDemoData(prisma, { today: parseDate('2026-10-15') });
+
+    expect(await prisma.membershipPlan.findUnique({ where: { id: old.id } })).toMatchObject({ name: 'Premium Monthly', classesPerMonth: 10 });
+    expect(await prisma.membershipPlan.count({ where: { name: 'Monthly' } })).toBe(0);
   });
 
   it('never changes real users or their memberships', async () => {
@@ -204,6 +214,23 @@ describe('demo classes', () => {
       const day = parseDate(gymClass.startsAt.toISOString().slice(0, 10));
       expect(member.memberships.some((m) => m.startDate <= day && day <= m.endDate)).toBe(true);
     }
+  });
+
+  it('books only Premium members, never more than their classes per membership month', async () => {
+    await seedDemoData(prisma, { today });
+
+    const bookings = await prisma.booking.findMany({ include: { gymClass: true, member: { include: { memberships: true } } } });
+    const perMonth = new Map();
+    for (const { gymClass, member } of bookings) {
+      const day = parseDate(gymClass.startsAt.toISOString().slice(0, 10));
+      const membership = member.memberships.find((m) => m.startDate <= day && day <= m.endDate);
+      expect(membership.classesPerMonth).toBeGreaterThan(0);
+      const key = `${member.id}:${formatDate(membershipMonthOn(membership, day).start)}`;
+      perMonth.set(key, (perMonth.get(key) ?? 0) + 1);
+      expect(perMonth.get(key)).toBeLessThanOrEqual(membership.classesPerMonth);
+    }
+    const basic = await prisma.user.findMany({ where: { firstName: { in: ['Can', 'Zeynep'] }, email: { endsWith: '@demo.gymflow.local' } }, include: { bookings: true } });
+    expect(basic.flatMap((member) => member.bookings)).toHaveLength(0);
   });
 
   it('replaces demo classes when run again and keeps real classes', async () => {

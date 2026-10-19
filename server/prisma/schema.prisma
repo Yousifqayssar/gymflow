@@ -60,6 +60,9 @@ model MembershipPlan {
   durationMonths Int
   // Exact decimal for money, never a floating-point number. Must be > 0.
   price          Decimal  @db.Decimal(10, 2)
+  // Group classes included per membership month: 0 = Basic (gym only), e.g. 10 = Premium.
+  // Unused classes do not carry over to the next month. Must be 0–60 (check constraint in the migration).
+  classesPerMonth Int     @default(0)
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -85,6 +88,8 @@ model Membership {
   price           Decimal        @db.Decimal(10, 2)
   // Loyalty discount the member got on this sale (0, 5, 10 or 15 %), already included in `price`.
   discountPercent Int            @default(0)
+  // Classes per membership month at the time of sale (copied from the plan, like the price).
+  classesPerMonth Int            @default(0)
   createdAt       DateTime       @default(now())
   // How it was paid (missing for memberships sold before payments existed).
   payment         Payment?

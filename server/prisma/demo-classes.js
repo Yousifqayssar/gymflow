@@ -176,11 +176,11 @@ export function atGymTime(day, time) {
   return new Date(`${formatDate(day)}T${time}:00${gymUtcOffset(day)}`);
 }
 
-const validOn = (member, day) => member.memberships.some((m) => m.startDate <= day && day <= m.endDate);
 
 // Creates the demo class sessions for the next 14 days and books some demo members.
 // `trainers`: { Mert: id, Gizem: id }. `members`: demo members with their memberships.
-export async function seedDemoClasses(prisma, { today, now, trainers, members }) {
+// `allowance`: who may still book a class that day (membership type and monthly balance, see demo-class-allowance.js).
+export async function seedDemoClasses(prisma, { today, now, trainers, members, allowance }) {
   let classCount = 0;
 
   for (const [templateIndex, template] of DEMO_CLASS_TEMPLATES.entries()) {
@@ -199,13 +199,14 @@ export async function seedDemoClasses(prisma, { today, now, trainers, members })
       });
       classCount++;
 
-      // Book members whose membership is valid that day (the same rule the app enforces).
+      // Book members whose membership that day still has a class left (the same rules the app enforces).
       // Later sessions get fewer bookings; members are rotated so not always the same people come.
-      const eligible = members.filter((member) => validOn(member, day));
+      const eligible = members.filter((member) => allowance.canBook(member, day));
       const rotated = [...eligible.slice(templateIndex % (eligible.length || 1)), ...eligible.slice(0, templateIndex % (eligible.length || 1))];
       const count = Math.max(0, Math.min(demoBookings - occurrence * 3, fields.capacity, rotated.length));
       for (const member of rotated.slice(0, count)) {
         await prisma.booking.create({ data: { classId: gymClass.id, memberId: member.id } });
+        allowance.use(member, day);
       }
       occurrence++;
     }

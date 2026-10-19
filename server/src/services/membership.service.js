@@ -16,6 +16,7 @@ export function toPublicMembership(membership, today) {
     endDate: formatDate(membership.endDate),
     price: membership.price.toFixed(2),
     discountPercent: membership.discountPercent,
+    classesPerMonth: membership.classesPerMonth, // 0 = Basic (gym only)
     status: getMembershipStatus(membership, today),
     daysRemaining: daysRemaining(membership, today),
     // For upcoming memberships: how many days until it starts (0 once it has started).
@@ -126,6 +127,7 @@ export async function assignMembership(userId, input) {
         endDate: planned.endDate,
         price: planned.price, // copied: later price changes don't rewrite this sale
         discountPercent: planned.discountPercent,
+        classesPerMonth: planned.plan.classesPerMonth, // copied too: Basic or Premium as sold
       },
       include: { plan: true },
     });

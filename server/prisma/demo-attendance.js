@@ -14,9 +14,8 @@ const PAST_SESSIONS = [
   [9, 'Running Club', null],
 ];
 
-const validOn = (member, day) => member.memberships.some((m) => m.startDate <= day && day <= m.endDate);
 
-export async function seedDemoPastClasses(prisma, { today, trainers, members }) {
+export async function seedDemoPastClasses(prisma, { today, trainers, members, allowance }) {
   let noShows = 0;
 
   for (const [daysAgo, title, missedBy] of PAST_SESSIONS) {
@@ -28,10 +27,11 @@ export async function seedDemoPastClasses(prisma, { today, trainers, members }) 
     });
 
     // The member who misses the class is always booked; the others fill the remaining spots.
-    const eligible = members.filter((member) => validOn(member, day));
+    const eligible = members.filter((member) => allowance.canBook(member, day));
     const absent = eligible.find((member) => member.firstName === missedBy);
     const booked = [...(absent ? [absent] : []), ...eligible.filter((m) => m !== absent)].slice(0, BOOKED_PER_CLASS);
 
+    for (const member of booked) allowance.use(member, day);
     await prisma.booking.createMany({
       data: booked.map((member, index) => {
         if (member === absent) return { classId: gymClass.id, memberId: member.id, createdAt: addDays(startsAt, -2) };

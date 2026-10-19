@@ -13,31 +13,56 @@ import { seedDemoExercises } from './demo-exercises.js';
 import { seedDemoWorkoutLogs, seedDemoWorkoutPlans } from './demo-workouts.js';
 import { seedDemoPayments } from './demo-payments.js';
 import { seedDemoPastClasses } from './demo-attendance.js';
+import { createClassAllowance } from './demo-class-allowance.js';
 
 export const DEMO_EMAIL_DOMAIN = 'demo.gymflow.local';
 // Every demo account uses this password, so you can log in as any of them.
 export const DEMO_PASSWORD = 'demo1234';
 
+// Basic = gym only (classesPerMonth 0); Premium = 10 group classes per membership month.
+// `renamedFrom`: the plan's name before membership types existed – an existing plan with that name is renamed.
 const DEMO_PLANS = [
   {
-    name: 'Monthly',
-    description: 'Unlimited gym access 7 days a week and all group classes. Perfect to get started – no long commitment.',
+    name: 'Basic Monthly',
+    description: 'Unlimited gym access 7 days a week. Group classes are not included.',
+    durationMonths: 1,
+    price: 1000,
+    classesPerMonth: 0,
+    isActive: true,
+  },
+  {
+    name: 'Premium Monthly',
+    renamedFrom: 'Monthly',
+    description: 'Unlimited gym access 7 days a week and 10 group classes every month. Perfect to get started – no long commitment.',
     durationMonths: 1,
     price: 1500,
+    classesPerMonth: 10,
     isActive: true,
   },
   {
-    name: '3 Months',
-    description: 'Unlimited gym access, all group classes and one free personal training session to set up your first workout plan.',
+    name: 'Basic 3 Months',
+    description: 'Three months of unlimited gym access for a lower monthly price. Group classes are not included.',
+    durationMonths: 3,
+    price: 2700,
+    classesPerMonth: 0,
+    isActive: true,
+  },
+  {
+    name: 'Premium 3 Months',
+    renamedFrom: '3 Months',
+    description: 'Unlimited gym access, 10 group classes every month and one free personal training session to set up your first workout plan.',
     durationMonths: 3,
     price: 4000,
+    classesPerMonth: 10,
     isActive: true,
   },
   {
-    name: '12 Months',
-    description: 'Our best value: unlimited gym access, all group classes, a personal training session every 3 months and a free towel service.',
+    name: 'Premium 12 Months',
+    renamedFrom: '12 Months',
+    description: 'Our best value: unlimited gym access, 10 group classes every month, a personal training session every 3 months and a free towel service.',
     durationMonths: 12,
     price: 14000,
+    classesPerMonth: 10,
     isActive: true,
   },
   {
@@ -45,6 +70,7 @@ const DEMO_PLANS = [
     description: 'Discounted monthly plan for students with a valid student card. No longer sold.',
     durationMonths: 1,
     price: 999.5,
+    classesPerMonth: 10,
     isActive: false,
   },
 ];
@@ -59,32 +85,32 @@ const DEMO_TRAINERS = [
 //   endsIn: N   → ends N days from today (negative = already ended)
 //   startsIn: N → starts N days from today (an upcoming membership)
 const DEMO_MEMBERS = [
-  { firstName: 'Elif', lastName: 'Yilmaz', avatar: 'notionists-aneka', memberships: [{ plan: '3 Months', endsIn: 50 }] },
-  { firstName: 'Mehmet', lastName: 'Kaya', avatar: 'notionists-felix', memberships: [{ plan: '12 Months', endsIn: 200 }] },
-  { firstName: 'Ayse', lastName: 'Demir', avatar: 'lorelei-mia', memberships: [{ plan: 'Monthly', endsIn: 12 }] },
-  { firstName: 'Can', lastName: 'Ozturk', avatar: 'badge-bike', memberships: [{ plan: 'Monthly', endsIn: 3 }] },
-  { firstName: 'Deniz', lastName: 'Arslan', avatar: 'notionists-omar', memberships: [{ plan: 'Monthly', endsIn: 0 }] }, // last day today
-  { firstName: 'Zeynep', lastName: 'Sahin', avatar: 'lorelei-zeynep', memberships: [{ plan: '3 Months', endsIn: 6 }] },
-  { firstName: 'Burak', lastName: 'Celik', avatar: 'notionists-kaan', memberships: [{ plan: 'Monthly', endsIn: -20 }] },
+  { firstName: 'Elif', lastName: 'Yilmaz', avatar: 'notionists-aneka', memberships: [{ plan: 'Premium 3 Months', endsIn: 50 }] },
+  { firstName: 'Mehmet', lastName: 'Kaya', avatar: 'notionists-felix', memberships: [{ plan: 'Premium 12 Months', endsIn: 200 }] },
+  { firstName: 'Ayse', lastName: 'Demir', avatar: 'lorelei-mia', memberships: [{ plan: 'Premium Monthly', endsIn: 12 }] },
+  { firstName: 'Can', lastName: 'Ozturk', avatar: 'badge-bike', memberships: [{ plan: 'Basic Monthly', endsIn: 3 }] },
+  { firstName: 'Deniz', lastName: 'Arslan', avatar: 'notionists-omar', memberships: [{ plan: 'Premium Monthly', endsIn: 0 }] }, // last day today
+  { firstName: 'Zeynep', lastName: 'Sahin', avatar: 'lorelei-zeynep', memberships: [{ plan: 'Basic 3 Months', endsIn: 6 }] },
+  { firstName: 'Burak', lastName: 'Celik', avatar: 'notionists-kaan', memberships: [{ plan: 'Premium Monthly', endsIn: -20 }] },
   {
     firstName: 'Emre',
     avatar: 'badge-flame',
     lastName: 'Aydin',
     memberships: [
       { plan: 'Student (old offer)', endsIn: -150 },
-      { plan: '3 Months', endsIn: -60 },
+      { plan: 'Premium 3 Months', endsIn: -60 },
     ],
   },
   { firstName: 'Selin', lastName: 'Kara', memberships: [] },
-  { firstName: 'Ece', lastName: 'Yildiz', memberships: [{ plan: 'Monthly', startsIn: 5 }] },
+  { firstName: 'Ece', lastName: 'Yildiz', memberships: [{ plan: 'Premium Monthly', startsIn: 5 }] },
   {
     // Renewed: the current membership ends soon, the next one is already booked.
     firstName: 'Ahmet',
     avatar: 'notionists-leo',
     lastName: 'Koc',
     memberships: [
-      { plan: 'Monthly', endsIn: 4 },
-      { plan: 'Monthly', startsIn: 5 },
+      { plan: 'Premium Monthly', endsIn: 4 },
+      { plan: 'Premium Monthly', startsIn: 5 },
     ],
   },
   {
@@ -92,8 +118,8 @@ const DEMO_MEMBERS = [
     avatar: 'lorelei-sara',
     lastName: 'Polat',
     memberships: [
-      { plan: 'Monthly', endsIn: -90 },
-      { plan: '3 Months', endsIn: 30 },
+      { plan: 'Premium Monthly', endsIn: -90 },
+      { plan: 'Premium 3 Months', endsIn: 30 },
     ],
   },
 ];
@@ -150,11 +176,15 @@ export async function seedDemoData(prisma, { today = todayInGym(), now = new Dat
 
   // Plans: reuse a plan with the same name if it already exists.
   const plans = {};
-  for (const plan of DEMO_PLANS) {
+  for (const { renamedFrom, ...plan } of DEMO_PLANS) {
+    // A plan from before membership types (e.g. "Monthly") becomes its Premium version, keeping its sales history.
+    if (renamedFrom && !(await prisma.membershipPlan.findUnique({ where: { name: plan.name } }))) {
+      await prisma.membershipPlan.updateMany({ where: { name: renamedFrom }, data: { name: plan.name } });
+    }
     plans[plan.name] = await prisma.membershipPlan.upsert({
       where: { name: plan.name },
-      // Existing demo plans get the latest description; price and status stay as the admin left them.
-      update: { description: plan.description },
+      // Existing demo plans get the latest description and type; price and status stay as the admin left them.
+      update: { description: plan.description, classesPerMonth: plan.classesPerMonth },
       create: plan,
     });
   }
@@ -184,7 +214,7 @@ export async function seedDemoData(prisma, { today = todayInGym(), now = new Dat
     for (const spec of member.memberships) {
       const plan = plans[spec.plan];
       await prisma.membership.create({
-        data: { userId: user.id, planId: plan.id, price: plan.price, ...periodFor(spec, plan, today) },
+        data: { userId: user.id, planId: plan.id, price: plan.price, classesPerMonth: plan.classesPerMonth, ...periodFor(spec, plan, today) },
       });
     }
   }
@@ -194,7 +224,10 @@ export async function seedDemoData(prisma, { today = todayInGym(), now = new Dat
     include: { memberships: true },
     orderBy: { id: 'asc' },
   });
-  const classes = await seedDemoClasses(prisma, { today, now, trainers, members });
+  // Past classes first: their bookings use up classes of the current membership month too.
+  const allowance = createClassAllowance();
+  const { pastClasses, noShows } = await seedDemoPastClasses(prisma, { today, trainers, members, allowance });
+  const classes = await seedDemoClasses(prisma, { today, now, trainers, members, allowance });
   const checkIns = await seedDemoCheckIns(prisma, { today, now, members, staffId: trainers.Mert });
   const bodyCheckIns = await seedDemoBodies(prisma, { today, members });
   const partnerGyms = await seedDemoPartnerGyms(prisma);
@@ -202,7 +235,6 @@ export async function seedDemoData(prisma, { today = todayInGym(), now = new Dat
   const workoutPlans = await seedDemoWorkoutPlans(prisma, { members, trainerId: trainers.Mert });
   const workoutLogs = await seedDemoWorkoutLogs(prisma, { today });
   const payments = await seedDemoPayments(prisma, { today, now, members });
-  const { pastClasses, noShows } = await seedDemoPastClasses(prisma, { today, trainers, members });
 
   return { plans: DEMO_PLANS.length, trainers: DEMO_TRAINERS.length, members: DEMO_MEMBERS.length, classes, checkIns, bodyCheckIns, partnerGyms, exercises, workoutPlans, workoutLogs, payments, pastClasses, noShows };
 }

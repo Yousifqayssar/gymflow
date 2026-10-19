@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getMyMembership, getMyQrCode, getMyVisits, resetMyQrCode } from '../controllers/me.controller.js';
-import { listMyBookings } from '../controllers/booking.controller.js';
+import { getMyClassBalance, listMyBookings } from '../controllers/booking.controller.js';
 import { getMyBody, recordMyBody } from '../controllers/body.controller.js';
 import { listMyWorkoutPlans } from '../controllers/workoutPlan.controller.js';
 import { listMyWorkouts, logWorkout } from '../controllers/workoutLog.controller.js';
@@ -23,6 +23,7 @@ router.get('/membership/preview', previewMyMembership);
 router.post('/checkout', validate(checkoutSchema), checkout);
 router.get('/payments', listMyPayments);
 router.get('/bookings', listMyBookings);
+router.get('/class-balance', getMyClassBalance);
 router.get('/qr', getMyQrCode);
 router.post('/qr/reset', resetMyQrCode);
 router.get('/visits', getMyVisits);

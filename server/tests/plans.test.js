@@ -32,8 +32,28 @@ describe('POST /api/plans', () => {
       description: '',
       durationMonths: 1,
       price: '1500.00',
+      classesPerMonth: 0,
       isActive: true,
     });
+  });
+
+  it('saves how many classes per month the plan includes (Premium)', async () => {
+    const response = await request(app)
+      .post('/api/plans')
+      .set('Authorization', bearer(adminToken))
+      .send({ ...monthly, name: 'Premium Monthly', classesPerMonth: 10 });
+
+    expect(response.status).toBe(201);
+    expect(response.body.plan.classesPerMonth).toBe(10);
+  });
+
+  it('rejects a negative number of classes per month (400)', async () => {
+    const response = await request(app)
+      .post('/api/plans')
+      .set('Authorization', bearer(adminToken))
+      .send({ ...monthly, classesPerMonth: -1 });
+
+    expect(response.status).toBe(400);
   });
 
   it('saves a description of what the plan includes', async () => {
