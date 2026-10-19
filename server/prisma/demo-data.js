@@ -11,7 +11,7 @@ import { seedDemoBodies } from './demo-body.js';
 import { removeDemoPartnerGyms, seedDemoPartnerGyms } from './demo-gyms.js';
 import { seedDemoExercises } from './demo-exercises.js';
 import { seedDemoWorkoutLogs, seedDemoWorkoutPlans } from './demo-workouts.js';
-import { seedDemoPayments } from './demo-payments.js';
+import { seedDemoClassPayments, seedDemoPayments } from './demo-payments.js';
 import { seedDemoPastClasses } from './demo-attendance.js';
 import { createClassAllowance } from './demo-class-allowance.js';
 
@@ -234,7 +234,7 @@ export async function seedDemoData(prisma, { today = todayInGym(), now = new Dat
   const exercises = await seedDemoExercises(prisma);
   const workoutPlans = await seedDemoWorkoutPlans(prisma, { members, trainerId: trainers.Mert });
   const workoutLogs = await seedDemoWorkoutLogs(prisma, { today });
-  const payments = await seedDemoPayments(prisma, { today, now, members });
+  const payments = (await seedDemoPayments(prisma, { today, now, members })) + (await seedDemoClassPayments(prisma, { now, members }));
 
   return { plans: DEMO_PLANS.length, trainers: DEMO_TRAINERS.length, members: DEMO_MEMBERS.length, classes, checkIns, bodyCheckIns, partnerGyms, exercises, workoutPlans, workoutLogs, payments, pastClasses, noShows };
 }

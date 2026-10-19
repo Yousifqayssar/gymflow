@@ -179,6 +179,9 @@ export function atGymTime(day, time) {
 
 // Creates the demo class sessions for the next 14 days and books some demo members.
 // `trainers`: { Mert: id, Gizem: id }. `members`: demo members with their memberships.
+// Price of one class for members who pay per class (Basic, or Premium with no classes left), by category.
+export const DEMO_CLASS_PRICES = { RUNNING: 120, YOGA: 150, HIIT: 200, CYCLING: 180, PILATES: 170, BOXING: 250, STRENGTH: 200, MOBILITY: 130 };
+
 // `allowance`: who may still book a class that day (membership type and monthly balance, see demo-class-allowance.js).
 export async function seedDemoClasses(prisma, { today, now, trainers, members, allowance }) {
   let classCount = 0;
@@ -195,7 +198,7 @@ export async function seedDemoClasses(prisma, { today, now, trainers, members, a
       if (startsAt <= now) continue; // only future sessions
 
       const gymClass = await prisma.gymClass.create({
-        data: { ...fields, startsAt, trainerId: trainers[trainer] },
+        data: { ...fields, startsAt, trainerId: trainers[trainer], price: DEMO_CLASS_PRICES[fields.category] },
       });
       classCount++;
 

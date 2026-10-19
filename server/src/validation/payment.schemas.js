@@ -29,11 +29,14 @@ const cardSchema = z
 // checkoutId: a random id the page creates once per checkout, so the same payment is never charged twice.
 export const checkoutSchema = z.object({ planId, checkoutId: z.uuid({ error: 'Checkout id is missing' }), card: cardSchema });
 
+// Body of POST /api/classes/:id/book-and-pay (paying for one class)
+export const classCheckoutSchema = z.object({ checkoutId: z.uuid({ error: 'Checkout id is missing' }), card: cardSchema });
+
 // Query of GET /api/me/membership/preview?planId=3
 export const memberPreviewQuerySchema = z.object({ planId });
 
 // Query of GET /api/payments (Admin)
 export const listPaymentsQuerySchema = z.object({
-  status: z.enum(['PAID', 'DECLINED']).optional().or(z.literal('').transform(() => undefined)),
+  status: z.enum(['PAID', 'DECLINED', 'REFUNDED']).optional().or(z.literal('').transform(() => undefined)),
   userId: z.coerce.number().int().positive().optional().or(z.literal('').transform(() => undefined)),
 });

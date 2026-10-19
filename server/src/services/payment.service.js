@@ -5,8 +5,9 @@ import { addDays, formatDate, todayInGym } from '../utils/dates.js';
 import { chargeCard, newPaymentReference } from './cardGateway.js';
 import { planMembership, previewMembership, toPublicMembership } from './membership.service.js';
 
-const PAYMENT_INCLUDE = {
+export const PAYMENT_INCLUDE = {
   plan: { select: { id: true, name: true } },
+  gymClass: { select: { id: true, title: true, startsAt: true } },
   membership: { select: { startDate: true, endDate: true } },
   user: { select: { id: true, firstName: true, lastName: true, avatar: true } },
 };
@@ -15,6 +16,7 @@ const PAYMENT_INCLUDE = {
 export function toPublicPayment(payment) {
   return {
     id: payment.id,
+    kind: payment.kind, // MEMBERSHIP or CLASS
     reference: payment.reference,
     amount: payment.amount.toFixed(2),
     discountPercent: payment.discountPercent,
@@ -22,7 +24,10 @@ export function toPublicPayment(payment) {
     status: payment.status,
     card: payment.cardBrand ? { brand: payment.cardBrand, last4: payment.cardLast4 } : null,
     declineReason: payment.declineReason,
-    plan: payment.plan,
+    plan: payment.plan, // MEMBERSHIP payments
+    // CLASS payments: the class (null if a demo class was deleted later)
+    gymClass: payment.gymClass ? { ...payment.gymClass, startsAt: payment.gymClass.startsAt.toISOString() } : null,
+    refundedAt: payment.refundedAt,
     membership: payment.membership ? { startDate: formatDate(payment.membership.startDate), endDate: formatDate(payment.membership.endDate) } : null,
     member: payment.user,
     createdAt: payment.createdAt,

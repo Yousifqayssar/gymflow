@@ -52,3 +52,43 @@ export async function seedDemoPayments(prisma, { today, now, members }) {
   await prisma.payment.createMany({ data: payments });
   return payments.length;
 }
+
+// Paying per class: Can (Basic) paid by card for his next class, and Zeynep (Basic) paid for one and
+// cancelled it again (refunded) – so class receipts and refunds show up on the Payments page.
+// Runs after the demo classes exist. Returns the number of payments created.
+export async function seedDemoClassPayments(prisma, { now, members }) {
+  const byName = (name) => members.find((member) => member.firstName === name);
+  const upcoming = await prisma.gymClass.findMany({
+    where: { startsAt: { gt: now }, isCancelled: false, trainer: { email: { endsWith: '@demo.gymflow.local' } } },
+    include: { _count: { select: { bookings: true } } },
+    orderBy: { startsAt: 'asc' },
+  });
+  const withSpace = upcoming.filter((gymClass) => gymClass._count.bookings < gymClass.capacity);
+  let count = 0;
+
+  const can = byName('Can');
+  const canClass = withSpace[0];
+  if (can && canClass) {
+    const payment = await prisma.payment.create({
+      data: {
+        kind: 'CLASS', reference: newPaymentReference(), userId: can.id, classId: canClass.id, amount: canClass.price,
+        method: 'CARD', status: 'PAID', ...CARDS[0], createdAt: new Date(now.getTime() - 3 * HOUR_MS),
+      },
+    });
+    await prisma.booking.create({ data: { classId: canClass.id, memberId: can.id, paymentId: payment.id } });
+    count++;
+  }
+
+  const zeynep = byName('Zeynep');
+  const zeynepClass = withSpace[1];
+  if (zeynep && zeynepClass) {
+    await prisma.payment.create({
+      data: {
+        kind: 'CLASS', reference: newPaymentReference(), userId: zeynep.id, classId: zeynepClass.id, amount: zeynepClass.price,
+        method: 'CARD', status: 'REFUNDED', ...CARDS[1], createdAt: new Date(now.getTime() - 26 * HOUR_MS), refundedAt: new Date(now.getTime() - 20 * HOUR_MS),
+      },
+    });
+    count++;
+  }
+  return count;
+}

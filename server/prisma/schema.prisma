@@ -52,20 +52,20 @@ model User {
 // A product the gym sells, e.g. "3 Months – 2500 TRY".
 // Plans are never deleted once used; they are deactivated (isActive = false).
 model MembershipPlan {
-  id             Int      @id @default(autoincrement())
-  name           String   @unique
+  id              Int      @id @default(autoincrement())
+  name            String   @unique
   // What the plan includes, shown to members (may be empty for older plans).
-  description    String   @default("")
+  description     String   @default("")
   // Must be > 0 (database check constraint in the migration).
-  durationMonths Int
+  durationMonths  Int
   // Exact decimal for money, never a floating-point number. Must be > 0.
-  price          Decimal  @db.Decimal(10, 2)
+  price           Decimal  @db.Decimal(10, 2)
   // Group classes included per membership month: 0 = Basic (gym only), e.g. 10 = Premium.
   // Unused classes do not carry over to the next month. Must be 0–60 (check constraint in the migration).
-  classesPerMonth Int     @default(0)
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  classesPerMonth Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   memberships Membership[]
   payments    Payment[]
@@ -107,9 +107,17 @@ enum PaymentMethod {
   DESK
 }
 
+// REFUNDED: a paid class booking that was cancelled before the class (by the member or the trainer).
 enum PaymentStatus {
   PAID
   DECLINED
+  REFUNDED
+}
+
+// What was bought: a membership, or one class (Basic members, or Premium members with no classes left).
+enum PaymentKind {
+  MEMBERSHIP
+  CLASS
 }
 
 enum CardBrand {
@@ -117,32 +125,40 @@ enum CardBrand {
   MASTERCARD
 }
 
-// One payment attempt for a membership. Declined attempts are kept too (they create no membership).
+// One payment attempt for a membership or a single class. Declined attempts are kept too (they buy nothing).
 // The full card number and the CVC are NEVER stored – only the brand and the last 4 digits.
 model Payment {
-  id              Int            @id @default(autoincrement())
+  id              Int             @id @default(autoincrement())
   // Short code printed on the receipt, e.g. "GF-7K2Q9X".
-  reference       String         @unique
+  reference       String          @unique
   // Random id made by the checkout page when it opens (online payments only). Unique, so a
   // double click or a retried request can never charge the same checkout twice.
-  checkoutId      String?        @unique
+  checkoutId      String?         @unique
   userId          Int
-  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  planId          Int
-  plan            MembershipPlan @relation(fields: [planId], references: [id])
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind            PaymentKind     @default(MEMBERSHIP)
+  // For MEMBERSHIP payments: the plan that was bought.
+  planId          Int?
+  plan            MembershipPlan? @relation(fields: [planId], references: [id], onDelete: Restrict)
+  // For CLASS payments: the class that was paid for (stays after a refund, for the receipt).
+  classId         Int?
+  gymClass        GymClass?       @relation(fields: [classId], references: [id], onDelete: SetNull)
+  // The booking this payment paid for (empty once it was cancelled and refunded).
+  booking         Booking?
+  refundedAt      DateTime?       @db.Timestamptz(3)
   // The membership this payment bought (empty for declined attempts).
-  membershipId    Int?           @unique
-  membership      Membership?    @relation(fields: [membershipId], references: [id], onDelete: SetNull)
-  // The amount charged, after the loyalty discount.
-  amount          Decimal        @db.Decimal(10, 2)
-  discountPercent Int            @default(0)
+  membershipId    Int?            @unique
+  membership      Membership?     @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  // The amount charged, after the loyalty or Premium discount.
+  amount          Decimal         @db.Decimal(10, 2)
+  discountPercent Int             @default(0)
   method          PaymentMethod
   status          PaymentStatus
   cardBrand       CardBrand?
   cardLast4       String?
   // Why the bank refused the card, shown to the member (only for DECLINED).
   declineReason   String?
-  createdAt       DateTime       @default(now())
+  createdAt       DateTime        @default(now())
 
   @@index([userId])
   @@index([createdAt])
@@ -207,6 +223,9 @@ model GymClass {
   // A trainer who still has classes cannot be deleted (RESTRICT).
   trainer            User           @relation("ClassTrainer", fields: [trainerId], references: [id], onDelete: Restrict)
   bookings           Booking[]
+  // Price of one class for members who pay per class (Basic, or Premium with no classes left). Must be > 0.
+  price              Decimal        @default(200) @db.Decimal(10, 2)
+  payments           Payment[]
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
 
@@ -232,6 +251,9 @@ model Booking {
   // Empty after the class (with attendance taken) = no-show, which costs loyalty points.
   attendedAt       DateTime?         @db.Timestamptz(3)
   attendanceMethod AttendanceMethod?
+  // Set when the member paid for this class; such bookings do not use the monthly included classes.
+  paymentId        Int?              @unique
+  payment          Payment?          @relation(fields: [paymentId], references: [id], onDelete: SetNull)
 
   // Business rule "a member cannot book the same class twice", enforced by the database.
   @@unique([classId, memberId])

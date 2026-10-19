@@ -216,12 +216,12 @@ describe('demo classes', () => {
     }
   });
 
-  it('books only Premium members, never more than their classes per membership month', async () => {
+  it('books Premium members for free within their classes per month; Basic members only for paid classes', async () => {
     await seedDemoData(prisma, { today });
 
     const bookings = await prisma.booking.findMany({ include: { gymClass: true, member: { include: { memberships: true } } } });
     const perMonth = new Map();
-    for (const { gymClass, member } of bookings) {
+    for (const { gymClass, member } of bookings.filter((b) => b.paymentId === null)) {
       const day = parseDate(gymClass.startsAt.toISOString().slice(0, 10));
       const membership = member.memberships.find((m) => m.startDate <= day && day <= m.endDate);
       expect(membership.classesPerMonth).toBeGreaterThan(0);
@@ -230,7 +230,10 @@ describe('demo classes', () => {
       expect(perMonth.get(key)).toBeLessThanOrEqual(membership.classesPerMonth);
     }
     const basic = await prisma.user.findMany({ where: { firstName: { in: ['Can', 'Zeynep'] }, email: { endsWith: '@demo.gymflow.local' } }, include: { bookings: true } });
-    expect(basic.flatMap((member) => member.bookings)).toHaveLength(0);
+    expect(basic.flatMap((member) => member.bookings).every((booking) => booking.paymentId !== null)).toBe(true);
+    // Demo receipts include one paid class (Can) and one refunded class (Zeynep).
+    expect(await prisma.payment.count({ where: { kind: 'CLASS', status: 'PAID' } })).toBe(1);
+    expect(await prisma.payment.count({ where: { kind: 'CLASS', status: 'REFUNDED' } })).toBe(1);
   });
 
   it('replaces demo classes when run again and keeps real classes', async () => {

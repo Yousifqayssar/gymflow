@@ -9,7 +9,7 @@ const DEFAULT_RANGE_DAYS = 14;
 // What every class query loads: the trainer's name and the bookings (who, and whether they came).
 export const CLASS_INCLUDE = {
   trainer: { select: { id: true, firstName: true, lastName: true, avatar: true } },
-  bookings: { select: { memberId: true, attendedAt: true } },
+  bookings: { select: { memberId: true, attendedAt: true, paymentId: true } },
 };
 
 const hasStarted = (gymClass, now) => gymClass.startsAt <= now;
@@ -28,6 +28,8 @@ export function toPublicClass(gymClass, viewer, now = new Date()) {
     endsAt: new Date(gymClass.startsAt.getTime() + gymClass.durationMinutes * MS_PER_MINUTE).toISOString(),
     durationMinutes: gymClass.durationMinutes,
     capacity: gymClass.capacity,
+    // Price for members who pay per class (Basic, or Premium with no classes left), e.g. "200.00".
+    price: gymClass.price.toFixed(2),
     bookedCount,
     spotsLeft: Math.max(0, gymClass.capacity - bookedCount),
     level: gymClass.level,
@@ -37,6 +39,8 @@ export function toPublicClass(gymClass, viewer, now = new Date()) {
     isCancelled: gymClass.isCancelled,
     hasStarted: hasStarted(gymClass, now),
     isBookedByMe: Boolean(myBooking),
+    // The member paid for this booking (it did not use one of the month's included classes; cancelling refunds it).
+    isMyBookingPaid: Boolean(myBooking?.paymentId),
     // For the member who booked: ATTENDED (scanned the QR), MISSED (no-show, −10 points) or null (not decided yet).
     myAttendance: myBooking ? (myBooking.attendedAt ? 'ATTENDED' : isNoShow(myBooking, gymClass, now) ? 'MISSED' : null) : null,
     // From this moment members can scan the trainer's attendance QR.
@@ -145,7 +149,12 @@ export async function cancelClass(id, actor) {
     throw new AppError(400, 'A class that has already started cannot be cancelled');
   }
 
-  const updated = await prisma.gymClass.update({ where: { id }, data: { isCancelled: true }, include: CLASS_INCLUDE });
+  // Members who paid for this class get their money back (paid bookings have a paymentId).
+  const paymentIds = gymClass.bookings.map((booking) => booking.paymentId).filter(Boolean);
+  const [updated] = await prisma.$transaction([
+    prisma.gymClass.update({ where: { id }, data: { isCancelled: true }, include: CLASS_INCLUDE }),
+    prisma.payment.updateMany({ where: { id: { in: paymentIds }, status: 'PAID' }, data: { status: 'REFUNDED', refundedAt: new Date() } }),
+  ]);
   return toPublicClass(updated, actor);
 }
 

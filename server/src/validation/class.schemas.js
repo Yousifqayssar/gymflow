@@ -42,6 +42,12 @@ const classFields = {
   intensity: z.enum(CLASS_INTENSITIES, { error: 'Choose an intensity' }),
   whatToBring: optionalText('What to bring', 300),
   healthNotes: optionalText('Health notes', 500),
+  // Price of one class for members who pay per class. Money has at most 2 decimals.
+  price: z
+    .number({ error: 'Price must be a number' })
+    .positive('Price must be greater than 0')
+    .max(99_999_999.99, 'Price is too large')
+    .multipleOf(0.01, 'Price can have at most 2 decimals'),
   // Admins choose the trainer; for trainers it is always themselves (set by the server).
   trainerId: id.optional(),
 };
@@ -50,6 +56,7 @@ export const createClassSchema = z.object({
   ...classFields,
   whatToBring: classFields.whatToBring.default(''),
   healthNotes: classFields.healthNotes.default(''),
+  price: classFields.price.default(200),
 });
 
 // Every field is optional when editing, but at least one must be sent.

@@ -8,10 +8,19 @@ export async function bookClass(req, res) {
   res.status(201).json({ class: gymClass });
 }
 
-// DELETE /api/classes/:id/book  (Member)
+// DELETE /api/classes/:id/book  (Member) – { class, refunded } (refunded: amount of a paid class, or null)
 export async function cancelBooking(req, res) {
-  const gymClass = await bookingService.cancelBooking(parseId(req.params.id, 'Class'), req.user);
-  res.json({ class: gymClass });
+  res.json(await bookingService.cancelBooking(parseId(req.params.id, 'Class'), req.user));
+}
+
+// GET /api/classes/:id/booking-quote  (Member) – free with the membership, or the price to pay
+export async function getBookingQuote(req, res) {
+  res.json(await bookingService.getBookingQuote(parseId(req.params.id, 'Class'), req.user));
+}
+
+// POST /api/classes/:id/book-and-pay  { checkoutId, card }  (Member) – pay by card and book in one step
+export async function bookAndPay(req, res) {
+  res.status(201).json(await bookingService.bookAndPay(parseId(req.params.id, 'Class'), req.user, req.body));
 }
 
 // GET /api/me/class-balance  (Member) – classes left this membership month

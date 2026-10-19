@@ -2,7 +2,7 @@
 // Most booked members scanned the QR; Elif and Ayse each missed one class (−10 points),
 // so the Rewards page and the class pages show what a no-show looks like.
 import { addDays } from '../src/utils/dates.js';
-import { atGymTime, DEMO_CLASS_TEMPLATES } from './demo-classes.js';
+import { atGymTime, DEMO_CLASS_PRICES, DEMO_CLASS_TEMPLATES } from './demo-classes.js';
 
 const MS_PER_MINUTE = 60 * 1000;
 const BOOKED_PER_CLASS = 5;
@@ -23,7 +23,7 @@ export async function seedDemoPastClasses(prisma, { today, trainers, members, al
     const day = addDays(today, -daysAgo);
     const startsAt = atGymTime(day, time);
     const gymClass = await prisma.gymClass.create({
-      data: { ...fields, startsAt, trainerId: trainers[trainer], attendanceOpenedAt: new Date(startsAt.getTime() - 10 * MS_PER_MINUTE) },
+      data: { ...fields, startsAt, trainerId: trainers[trainer], price: DEMO_CLASS_PRICES[fields.category], attendanceOpenedAt: new Date(startsAt.getTime() - 10 * MS_PER_MINUTE) },
     });
 
     // The member who misses the class is always booked; the others fill the remaining spots.
