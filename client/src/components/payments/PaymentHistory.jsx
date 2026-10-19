@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import { Banknote, CheckCircle2, ReceiptText, XCircle } from 'lucide-react';
 import CardBrandLogo from './CardBrandLogo.jsx';
 import Card from '../ui/Card.jsx';
@@ -23,7 +24,7 @@ function PaidWith({ payment }) {
   );
 }
 
-// A list of payments (receipts). `showMember` adds who paid (for the admin).
+// A list of payments (receipts). `showMember` adds who paid, linked to their page (for the admin).
 function PaymentHistory({ payments, title = 'Payment history', description, showMember = false, emptyText = 'No payments yet.' }) {
   return (
     <Card title={title} description={description} padded={false}>
@@ -50,7 +51,14 @@ function PaymentHistory({ payments, title = 'Payment history', description, show
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-ink">
-                    {showMember && payment.member ? `${payment.member.firstName} ${payment.member.lastName} · ` : ''}
+                    {showMember && payment.member && (
+                      <>
+                        <Link to={`/people/${payment.member.id}`} className="hover:underline">
+                          {payment.member.firstName} {payment.member.lastName}
+                        </Link>
+                        {' · '}
+                      </>
+                    )}
                     {payment.plan.name}
                   </p>
                   <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted">

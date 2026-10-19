@@ -28,6 +28,7 @@ const WorkoutSessionPage = lazy(() => import('./pages/WorkoutSessionPage.jsx'));
 const ProgressPage = lazy(() => import('./pages/ProgressPage.jsx'));
 const MembershipPage = lazy(() => import('./pages/MembershipPage.jsx'));
 const AttendPage = lazy(() => import('./pages/AttendPage.jsx'));
+const PaymentsPage = lazy(() => import('./pages/PaymentsPage.jsx'));
 const CheckInPage = lazy(() => import('./pages/CheckInPage.jsx'));
 
 // Which page is shown for which URL.
@@ -75,6 +76,7 @@ function App() {
             <Route path="/people" element={<MembersPage />} />
             <Route path="/people/:id" element={<MemberDetailPage />} />
             <Route path="/plans" element={<PlansPage />} />
+            <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/locations" element={<LocationsPage />} />
           </Route>
         </Route>

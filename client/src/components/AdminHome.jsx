@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ArrowRight, CircleCheck, CreditCard, ScanLine, TriangleAlert, UserPlus, UserRound, UserX, Users } from 'lucide-react';
+import { ArrowRight, CircleCheck, CreditCard, ReceiptText, ScanLine, TriangleAlert, UserPlus, UserRound, UserX, Users } from 'lucide-react';
 import { listTodaysCheckIns } from '../api/checkIns.js';
 import { listUsers } from '../api/users.js';
 import { useApiData } from '../hooks/useApiData.js';
@@ -126,6 +126,9 @@ function AdminHome() {
               </Button>
               <Button as={Link} to="/plans" icon={CreditCard} variant="secondary" className="justify-start">
                 Manage plans
+              </Button>
+              <Button as={Link} to="/payments" icon={ReceiptText} variant="secondary" className="justify-start">
+                View payments
               </Button>
             </div>
           </Card>

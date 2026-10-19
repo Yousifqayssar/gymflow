@@ -4,6 +4,8 @@ import { CalendarClock, ChevronLeft, History, Mail } from 'lucide-react';
 import { getMember } from '../api/members.js';
 import { listPlans } from '../api/plans.js';
 import { getMemberBody } from '../api/body.js';
+import { listPayments } from '../api/payments.js';
+import PaymentHistory from '../components/payments/PaymentHistory.jsx';
 import BodyCard from '../components/body/BodyCard.jsx';
 import AssignMembershipForm from '../components/AssignMembershipForm.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
@@ -22,6 +24,7 @@ function MemberDetailPage() {
   const [error, setError] = useState('');
   const [reloadCount, setReloadCount] = useState(0);
   const [body, setBody] = useState(null);
+  const [payments, setPayments] = useState(null); // { payments, totals } of this member
 
   useEffect(() => {
     let ignore = false;
@@ -31,6 +34,14 @@ function MemberDetailPage() {
       })
       .catch(() => {
         // Trainers and admins only see this for members; for trainer accounts there is no body card.
+      });
+    // Reloaded with the rest: a front-desk sale ("Assign a plan") adds a payment.
+    listPayments({ userId: id })
+      .then((result) => {
+        if (!ignore) setPayments(result);
+      })
+      .catch(() => {
+        if (!ignore) setPayments({ payments: [], totals: null });
       });
     Promise.all([getMember(id), listPlans()])
       .then(([member, planData]) => {
@@ -129,6 +140,15 @@ function MemberDetailPage() {
             )}
           </Card>
         </div>
+      )}
+
+      {isMember && (
+        <PaymentHistory
+          payments={payments?.payments ?? null}
+          title="Payments"
+          description={payments?.totals ? `Paid in total: ${formatPrice(payments.totals.revenueAllTime)} · ${payments.totals.paymentsAllTime} ${payments.totals.paymentsAllTime === 1 ? 'payment' : 'payments'}` : undefined}
+          emptyText="This member has not paid anything yet."
+        />
       )}
     </div>
   );

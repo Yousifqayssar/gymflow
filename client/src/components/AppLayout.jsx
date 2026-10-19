@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { Apple, CalendarDays, ClipboardList, CreditCard, Dumbbell, Gift, House, LogOut, MapPin, Menu, QrCode, ScanLine, TrendingUp, UserRound, Users, X } from 'lucide-react';
+import { Apple, CalendarDays, ClipboardList, CreditCard, Dumbbell, Gift, House, LogOut, MapPin, Menu, QrCode, ReceiptText, ScanLine, TrendingUp, UserRound, Users, X } from 'lucide-react';
 import { useAuth } from '../auth/useAuth.js';
 import Avatar from './ui/Avatar.jsx';
 import Logo from './ui/Logo.jsx';
@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { to: '/exercises', label: 'Exercises', icon: Dumbbell, roles: ['ADMIN', 'TRAINER'] },
   { to: '/people', label: 'People', icon: Users, roles: ['ADMIN'] },
   { to: '/plans', label: 'Plans', icon: CreditCard, roles: ['ADMIN'] },
+  { to: '/payments', label: 'Payments', icon: ReceiptText, roles: ['ADMIN'] },
   { to: '/locations', label: 'Locations', icon: MapPin, roles: ['ADMIN'] },
   // Not in the desktop bar: there the avatar at the top right opens the profile (saves space).
   { to: '/profile', label: 'Profile', icon: UserRound, roles: ['ADMIN', 'TRAINER', 'MEMBER'], phoneOnly: true },
