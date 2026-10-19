@@ -6,24 +6,33 @@ import Button from '../ui/Button.jsx';
 import Card from '../ui/Card.jsx';
 import ErrorMessage from '../ErrorMessage.jsx';
 
-// Camera problems explained for gym staff (the library reports a `kind` for each problem).
+// Camera problems in plain words (the library reports a `kind` for each problem).
+// Some end with what to do instead (`fallback`), e.g. 'Type the member number instead.'
 const CAMERA_ERRORS = {
-  'permission-denied': 'Camera access was blocked. Allow the camera in the browser’s address bar and try again.',
-  'no-camera': 'No camera was found on this device. Type the member number instead.',
-  'in-use': 'The camera is being used by another app. Close it and try again.',
-  'insecure-context': 'The camera only works on localhost or over HTTPS.',
-  unsupported: 'This browser cannot use the camera. Type the member number instead.',
-  overconstrained: 'This camera does not support the needed picture size. Type the member number instead.',
+  'permission-denied': () => 'Camera access was blocked. Allow the camera in the browser’s address bar and try again.',
+  'no-camera': (fallback) => `No camera was found on this device. ${fallback}`,
+  'in-use': () => 'The camera is being used by another app. Close it and try again.',
+  'insecure-context': () => 'The camera only works on localhost or over HTTPS.',
+  unsupported: (fallback) => `This browser cannot use the camera. ${fallback}`,
+  overconstrained: (fallback) => `This camera does not support the needed picture size. ${fallback}`,
 };
 
 // Which camera picture we would like. The back camera on phones; 720p is a wish ("ideal"), not a must:
 // the library's own default demands at least 640 px height, which many 480p laptop webcams cannot give.
 const CAMERA_CONSTRAINTS = { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } };
 
-// Scans member QR codes with the device camera. `onCode` gets the text inside the QR code.
+// Scans QR codes with the device camera. `onCode` gets the text inside the QR code.
+// Used by staff for member QR codes (the defaults) and by members for the trainer's class QR.
 // The camera only starts when staff press "Start camera", so the browser asks for permission on purpose.
 // `children` is shown below the camera (the manual member-number form).
-function QrScannerCard({ onCode, isBusy, children }) {
+function QrScannerCard({
+  onCode,
+  isBusy,
+  title = 'Scan member QR code',
+  description = 'Ask the member to open “My QR” in GymFlow and hold it up to the camera.',
+  fallback = 'Type the member number instead.',
+  children,
+}) {
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [cameraError, setCameraError] = useState('');
 
@@ -35,14 +44,14 @@ function QrScannerCard({ onCode, isBusy, children }) {
   function handleError(error) {
     // The exact reason for developers (F12 → Console); staff see the friendly text below.
     console.warn('Camera problem:', error.kind, error.message);
-    setCameraError(CAMERA_ERRORS[error.kind] ?? 'The camera could not be started. Type the member number instead.');
+    setCameraError(CAMERA_ERRORS[error.kind]?.(fallback) ?? `The camera could not be started. ${fallback}`);
     setIsCameraOn(false);
   }
 
   return (
     <Card
-      title="Scan member QR code"
-      description="Ask the member to open “My QR” in GymFlow and hold it up to the camera."
+      title={title}
+      description={description}
       actions={
         isCameraOn && (
           <Button variant="secondary" size="sm" icon={CameraOff} onClick={() => setIsCameraOn(false)}>
