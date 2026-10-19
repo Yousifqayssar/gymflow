@@ -12,9 +12,9 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 // A hint for the member, depending on their status.
 const HINTS = {
-  EXPIRING_SOON: 'Your membership ends soon. Ask at the front desk to renew it.',
-  EXPIRED: 'Your membership has ended. Ask at the front desk to renew it.',
-  NONE: 'You don’t have a membership yet. Ask at the front desk to choose a plan.',
+  EXPIRING_SOON: 'Your membership ends soon. Renew it online on the Membership page or at the front desk.',
+  EXPIRED: 'Your membership has ended. Renew it online on the Membership page or at the front desk.',
+  NONE: 'You don’t have a membership yet. Choose a plan on the Membership page or at the front desk.',
   // UPCOMING gets its own hint with the start date (see below).
 };
 

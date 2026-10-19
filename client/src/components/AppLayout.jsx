@@ -12,6 +12,7 @@ import SiteFooter from './SiteFooter.jsx';
 const NAV_ITEMS = [
   { to: '/', label: 'Home', icon: House, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
   { to: '/my-qr', label: 'My QR', icon: QrCode, roles: ['MEMBER'] },
+  { to: '/membership', label: 'Membership', icon: CreditCard, roles: ['MEMBER'] },
   { to: '/rewards', label: 'Rewards', icon: Gift, roles: ['MEMBER'] },
   { to: '/check-in', label: 'Check-in', icon: ScanLine, roles: ['ADMIN', 'TRAINER'] },
   { to: '/classes', label: 'Classes', icon: CalendarDays, roles: ['ADMIN', 'TRAINER', 'MEMBER'] },
@@ -36,6 +37,8 @@ function AppLayout() {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const items = NAV_ITEMS.filter((item) => item.roles.includes(user.role));
+  // With many menu items (members have 8), the icons only fit on very wide screens.
+  const desktopIconClass = items.filter((item) => !item.phoneOnly).length > 7 ? 'hidden size-4 2xl:block' : 'hidden size-4 xl:block';
 
   // While the phone menu is open: close it with the Escape key, and stop the page behind it from scrolling.
   useEffect(() => {
@@ -86,8 +89,8 @@ function AppLayout() {
                   }`
                 }
               >
-                {/* Icons only on wide screens; between lg and xl the labels need the space */}
-                <item.icon className="hidden size-4 xl:block" aria-hidden="true" />
+                {/* Icons only on wide screens; on smaller ones the labels need the space */}
+                <item.icon className={desktopIconClass} aria-hidden="true" />
                 {item.label}
               </NavLink>
             ))}

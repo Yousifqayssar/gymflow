@@ -26,6 +26,7 @@ const WorkoutsPage = lazy(() => import('./pages/WorkoutsPage.jsx'));
 const PlanEditorPage = lazy(() => import('./pages/PlanEditorPage.jsx'));
 const WorkoutSessionPage = lazy(() => import('./pages/WorkoutSessionPage.jsx'));
 const ProgressPage = lazy(() => import('./pages/ProgressPage.jsx'));
+const MembershipPage = lazy(() => import('./pages/MembershipPage.jsx'));
 const CheckInPage = lazy(() => import('./pages/CheckInPage.jsx'));
 
 // Which page is shown for which URL.
@@ -54,6 +55,7 @@ function App() {
             <Route path="/rewards" element={<RewardsPage />} />
             <Route path="/workouts/:planId/day/:dayId" element={<WorkoutSessionPage />} />
             <Route path="/progress" element={<ProgressPage />} />
+            <Route path="/membership" element={<MembershipPage />} />
           </Route>
 
           {/* Admin and trainer pages */}

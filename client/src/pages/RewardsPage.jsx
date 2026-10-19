@@ -12,7 +12,7 @@ import { LEVELS } from '../utils/levels.js';
 const HOW_TO_EARN = [
   { icon: QrCode, title: 'Check in with your QR code', text: 'Show "My QR" at the entrance. Every visit gives 10 points.' },
   { icon: CalendarCheck, title: 'Once per day', text: 'The first check-in of the day counts – come back tomorrow for more.' },
-  { icon: BadgePercent, title: 'Save automatically', text: 'Your discount is applied when the front desk sells you your next membership.' },
+  { icon: BadgePercent, title: 'Save automatically', text: 'Your discount is applied automatically when you renew online or at the front desk.' },
 ];
 
 // Members: their loyalty level, what it gives them now, how to earn points, and all levels.
