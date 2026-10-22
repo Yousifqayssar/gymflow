@@ -13,6 +13,12 @@ export default defineConfig({
     // limit is raised just above it. The rest of the app stays far below.
     chunkSizeWarningLimit: 600,
   },
+  // Screen tests (npm test): components run in jsdom, a simulated browser inside Node.js.
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.js'],
+    include: ['src/**/*.test.{js,jsx}'],
+  },
   server: {
     // During development, forward every request starting with /api to the Express server.
     // The browser only ever talks to localhost:5173, so there are no CORS problems.
