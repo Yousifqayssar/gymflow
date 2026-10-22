@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AuthContext } from './AuthContext.js';
-import { TOKEN_KEY, tokenStorage } from '../api/client.js';
+import { SESSION_EXPIRED_EVENT, TOKEN_KEY, tokenStorage } from '../api/client.js';
 import { getCurrentUser, loginRequest, registerRequest } from '../api/auth.js';
 
 // Keeps track of the logged-in user and makes it available to every page.
@@ -8,6 +8,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   // If a token was saved earlier, we must first ask the API who it belongs to.
   const [isLoading, setIsLoading] = useState(() => tokenStorage.get() !== null);
+  // True after a saved login stopped working: the login page then explains why the user is there.
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   // On page load: turn a saved token back into a logged-in user.
   useEffect(() => {
@@ -21,6 +23,7 @@ export function AuthProvider({ children }) {
       .catch(() => {
         // Token expired, invalid, or the user was deleted: forget it.
         tokenStorage.clear();
+        if (!ignore) setSessionExpired(true);
       })
       .finally(() => {
         if (!ignore) setIsLoading(false);
@@ -29,6 +32,17 @@ export function AuthProvider({ children }) {
     return () => {
       ignore = true;
     };
+  }, []);
+
+  // A request was refused because the saved login no longer works (see api/client.js): log out.
+  // The protected page then sends the user to the login page, which brings them back afterwards.
+  useEffect(() => {
+    function handleExpired() {
+      setUser(null);
+      setSessionExpired(true);
+    }
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleExpired);
   }, []);
 
   // All tabs of the browser share one saved token. When another tab logs in (maybe as someone else)
@@ -51,6 +65,7 @@ export function AuthProvider({ children }) {
   // Both login and register answer with { user, token }.
   function startSession({ user: loggedInUser, token }) {
     tokenStorage.set(token);
+    setSessionExpired(false);
     setUser(loggedInUser);
   }
 
@@ -64,6 +79,7 @@ export function AuthProvider({ children }) {
 
   function logout() {
     tokenStorage.clear();
+    setSessionExpired(false);
     setUser(null);
   }
 
@@ -72,6 +88,6 @@ export function AuthProvider({ children }) {
     setUser(updatedUser);
   }
 
-  const value = { user, isLoading, login, register, logout, updateCurrentUser };
+  const value = { user, isLoading, sessionExpired, login, register, logout, updateCurrentUser };
   return <AuthContext value={value}>{children}</AuthContext>;
 }

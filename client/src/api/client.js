@@ -3,6 +3,11 @@
 
 export const TOKEN_KEY = 'gymflow_token';
 
+// Sent on window when a saved login stops working (expired, or the account was deleted – e.g. demo
+// accounts after the demo data was refreshed). AuthProvider then logs the user out politely.
+export const SESSION_EXPIRED_EVENT = 'gymflow:session-expired';
+export const SESSION_EXPIRED_MESSAGE = 'Your session has ended. Please log in again.';
+
 // Saves the login token in the browser, so the user stays logged in after a page reload.
 // localStorage can be blocked (e.g. some private windows), so every access is guarded.
 export const tokenStorage = {
@@ -77,6 +82,15 @@ export async function apiRequest(path, { method = 'GET', body, timeoutMs, signal
 
   // Some answers may have no JSON body; treat them as empty.
   const data = await response.json().catch(() => null);
+
+  // We sent a login token and the server no longer accepts it: forget it and tell the app.
+  // (A 401 without a token is a normal answer, e.g. a wrong password on the login page.)
+  const isLoginRequest = path === '/auth/login' || path === '/auth/register';
+  if (response.status === 401 && token && !isLoginRequest) {
+    tokenStorage.clear();
+    window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+    throw new ApiError(401, SESSION_EXPIRED_MESSAGE, [], 'SESSION_EXPIRED');
+  }
 
   if (!response.ok) {
     throw new ApiError(

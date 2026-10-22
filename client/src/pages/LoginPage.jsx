@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
+import { Clock } from 'lucide-react';
+import { SESSION_EXPIRED_MESSAGE } from '../api/client.js';
 import { useAuth } from '../auth/useAuth.js';
 import AuthCard from '../components/AuthCard.jsx';
 import FormField from '../components/FormField.jsx';
@@ -8,7 +10,7 @@ import Button from '../components/ui/Button.jsx';
 import { toFieldErrors } from '../utils/fieldErrors.js';
 
 function LoginPage() {
-  const { login } = useAuth();
+  const { login, sessionExpired } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -42,6 +44,12 @@ function LoginPage() {
   return (
     <AuthCard title="Welcome back" tabTitle="Log in" subtitle="Log in to your GymFlow account.">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {sessionExpired && !error && (
+          <p role="status" className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+            <Clock className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            {SESSION_EXPIRED_MESSAGE}
+          </p>
+        )}
         <ErrorMessage>{error}</ErrorMessage>
 
         <FormField
