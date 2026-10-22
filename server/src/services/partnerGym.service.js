@@ -1,5 +1,7 @@
 import { prisma } from '../lib/prisma.js';
 import { AppError } from '../utils/AppError.js';
+import { addDays, todayInGym } from '../utils/dates.js';
+import { getMembershipStatus, MembershipStatus, pickCurrentMembership } from './membershipStatus.js';
 
 function toPublicPartnerGym(gym) {
   return {
@@ -23,10 +25,43 @@ function rethrowDuplicateName(error) {
   throw error;
 }
 
+// Which gyms a member may train at today: PREMIUM = our gym + all partner gyms,
+// BASIC = our own gym only, NONE = no valid membership today.
+async function memberAccess(memberId, today) {
+  const memberships = await prisma.membership.findMany({ where: { userId: memberId } });
+  const current = pickCurrentMembership(memberships, today);
+  const status = getMembershipStatus(current, today);
+  if (status !== MembershipStatus.ACTIVE && status !== MembershipStatus.EXPIRING_SOON) return 'NONE';
+  return current.classesPerMonth > 0 ? 'PREMIUM' : 'BASIC';
+}
+
 // GET /api/partner-gyms – every logged-in user (home page map).
-export async function listPartnerGyms() {
-  const gyms = await prisma.partnerGym.findMany({ orderBy: { name: 'asc' } });
-  return gyms.map(toPublicPartnerGym);
+//   members also get: access (PREMIUM | BASIC | NONE), and per gym canTrainHere + myVisits;
+//   staff also get: visitsThisMonth per gym (and for our own gym: homeGym.visitsThisMonth).
+export async function listPartnerGyms(viewer) {
+  const gyms = (await prisma.partnerGym.findMany({ orderBy: { name: 'asc' } })).map(toPublicPartnerGym);
+  const today = todayInGym();
+
+  if (viewer.role === 'MEMBER') {
+    const access = await memberAccess(viewer.id, today);
+    const visits = await prisma.checkIn.groupBy({ by: ['partnerGymId'], where: { memberId: viewer.id }, _count: true });
+    const visitsAt = (gymId) => visits.find((v) => v.partnerGymId === gymId)?._count ?? 0;
+    return {
+      access,
+      homeGym: { canTrainHere: access !== 'NONE', myVisits: visitsAt(null) },
+      gyms: gyms.map((gym) => ({ ...gym, canTrainHere: access === 'PREMIUM', myVisits: visitsAt(gym.id) })),
+    };
+  }
+
+  // Visits since the 1st of this month (gym time zone).
+  const monthStart = addDays(today, 1 - today.getUTCDate());
+  const visits = await prisma.checkIn.groupBy({ by: ['partnerGymId'], where: { gymDay: { gte: monthStart } }, _count: true });
+  const visitsAt = (gymId) => visits.find((v) => v.partnerGymId === gymId)?._count ?? 0;
+  return {
+    access: null,
+    homeGym: { visitsThisMonth: visitsAt(null) },
+    gyms: gyms.map((gym) => ({ ...gym, visitsThisMonth: visitsAt(gym.id) })),
+  };
 }
 
 // POST /api/partner-gyms (Admin)

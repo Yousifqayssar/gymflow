@@ -3,9 +3,10 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 // An interactive map (Leaflet + OpenStreetMap) with a pin for every gym.
-//   gyms:       [{ id, name, latitude, longitude, isMain? }]
+//   gyms:       [{ id, name, latitude, longitude, isMain?, isLocked? }] – isLocked: grey pin (not in the member's plan)
 //   selectedId: the gym that is highlighted; the map flies to it
 //   onSelect:   called with a gym id when its pin is clicked (or chosen with the keyboard)
+//   userPosition: optional { latitude, longitude } – a blue "you are here" dot
 //   onMapClick: optional, called with { latitude, longitude } when the map is clicked (admin: choose a position)
 // The map is drawn by Leaflet itself, not by React: React only tells it what changed.
 
@@ -17,17 +18,19 @@ const TILES = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
 // The pin's look is in index.css (.gym-pin). A dumbbell icon for our own gym, a dot for partners.
-function pinIcon({ isMain, isSelected }) {
+function pinIcon({ isMain, isSelected, isLocked }) {
   const size = isMain ? 44 : 34;
   return L.divIcon({
     className: '',
-    html: `<span class="gym-pin ${isMain ? 'gym-pin--main' : ''} ${isSelected ? 'gym-pin--selected' : ''}"><span class="gym-pin__dot"></span></span>`,
+    html: `<span class="gym-pin ${isMain ? 'gym-pin--main' : ''} ${isSelected ? 'gym-pin--selected' : ''} ${isLocked ? 'gym-pin--locked' : ''}"><span class="gym-pin__dot"></span></span>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
   });
 }
 
-function GymMap({ gyms, selectedId, onSelect, onMapClick, className = '' }) {
+const USER_ICON = L.divIcon({ className: '', html: '<span class="user-pin"></span>', iconSize: [18, 18], iconAnchor: [9, 9] });
+
+function GymMap({ gyms, selectedId, onSelect, onMapClick, userPosition, className = '' }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef(null);
@@ -53,7 +56,7 @@ function GymMap({ gyms, selectedId, onSelect, onMapClick, className = '' }) {
     layer.clearLayers();
     for (const gym of gyms) {
       const marker = L.marker([gym.latitude, gym.longitude], {
-        icon: pinIcon({ isMain: gym.isMain, isSelected: gym.id === selectedId }),
+        icon: pinIcon({ isMain: gym.isMain, isSelected: gym.id === selectedId, isLocked: gym.isLocked }),
         title: gym.name, // tooltip on hover + name for screen readers
         alt: gym.name,
         keyboard: true, // Tab reaches the pin, Enter selects it
@@ -62,7 +65,10 @@ function GymMap({ gyms, selectedId, onSelect, onMapClick, className = '' }) {
       marker.on('click', () => callbacks.current.onSelect?.(gym.id));
       layer.addLayer(marker);
     }
-  }, [gyms, selectedId]);
+    if (userPosition) {
+      layer.addLayer(L.marker([userPosition.latitude, userPosition.longitude], { icon: USER_ICON, title: 'You are here', alt: 'You are here', interactive: false }));
+    }
+  }, [gyms, selectedId, userPosition]);
 
   // Fly to the selected gym; without a selection, show all gyms.
   useEffect(() => {
@@ -70,12 +76,14 @@ function GymMap({ gyms, selectedId, onSelect, onMapClick, className = '' }) {
     const selected = gyms.find((gym) => gym.id === selectedId);
     if (selected) {
       map.flyTo([selected.latitude, selected.longitude], Math.max(map.getZoom(), 13), { duration: 0.8 });
-    } else if (gyms.length > 1) {
-      map.fitBounds(gyms.map((gym) => [gym.latitude, gym.longitude]), { padding: [40, 40] });
+    } else if (gyms.length > 1 || userPosition) {
+      const points = gyms.map((gym) => [gym.latitude, gym.longitude]);
+      if (userPosition) points.push([userPosition.latitude, userPosition.longitude]);
+      map.fitBounds(points, { padding: [40, 40] });
     } else if (gyms.length === 1) {
       map.setView([gyms[0].latitude, gyms[0].longitude], 14);
     }
-  }, [gyms, selectedId]);
+  }, [gyms, selectedId, userPosition]);
 
   return <div ref={containerRef} className={`gym-map isolate ${className}`} />;
 }

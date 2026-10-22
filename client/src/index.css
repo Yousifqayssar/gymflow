@@ -135,6 +135,24 @@ dialog[open]::backdrop {
 .gym-pin--main .gym-pin__dot {
   background: white;
 }
+/* A gym the member's plan does not include (Basic: partner gyms are Premium only). */
+.gym-pin--locked {
+  background: var(--color-slate-400);
+  opacity: 0.75;
+}
+.gym-pin--locked .gym-pin__dot {
+  background: white;
+}
+/* The member's own position ("Use my location"). */
+.user-pin {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 3px solid white;
+  border-radius: 9999px;
+  background: #2563eb;
+  box-shadow: 0 0 0 6px rgb(37 99 235 / 0.25);
+}
 .gym-pin--selected {
   transform: rotate(-45deg) scale(1.2);
   animation: gym-pin-pulse 1.6s ease-out infinite;

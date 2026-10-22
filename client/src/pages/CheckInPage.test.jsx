@@ -7,6 +7,9 @@ import { checkInMember, listTodaysCheckIns } from '../api/checkIns.js';
 import { ApiError } from '../api/client.js';
 
 vi.mock('../api/checkIns.js', () => ({ checkInMember: vi.fn(), listTodaysCheckIns: vi.fn() }));
+vi.mock('../api/partnerGyms.js', () => ({
+  listPartnerGyms: vi.fn().mockResolvedValue({ access: null, homeGym: {}, gyms: [{ id: 3, name: 'Besiktas Strength Studio' }] }),
+}));
 // The camera cannot run in the simulated browser: keep only what is shown below the camera (the manual form).
 vi.mock('../components/checkIn/QrScannerCard.jsx', () => ({ default: ({ children }) => <div>{children}</div> }));
 
@@ -37,7 +40,7 @@ describe('CheckInPage', () => {
     expect(await screen.findByText('Waiting for a member')).toBeInTheDocument();
     await typeAndCheckIn('GF-00004');
 
-    expect(checkInMember).toHaveBeenCalledWith('GF-00004');
+    expect(checkInMember).toHaveBeenCalledWith('GF-00004', null); // null = our own gym
     expect(await screen.findByText('Welcome, Elif!')).toBeInTheDocument();
     expect(screen.getByText('Checked in')).toBeInTheDocument();
     expect(screen.getByLabelText('Member number')).toHaveValue(''); // ready for the next member
@@ -74,6 +77,30 @@ describe('CheckInPage', () => {
     await typeAndCheckIn('GF-00004');
 
     expect(await screen.findByText('You are not logged in as staff')).toBeInTheDocument();
+  });
+
+  it('checks members in at the chosen partner gym, and remembers the choice on this device', async () => {
+    listTodaysCheckIns.mockResolvedValue(EMPTY_DAY);
+    checkInMember.mockResolvedValue(member());
+    renderWithApp(<CheckInPage />, { user: STAFF });
+
+    await userEvent.selectOptions(await screen.findByLabelText('Checking in at'), await screen.findByRole('option', { name: /Besiktas Strength Studio/ }));
+    await typeAndCheckIn('GF-00004');
+
+    expect(checkInMember).toHaveBeenCalledWith('GF-00004', 3);
+    expect(localStorage.getItem('gymflow_checkin_location')).toBe('3');
+    localStorage.removeItem('gymflow_checkin_location');
+  });
+
+  it('refuses a Basic member at a partner gym and says how to get access', async () => {
+    listTodaysCheckIns.mockResolvedValue(EMPTY_DAY);
+    checkInMember.mockRejectedValue(new ApiError(403, 'Can has a Basic membership, which is for our own gym only.', [], 'PARTNER_GYM_PREMIUM_ONLY'));
+    renderWithApp(<CheckInPage />, { user: STAFF });
+
+    await typeAndCheckIn('GF-00005');
+
+    expect(await screen.findByText('Entry refused')).toBeInTheDocument();
+    expect(screen.getByText(/upgrade to Premium/)).toBeInTheDocument();
   });
 
   it('cannot send an empty member number', async () => {

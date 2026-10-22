@@ -283,9 +283,13 @@ model CheckIn {
   // The staff member who checked the member in (kept as empty if that account is deleted).
   checkedInById Int?
   checkedInBy   User?         @relation("StaffCheckIns", fields: [checkedInById], references: [id], onDelete: SetNull)
+  // Where the visit happened: empty = our own gym; otherwise a partner gym (Premium members only).
+  partnerGymId  Int?
+  partnerGym    PartnerGym?   @relation(fields: [partnerGymId], references: [id], onDelete: SetNull)
 
   @@unique([memberId, gymDay])
   @@index([gymDay])
+  @@index([partnerGymId])
 }
 
 // What a member wants to achieve with their training.
@@ -318,19 +322,21 @@ model BodyCheckIn {
 
 // A gym that cooperates with GymFlow, shown on the map on the home page. Managed by admins.
 model PartnerGym {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
   address   String
   district  String
   phone     String?
   // Position on the map (WGS 84, like GPS): about 10 cm precision.
-  latitude  Decimal  @db.Decimal(8, 6)
-  longitude Decimal  @db.Decimal(9, 6)
+  latitude  Decimal   @db.Decimal(8, 6)
+  longitude Decimal   @db.Decimal(9, 6)
   // Opening hours per weekday: [{ "day": 1, "open": "06:00", "close": "23:00" }, ...]
   // day 1 = Monday … 7 = Sunday; a day that is missing means closed.
   hours     Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  // Visits of Premium members at this gym.
+  checkIns  CheckIn[]
 }
 
 // Which part of the body an exercise trains (used for filtering and colours).

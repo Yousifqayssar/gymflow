@@ -1,6 +1,7 @@
 // Demo check-ins: a visit history for the last 45 days, so points, levels and
 // "today's check-ins" have realistic content. Members only visit on days when their
-// membership was valid – the same rule the check-in desk enforces.
+// membership was valid – the same rule the check-in desk enforces. Premium members sometimes train
+// at a partner gym (about every 4th visit); Basic members only at our own gym, like at the desk.
 import { addDays } from '../src/utils/dates.js';
 import { atGymTime } from './demo-classes.js';
 
@@ -29,9 +30,18 @@ const TODAY = [
 ];
 
 const validOn = (member, day) => member.memberships.some((m) => m.startDate <= day && day <= m.endDate);
+const premiumOn = (member, day) => member.memberships.some((m) => m.startDate <= day && day <= m.endDate && m.classesPerMonth > 0);
 
-export async function seedDemoCheckIns(prisma, { today, now, members, staffId }) {
+//   partnerGymIds: ids of the partner gyms (visits there are spread over them)
+export async function seedDemoCheckIns(prisma, { today, now, members, staffId, partnerGymIds = [] }) {
   const data = [];
+  let visitNumber = 0;
+  // Every 4th visit of a Premium member is at a partner gym, taking turns between the gyms.
+  const locationFor = (member, day) => {
+    visitNumber++;
+    if (!partnerGymIds.length || !premiumOn(member, day) || visitNumber % 4 !== 0) return null;
+    return partnerGymIds[(visitNumber / 4) % partnerGymIds.length];
+  };
 
   for (const member of members) {
     const every = VISIT_EVERY[member.firstName];
@@ -44,7 +54,7 @@ export async function seedDemoCheckIns(prisma, { today, now, members, staffId })
 
       // A different, realistic time of day for each member.
       const hour = String(6 + ((member.id + offset) % 13)).padStart(2, '0');
-      data.push({ memberId: member.id, gymDay: day, checkedInAt: atGymTime(day, `${hour}:15`), method: 'QR', checkedInById: staffId });
+      data.push({ memberId: member.id, gymDay: day, checkedInAt: atGymTime(day, `${hour}:15`), method: 'QR', checkedInById: staffId, partnerGymId: locationFor(member, day) });
     }
   }
 

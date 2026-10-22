@@ -228,9 +228,11 @@ export async function seedDemoData(prisma, { today = todayInGym(), now = new Dat
   const allowance = createClassAllowance();
   const { pastClasses, noShows } = await seedDemoPastClasses(prisma, { today, trainers, members, allowance });
   const classes = await seedDemoClasses(prisma, { today, now, trainers, members, allowance });
-  const checkIns = await seedDemoCheckIns(prisma, { today, now, members, staffId: trainers.Mert });
-  const bodyCheckIns = await seedDemoBodies(prisma, { today, members });
+  // Partner gyms first: some visits of Premium members happen there.
   const partnerGyms = await seedDemoPartnerGyms(prisma);
+  const partnerGymIds = (await prisma.partnerGym.findMany({ select: { id: true }, orderBy: { id: 'asc' } })).map((gym) => gym.id);
+  const checkIns = await seedDemoCheckIns(prisma, { today, now, members, staffId: trainers.Mert, partnerGymIds });
+  const bodyCheckIns = await seedDemoBodies(prisma, { today, members });
   const exercises = await seedDemoExercises(prisma);
   const workoutPlans = await seedDemoWorkoutPlans(prisma, { members, trainerId: trainers.Mert });
   const workoutLogs = await seedDemoWorkoutLogs(prisma, { today });

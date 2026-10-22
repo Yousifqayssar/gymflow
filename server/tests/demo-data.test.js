@@ -216,6 +216,17 @@ describe('demo classes', () => {
     }
   });
 
+  it('lets only Premium members visit partner gyms, like the check-in desk', async () => {
+    await seedDemoData(prisma, { today });
+
+    const atPartners = await prisma.checkIn.findMany({ where: { partnerGymId: { not: null } }, include: { member: { include: { memberships: true } } } });
+    expect(atPartners.length).toBeGreaterThan(0);
+    for (const { member, gymDay } of atPartners) {
+      const membership = member.memberships.find((m) => m.startDate <= gymDay && gymDay <= m.endDate);
+      expect(membership.classesPerMonth).toBeGreaterThan(0);
+    }
+  });
+
   it('books Premium members for free within their classes per month; Basic members only for paid classes', async () => {
     await seedDemoData(prisma, { today });
 

@@ -30,8 +30,10 @@ export async function getMyVisits(userId) {
       where: { memberId: userId },
       orderBy: { checkedInAt: 'desc' },
       take: RECENT_VISITS,
-      select: { id: true, checkedInAt: true, method: true },
+      select: { id: true, checkedInAt: true, method: true, partnerGym: { select: { id: true, name: true } } },
     }),
   ]);
-  return { ...points, missedClasses: points.missedClasses.slice(0, RECENT_VISITS), recentVisits: recent };
+  // location: null = our own gym, otherwise the partner gym.
+  const recentVisits = recent.map(({ partnerGym, ...visit }) => ({ ...visit, location: partnerGym }));
+  return { ...points, missedClasses: points.missedClasses.slice(0, RECENT_VISITS), recentVisits };
 }

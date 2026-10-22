@@ -25,7 +25,7 @@ function RecentVisits({ visits }) {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-ink">{formatLongDay(visit.checkedInAt)}</p>
                   <p className="text-xs text-muted">
-                    {formatTime(visit.checkedInAt)} · {visit.method === 'QR' ? 'QR code' : 'Member number'}
+                    {formatTime(visit.checkedInAt)} · {visit.location ? visit.location.name : 'Our gym'}
                   </p>
                 </div>
                 <span className="rounded-full bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">+10</span>

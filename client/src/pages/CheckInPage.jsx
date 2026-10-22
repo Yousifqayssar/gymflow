@@ -1,5 +1,8 @@
 import { useRef, useState } from 'react';
+import { MapPin } from 'lucide-react';
 import { checkInMember, listTodaysCheckIns } from '../api/checkIns.js';
+import { listPartnerGyms } from '../api/partnerGyms.js';
+import { GYM } from '../config/gym.js';
 import { useApiData } from '../hooks/useApiData.js';
 import CheckInResult from '../components/checkIn/CheckInResult.jsx';
 import ManualCheckInForm from '../components/checkIn/ManualCheckInForm.jsx';
@@ -17,6 +20,10 @@ function resultForError(error) {
   if (error.code === 'MEMBERSHIP_NOT_ACTIVE') {
     return { type: 'refused', message: error.message };
   }
+  // A Basic member at a partner gym: partner gyms are a Premium benefit.
+  if (error.code === 'PARTNER_GYM_PREMIUM_ONLY') {
+    return { type: 'refused', message: error.message, hint: 'The member can upgrade to Premium in the app (Membership page) or at our own gym.' };
+  }
   // The problem is the staff login, not the member: e.g. someone logged in as a member in another tab.
   if (error.status === 401 || error.status === 403) {
     return {
@@ -28,10 +35,34 @@ function resultForError(error) {
   return { type: 'error', message: error.message };
 }
 
+// Which gym this device checks members in at – remembered on the device (the check-in tablet
+// at a partner gym keeps its location). '' = our own gym.
+const LOCATION_KEY = 'gymflow_checkin_location';
+function savedLocation() {
+  try {
+    return localStorage.getItem(LOCATION_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
 // Staff check-in screen at the gym entrance (Admin, Trainer):
-// scan the member's QR code or type their member number, see the result, see today's visits.
+// choose the gym, scan the member's QR code or type their member number, see the result and today's visits.
 function CheckInPage() {
   const [result, setResult] = useState(null);
+  const [location, setLocation] = useState(savedLocation);
+  const { data: gymData } = useApiData(listPartnerGyms);
+  const partnerGyms = gymData?.gyms ?? [];
+
+  function changeLocation(value) {
+    setLocation(value);
+    setResult(null);
+    try {
+      localStorage.setItem(LOCATION_KEY, value);
+    } catch {
+      // Not remembered: staff choose again next time.
+    }
+  }
   const [isBusy, setIsBusy] = useState(false);
   const lastScan = useRef({ code: '', at: 0 });
   const { data: today, error: todayError, reload: reloadToday } = useApiData(listTodaysCheckIns);
@@ -45,7 +76,7 @@ function CheckInPage() {
 
     setIsBusy(true);
     try {
-      const data = await checkInMember(code);
+      const data = await checkInMember(code, location ? Number(location) : null);
       setResult({ id: now, type: data.alreadyCheckedIn ? 'already' : 'success', data });
       if (!data.alreadyCheckedIn) reloadToday();
       return true;
@@ -60,6 +91,27 @@ function CheckInPage() {
   return (
     <div>
       <PageHeader title="Check-in" description="Scan a member’s QR code or type their member number." />
+
+      <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+        <MapPin className="size-5 shrink-0 text-brand-600" aria-hidden="true" />
+        <label htmlFor="checkInLocation" className="text-sm font-medium text-ink-2">
+          Checking in at
+        </label>
+        <select
+          id="checkInLocation"
+          value={location}
+          onChange={(event) => changeLocation(event.target.value)}
+          className="min-w-0 flex-1 rounded-lg border border-line-strong bg-surface px-3 py-2 text-ink shadow-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 sm:max-w-sm dark:focus:ring-brand-500/25"
+        >
+          <option value="">{GYM.name} (our gym)</option>
+          {partnerGyms.map((gym) => (
+            <option key={gym.id} value={gym.id}>
+              {gym.name} (partner gym)
+            </option>
+          ))}
+        </select>
+        {location && <span className="text-xs text-muted">Basic members are refused here.</span>}
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3">

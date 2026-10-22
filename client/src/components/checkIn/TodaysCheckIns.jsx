@@ -42,6 +42,7 @@ function TodaysCheckIns({ today, error, limit, actions }) {
               <Avatar firstName={checkIn.member.firstName} lastName={checkIn.member.lastName} avatar={checkIn.member.avatar} size="sm" />
               <p className="min-w-0 flex-1 truncate text-sm font-medium text-ink">
                 {checkIn.member.firstName} {checkIn.member.lastName}
+                {checkIn.location && <span className="block truncate text-xs font-normal text-muted">at {checkIn.location.name}</span>}
               </p>
               <span
                 className="flex items-center gap-1.5 text-sm text-muted"

@@ -10,6 +10,11 @@ export const QR_PREFIX = 'GYMFLOW:';
 // Error code for "this member may not enter", so the client does not mix it up with
 // a missing staff permission (both are 403).
 export const MEMBERSHIP_NOT_ACTIVE = 'MEMBERSHIP_NOT_ACTIVE';
+// Basic members may only train at our own gym; partner gyms are a Premium benefit.
+export const PARTNER_GYM_PREMIUM_ONLY = 'PARTNER_GYM_PREMIUM_ONLY';
+
+// Where a visit happened, as sent to clients: null = our own gym.
+const toLocation = (partnerGym) => (partnerGym ? { id: partnerGym.id, name: partnerGym.name } : null);
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MEMBER_NUMBER = /^GF-?0*(\d+)$/i;
@@ -43,12 +48,12 @@ function refusalMessage(member, current, status) {
 }
 
 // The information staff see after a scan.
-async function checkInResult(member, current, today, checkIn, alreadyCheckedIn) {
+async function checkInResult(member, current, today, checkIn, alreadyCheckedIn, location) {
   // missedClasses is left out: staff only need the totals.
   const { missedClasses, ...points } = await memberPoints(prisma, member.id);
   return {
     alreadyCheckedIn,
-    checkIn: { id: checkIn.id, checkedInAt: checkIn.checkedInAt, method: checkIn.method },
+    checkIn: { id: checkIn.id, checkedInAt: checkIn.checkedInAt, method: checkIn.method, location },
     member: {
       id: member.id,
       firstName: member.firstName,
@@ -56,6 +61,7 @@ async function checkInResult(member, current, today, checkIn, alreadyCheckedIn) 
       avatar: member.avatar,
       membership: {
         planName: current.plan.name,
+        isPremium: current.classesPerMonth > 0,
         endDate: formatDate(current.endDate),
         status: getMembershipStatus(current, today),
         daysRemaining: daysRemaining(current, today),
@@ -65,11 +71,17 @@ async function checkInResult(member, current, today, checkIn, alreadyCheckedIn) 
   };
 }
 
-// POST /api/check-ins – staff check a member in by QR code or member number.
-// Business rule: a member with an expired or no membership cannot check in.
-// A member is checked in (and earns points) at most once per gym day.
-export async function checkIn(code, staff) {
+// POST /api/check-ins – staff check a member in by QR code or member number, at our own gym
+// (partnerGymId empty) or at a partner gym.
+// Business rules: a member with an expired or no membership cannot check in; at partner gyms only
+// Premium members can. A member is checked in (and earns points) at most once per gym day.
+export async function checkIn(code, staff, partnerGymId = null) {
   const { qrToken, memberId, method } = parseCheckInCode(code);
+
+  const partnerGym = partnerGymId ? await prisma.partnerGym.findUnique({ where: { id: partnerGymId } }) : null;
+  if (partnerGymId && !partnerGym) {
+    throw new AppError(404, 'This partner gym does not exist (any more)');
+  }
 
   const member = await prisma.user.findUnique({
     where: qrToken ? { qrToken } : { id: memberId },
@@ -86,22 +98,31 @@ export async function checkIn(code, staff) {
   if (status !== MembershipStatus.ACTIVE && status !== MembershipStatus.EXPIRING_SOON) {
     throw new AppError(403, refusalMessage(member, current, status), undefined, MEMBERSHIP_NOT_ACTIVE);
   }
+  if (partnerGym && current.classesPerMonth === 0) {
+    throw new AppError(
+      403,
+      `${member.firstName} has a Basic membership, which is for our own gym only. Training at partner gyms is included in Premium.`,
+      undefined,
+      PARTNER_GYM_PREMIUM_ONLY,
+    );
+  }
 
-  const existing = await prisma.checkIn.findUnique({ where: { memberId_gymDay: { memberId: member.id, gymDay: today } } });
+  const todaysVisit = { memberId_gymDay: { memberId: member.id, gymDay: today } };
+  const existing = await prisma.checkIn.findUnique({ where: todaysVisit, include: { partnerGym: true } });
   if (existing) {
-    return checkInResult(member, current, today, existing, true);
+    return checkInResult(member, current, today, existing, true, toLocation(existing.partnerGym));
   }
 
   try {
     const created = await prisma.checkIn.create({
-      data: { memberId: member.id, gymDay: today, checkedInAt: now, method, checkedInById: staff.id },
+      data: { memberId: member.id, gymDay: today, checkedInAt: now, method, checkedInById: staff.id, partnerGymId: partnerGym?.id ?? null },
     });
-    return checkInResult(member, current, today, created, false);
+    return checkInResult(member, current, today, created, false, toLocation(partnerGym));
   } catch (error) {
     // Two scans at the same moment: the unique index (member, day) lets only one through.
     if (error.code === 'P2002') {
-      const winner = await prisma.checkIn.findUnique({ where: { memberId_gymDay: { memberId: member.id, gymDay: today } } });
-      return checkInResult(member, current, today, winner, true);
+      const winner = await prisma.checkIn.findUnique({ where: todaysVisit, include: { partnerGym: true } });
+      return checkInResult(member, current, today, winner, true, toLocation(winner.partnerGym));
     }
     throw error;
   }
@@ -111,13 +132,14 @@ export async function checkIn(code, staff) {
 export async function listTodaysCheckIns() {
   const checkIns = await prisma.checkIn.findMany({
     where: { gymDay: todayInGym() },
-    include: { member: { select: { id: true, firstName: true, lastName: true, avatar: true } } },
+    include: { member: { select: { id: true, firstName: true, lastName: true, avatar: true } }, partnerGym: true },
     orderBy: { checkedInAt: 'desc' },
   });
   return checkIns.map((checkIn) => ({
     id: checkIn.id,
     checkedInAt: checkIn.checkedInAt,
     method: checkIn.method,
+    location: toLocation(checkIn.partnerGym),
     member: checkIn.member,
   }));
 }

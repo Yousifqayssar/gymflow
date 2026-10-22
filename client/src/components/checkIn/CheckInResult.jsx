@@ -105,6 +105,7 @@ function MemberDetails({ result }) {
           <dt className="text-muted">{result.type === 'success' ? 'Checked in at' : 'First check-in'}</dt>
           <dd className="font-medium text-ink">{formatTime(checkIn.checkedInAt)}</dd>
           <dd className="text-muted">{checkIn.method === 'QR' ? 'QR code' : 'Member number'}</dd>
+          <dd className="truncate text-muted">{checkIn.location ? checkIn.location.name : 'Our gym'}</dd>
         </div>
       </dl>
 

@@ -3,7 +3,7 @@ import { parseId } from '../utils/params.js';
 
 // GET /api/partner-gyms  (any logged-in user)
 export async function listPartnerGyms(req, res) {
-  res.json({ gyms: await partnerGymService.listPartnerGyms() });
+  res.json(await partnerGymService.listPartnerGyms(req.user));
 }
 
 // POST /api/partner-gyms  (Admin)
