@@ -395,3 +395,59 @@ Planned: Stage 3a – QR check-in and loyalty points. Stage 3a was finished earl
 ### Next step
 
 **Stage 4 – tests, validation and security:** review inputs and permissions, rate-limit login, add client-side tests for booking, checkout and check-in, and test the installed app on real phones.
+
+---
+
+## Week 6 – Stage 4: Testing, Validation and Security
+
+**Date:** 22 October 2026 (Week 6)
+
+### Objective
+
+Make GymFlow secure and prove with tests that it works: security headers, a limit on login attempts, a protection check for every endpoint, a dependency audit, screen tests and end-to-end tests. During the week the student tested the live site and reported three problems, which were fixed the same day.
+
+### Implemented functionality
+
+- **Security headers** (helmet): strict Content Security Policy (own code only, plus OpenStreetMap tiles), no framing, HSTS, nosniff. The dark-mode script moved into `public/theme-init.js`; the service worker ignores requests to other websites.
+- **Login rate limit** (express-rate-limit): 10 failed login/register attempts per 15 minutes per address; successful logins are not counted; `trust proxy` online.
+- **Route protection test:** discovers all 60 endpoints from `app.js` and the routers; 57 × no token (401), 57 × forged token (401), 78 × wrong role (403). `authorize()` exposes its allowed roles for this.
+- **Dependency audit:** prisma 7.10.0 → 7.10.1, vite 8.3.1 → 8.3.4; `npm audit` 0 everywhere.
+- **Screen tests** (client): Vitest + React Testing Library + jsdom; booking panel, card form, check-in page, API helper, helper functions.
+- **End-to-end tests** (`e2e/`): Playwright with the installed Chrome; own database `gymflow_e2e` with fresh demo data; server in production mode on port 4300; 9 user journeys on desktop and phone.
+- **Food scanner:** 30-second budget (main model 15 s → fallback model → 2 s pause → fallback again), no hidden SDK retries, timer + Cancel + “Try again”, calm “scanner is busy” card, 768 px uploads.
+- **Error handler:** messages written for users (AppError) are always shown, also for 5xx; only unexpected errors are hidden behind a friendly sentence.
+- **Partner gyms in Premium:** `CheckIn.partnerGymId`; Basic members refused at partner gyms (`PARTNER_GYM_PREMIUM_ONLY`); “Checking in at” picker; map with access banner, my location, distances, nearest open gym, filters, Directions and Call; visits per gym.
+- **Expired login:** a 401 during a session clears the login and shows “Your session has ended. Please log in again.”, then returns to the same page.
+
+### Technical decisions
+
+| Decision | Reason |
+| --- | --- |
+| Strict CSP without inline scripts | Injected scripts cannot run. |
+| Count only failed login attempts | Stops guessing without blocking normal members. |
+| Discover endpoints automatically in the protection test | New endpoints are checked without updating a list. |
+| Separate `gymflow_e2e` database, production build | Predictable data; tests what is really deployed. |
+| Fixed time budget + fallback model for Gemini | A member never waits minutes. |
+| Show AppError messages, hide only unexpected errors | Useful messages without leaking internals. |
+| Partner gyms as a Premium benefit, checked by the server | One clear rule, visible on the map. |
+
+### Problems encountered and solutions
+
+1. **Map tiles blocked by the new CSP.** *Cause:* the service worker re-fetched OpenStreetMap tiles. *Solution:* it ignores other websites; found by opening every page of the production build.
+2. **Food scanner took 195 s.** *Cause:* the Gemini library retried 5 times while the model was overloaded. *Solution:* no hidden retries, 30-second budget, fallback model.
+3. **“Internal server error” instead of the friendly message.** *Cause:* the production error handler hid all 5xx messages. *Solution:* only unexpected errors are hidden.
+4. **Changes not visible online.** *Cause:* not pushed yet. *Solution:* push; Render needs a few minutes.
+5. **“Invalid or expired token” after refreshing demo data.** *Cause:* demo accounts are recreated with new ids. *Solution:* polite logout and return to the same page.
+6. **Nearest-gym line split into columns on phones.** *Solution:* normal text flow.
+
+### Tests
+
+675 API tests (39 files), 29 screen tests (5 files), 9 end-to-end tests – all passing. New: `security.test.js`, `route-protection.test.js`, `partner-gym-access.test.js`, `unit/errorHandler.test.js`, more nutrition tests; client `BookingPanel`, `CardCheckout`, `CheckInPage`, `api/client`, `utils/helpers` tests; e2e `login`, `booking`, `check-in`, `phone` specs. Mutation checks confirmed that the new tests fail when the protection is switched off.
+
+### Related commits
+
+`feat(server): add security headers and rate limit login attempts` · `test(server): check every endpoint for login and role protection` · `chore: update prisma and vite to fix audit warnings` · `test(client): add screen tests for booking, checkout and check-in` · `test: add Playwright end-to-end tests for the main user flows` · `fix: food scanner time limit, fallback model and readable error messages` · `feat: make partner gyms part of Premium with location-aware map and check-in` · `fix(client): log out politely when a saved login stops working` · `docs: add week 6 development log and report`
+
+### Next step
+
+**Stage 5 – user testing and polish:** real-phone test (S6 checklist), short sessions with a member, a trainer and an admin, then fixes and dashboard improvements.
