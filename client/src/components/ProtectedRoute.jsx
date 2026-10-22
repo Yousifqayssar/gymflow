@@ -15,6 +15,10 @@ function ProtectedRoute({ roles }) {
   }
 
   if (!user) {
+    // A visitor who lands on the site root sees the public front page, not the login form.
+    if (location.pathname === '/') {
+      return <Navigate to="/welcome" replace />;
+    }
     // Keep the ?query too: a member who scans a class QR while logged out comes back to it with the code.
     return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   }

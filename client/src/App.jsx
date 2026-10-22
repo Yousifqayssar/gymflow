@@ -6,6 +6,7 @@ import AppLayout from './components/AppLayout.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import HomePage from './pages/HomePage.jsx';
+import LandingPage from './pages/LandingPage.jsx';
 
 // The other pages are loaded only when they are opened ("code splitting"): the first download
 // stays small, and e.g. members never download the camera QR scanner of the check-in page.
@@ -37,6 +38,8 @@ function App() {
     <Routes>
       {/* Only for visitors who are NOT logged in */}
       <Route element={<GuestRoute />}>
+        {/* The public front page. Logged-in users are sent to their home by GuestRoute. */}
+        <Route path="/welcome" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
       </Route>
