@@ -44,7 +44,9 @@ export class ApiError extends Error {
 
 // Sends a request to /api/<path> and returns the JSON body.
 // Example: await apiRequest('/auth/login', { method: 'POST', body: { email, password } })
-export async function apiRequest(path, { method = 'GET', body } = {}) {
+//   timeoutMs: give up after this long (ApiError with code 'TIMEOUT')
+//   signal:    lets the page cancel the request (ApiError with code 'CANCELLED')
+export async function apiRequest(path, { method = 'GET', body, timeoutMs, signal } = {}) {
   const headers = {};
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json';
@@ -55,15 +57,21 @@ export async function apiRequest(path, { method = 'GET', body } = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
+  const timeout = timeoutMs ? AbortSignal.timeout(timeoutMs) : null;
+  const signals = [signal, timeout].filter(Boolean);
+
   let response;
   try {
     response = await fetch(`/api${path}`, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
+      signal: signals.length ? AbortSignal.any(signals) : undefined,
     });
   } catch {
-    // fetch only throws when there is no answer at all (server down, no network).
+    if (timeout?.aborted) throw new ApiError(0, 'This is taking too long. Please try again.', [], 'TIMEOUT');
+    if (signal?.aborted) throw new ApiError(0, 'Cancelled', [], 'CANCELLED');
+    // Otherwise fetch only throws when there is no answer at all (server down, no network).
     throw new ApiError(0, 'Cannot reach the server. Please try again later.');
   }
 

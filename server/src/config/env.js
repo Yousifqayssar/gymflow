@@ -17,6 +17,8 @@ const envSchema = z.object({
   // Google Gemini, for the food photo analysis. Optional: without a key that one feature is switched off.
   GEMINI_API_KEY: z.string().trim().optional(),
   GEMINI_MODEL: z.string().default('gemini-flash-latest'),
+  // Lighter, faster model used when the main one is busy or too slow (see nutrition.service.js).
+  GEMINI_FALLBACK_MODEL: z.string().default('gemini-flash-lite-latest'),
 });
 
 function isValidTimeZone(timeZone) {

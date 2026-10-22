@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, m } from 'motion/react';
-import { Camera, Flame, ImageUp, Info, RotateCcw, ScanSearch, Sparkles, UtensilsCrossed } from 'lucide-react';
-import { analyzeMealPhoto } from '../api/nutrition.js';
+import { Camera, CloudOff, Flame, ImageUp, Info, RotateCcw, ScanSearch, Sparkles, UtensilsCrossed, X } from 'lucide-react';
+import { analyzeMealPhoto, SCANNER_LIMIT_SECONDS } from '../api/nutrition.js';
 import MacroBreakdown from '../components/nutrition/MacroBreakdown.jsx';
 import Button from '../components/ui/Button.jsx';
 import Card from '../components/ui/Card.jsx';
@@ -11,6 +11,9 @@ import PageHeader from '../components/ui/PageHeader.jsx';
 import { AnimatedNumber } from '../components/ui/motion.jsx';
 import { shrinkImage } from '../utils/image.js';
 
+// Errors that only mean "the AI service is busy or slow right now" – nothing is wrong with the photo or the app.
+const BUSY_CODES = new Set(['SCANNER_TIMEOUT', 'SCANNER_UNAVAILABLE', 'TIMEOUT']);
+
 // "Food scanner": take or choose a photo of a meal, and Google Gemini estimates
 // the calories, protein, carbs and fat of every food on it.
 function NutritionPage() {
@@ -18,8 +21,43 @@ function NutritionPage() {
   const [photo, setPhoto] = useState(null); // data URL of the (shrunk) photo
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+  const [isBusyError, setIsBusyError] = useState(false); // the scanner was busy: show a calm card, not a red error
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [seconds, setSeconds] = useState(0); // how long the current analysis has been running
+  const abortRef = useRef(null);
+
+  // While analysing: count the seconds, so the member sees progress and the time limit.
+  useEffect(() => {
+    if (!isAnalyzing) return undefined;
+    const id = setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [isAnalyzing]);
+
+  // Leaving the page stops an analysis that is still running.
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  // Sends the photo to the server. At most 30 seconds; the member can also cancel.
+  async function analyze(image) {
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setError('');
+    setIsBusyError(false);
+    setResult(null);
+    setSeconds(0);
+    setIsAnalyzing(true);
+    try {
+      setResult(await analyzeMealPhoto(image, { signal: controller.signal }));
+    } catch (err) {
+      if (err.code !== 'CANCELLED') {
+        setError(err.message);
+        setIsBusyError(BUSY_CODES.has(err.code));
+      }
+    } finally {
+      setIsAnalyzing(false);
+      abortRef.current = null;
+    }
+  }
 
   async function handleFile(file) {
     if (!file) return;
@@ -37,17 +75,12 @@ function NutritionPage() {
       return;
     }
     setPhoto(image);
-    setIsAnalyzing(true);
-    try {
-      setResult(await analyzeMealPhoto(image));
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsAnalyzing(false);
-    }
+    await analyze(image);
   }
 
   function reset() {
+    abortRef.current?.abort();
+    setIsBusyError(false);
     setPhoto(null);
     setResult(null);
     setError('');
@@ -67,7 +100,7 @@ function NutritionPage() {
         description="Take a photo of your meal and see its calories, protein, carbs and fat."
         actions={
           photo && (
-            <Button variant="secondary" icon={RotateCcw} onClick={reset} disabled={isAnalyzing}>
+            <Button variant="secondary" icon={RotateCcw} onClick={reset}>
               New photo
             </Button>
           )
@@ -120,7 +153,7 @@ function NutritionPage() {
                   <span className="absolute inset-x-0 bottom-5 flex justify-center">
                     <span className="inline-flex items-center gap-2 rounded-full bg-slate-950/70 px-4 py-2 text-sm font-medium text-white backdrop-blur-md">
                       <ScanSearch className="size-4 animate-pulse" aria-hidden="true" />
-                      Analysing your meal…
+                      Analysing your meal… <span className="font-mono tabular-nums">{seconds} s</span>
                     </span>
                   </span>
                 </div>
@@ -135,15 +168,70 @@ function NutritionPage() {
 
         {/* ---------- Result ---------- */}
         <div className="lg:col-span-3" aria-live="polite">
-          <ErrorMessage>{error}</ErrorMessage>
-
-          {!result && !error && (
+          {isBusyError ? (
             <Card>
-              <EmptyState
-                icon={isAnalyzing ? Sparkles : UtensilsCrossed}
-                title={isAnalyzing ? 'Looking at your meal…' : 'Your meal’s nutrition appears here'}
-                description={isAnalyzing ? 'This takes a few seconds.' : 'Works best with the whole plate in the photo, from above, in good light.'}
-              />
+              <div className="flex flex-col items-center gap-4 py-6 text-center">
+                <span className="flex size-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
+                  <CloudOff className="size-7" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="font-semibold text-ink">The food scanner is busy</p>
+                  <p className="mt-1 max-w-sm text-sm text-muted">{error}</p>
+                </div>
+                {photo && (
+                  <Button icon={RotateCcw} onClick={() => analyze(photo)}>
+                    Try again with this photo
+                  </Button>
+                )}
+              </div>
+            </Card>
+          ) : (
+            <>
+              <ErrorMessage>{error}</ErrorMessage>
+              {error && photo && !isAnalyzing && (
+                <Button icon={RotateCcw} onClick={() => analyze(photo)} className="mt-3">
+                  Try again with this photo
+                </Button>
+              )}
+            </>
+          )}
+
+          {!result && !error && !isAnalyzing && (
+            <Card>
+              <EmptyState icon={UtensilsCrossed} title="Your meal’s nutrition appears here" description="Works best with the whole plate in the photo, from above, in good light." />
+            </Card>
+          )}
+
+          {/* Progress while analysing: the member always sees how long it can take at most, and can stop it. */}
+          {isAnalyzing && (
+            <Card>
+              <div className="flex flex-col items-center gap-4 py-6 text-center">
+                <span className="flex size-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
+                  <Sparkles className="size-7 animate-pulse" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="font-semibold text-ink">Looking at your meal…</p>
+                  <p className="mt-1 text-sm text-muted">
+                    {seconds < 10 ? 'This usually takes a few seconds.' : `The scanner is busy – still trying (at most ${SCANNER_LIMIT_SECONDS} seconds).`}
+                  </p>
+                </div>
+                <div
+                  className="h-2 w-full max-w-xs overflow-hidden rounded-full bg-surface-3"
+                  role="progressbar"
+                  aria-label="Time used of the time limit"
+                  aria-valuemin={0}
+                  aria-valuemax={SCANNER_LIMIT_SECONDS}
+                  aria-valuenow={Math.min(seconds, SCANNER_LIMIT_SECONDS)}
+                >
+                  <div className="h-full rounded-full bg-brand-500 transition-[width] duration-1000 ease-linear" style={{ width: `${Math.min(100, (seconds / SCANNER_LIMIT_SECONDS) * 100)}%` }} />
+                </div>
+                <p className="font-mono text-xs text-faint tabular-nums">
+                  {seconds} s / {SCANNER_LIMIT_SECONDS} s
+                </p>
+                <Button variant="secondary" size="sm" icon={X} onClick={() => abortRef.current?.abort()}>
+                  Cancel
+                </Button>
+              </div>
             </Card>
           )}
 

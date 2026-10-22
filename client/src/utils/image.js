@@ -1,6 +1,6 @@
-// Shrinks a photo before it is uploaded: phone photos are often 4–10 MB, but 1024 px is plenty
-// for recognising food. Returns a JPEG data URL ("data:image/jpeg;base64,…") of about 100–300 kB.
-export async function shrinkImage(file, maxSize = 1024, quality = 0.85) {
+// Shrinks a photo before it is uploaded: phone photos are often 4–10 MB, but 768 px is plenty
+// for recognising food. Returns a JPEG data URL ("data:image/jpeg;base64,…") of about 60–150 kB: quick to upload and to analyse.
+export async function shrinkImage(file, maxSize = 768, quality = 0.8) {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement('canvas');

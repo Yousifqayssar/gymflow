@@ -10,7 +10,7 @@ vi.mock('../src/lib/gemini.js', () => ({
 const { app } = await import('../src/app.js');
 const { prisma } = await import('../src/lib/prisma.js');
 const gemini = await import('../src/lib/gemini.js');
-const { ANALYSES_PER_HOUR, resetRateLimit } = await import('../src/services/nutrition.service.js');
+const { ANALYSES_PER_HOUR, SCANNER_TIMES, resetRateLimit } = await import('../src/services/nutrition.service.js');
 const { resetDatabase } = await import('./helpers/database.js');
 const { createUser, bearer } = await import('./helpers/users.js');
 
@@ -32,6 +32,7 @@ const analyze = (body, token = member.token) => request(app).post('/api/nutritio
 beforeEach(async () => {
   await resetDatabase();
   resetRateLimit();
+  SCANNER_TIMES.retryPauseMs = 20; // the real pause is 2 s; the tests do not need to wait
   vi.mocked(gemini.isGeminiConfigured).mockReturnValue(true);
   vi.mocked(gemini.askGeminiForNutrition).mockReset().mockResolvedValue(MEAL);
   member = await createUser({ role: 'MEMBER' });
@@ -56,7 +57,10 @@ describe('POST /api/nutrition/analyze', () => {
       note: 'Portion sizes are estimated from the plate.',
     });
     // The photo is sent to Gemini without the "data:…;base64," prefix.
-    expect(gemini.askGeminiForNutrition).toHaveBeenCalledWith({ mimeType: 'image/jpeg', base64: '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBD' });
+    expect(gemini.askGeminiForNutrition).toHaveBeenCalledWith(
+      { mimeType: 'image/jpeg', base64: '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBD' },
+      { model: 'gemini-flash-latest', signal: expect.any(AbortSignal) },
+    );
   });
 
   it('says so when the photo shows no food', async () => {
@@ -93,6 +97,73 @@ describe('POST /api/nutrition/analyze', () => {
     vi.mocked(gemini.askGeminiForNutrition).mockRejectedValue(new Error('quota exceeded'));
 
     expect((await analyze({ image: PHOTO })).status).toBe(502);
+  });
+
+  it('switches to the faster fallback model when the main model is busy', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.mocked(gemini.askGeminiForNutrition)
+      .mockRejectedValueOnce(Object.assign(new Error('This model is currently experiencing high demand'), { name: 'ApiError' }))
+      .mockResolvedValueOnce(MEAL);
+
+    const response = await analyze({ image: PHOTO });
+
+    expect(response.status).toBe(200);
+    expect(gemini.askGeminiForNutrition).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(gemini.askGeminiForNutrition).mock.calls.map(([, options]) => options.model)).toEqual(['gemini-flash-latest', 'gemini-flash-lite-latest']);
+  });
+
+  it('asks the fallback model a second time when Google refuses quickly ("high demand")', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const busy = Object.assign(new Error('This model is currently experiencing high demand'), { name: 'ApiError' });
+    vi.mocked(gemini.askGeminiForNutrition).mockRejectedValueOnce(busy).mockRejectedValueOnce(busy).mockResolvedValueOnce(MEAL);
+
+    const response = await analyze({ image: PHOTO });
+
+    expect(response.status).toBe(200);
+    expect(gemini.askGeminiForNutrition).toHaveBeenCalledTimes(3);
+  });
+
+  it('explains clearly when Google stays overloaded (502 SCANNER_UNAVAILABLE)', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.mocked(gemini.askGeminiForNutrition).mockRejectedValue(new Error('high demand'));
+
+    const response = await analyze({ image: PHOTO });
+
+    expect(response.status).toBe(502);
+    expect(response.body.error).toMatchObject({ code: 'SCANNER_UNAVAILABLE', message: expect.stringContaining('very busy') });
+  });
+
+  describe('time limit', () => {
+    // The real limit is 30 s; here it is shortened so the test runs quickly.
+    const real = { ...SCANNER_TIMES };
+    beforeEach(() => Object.assign(SCANNER_TIMES, { totalMs: 2000, mainModelMs: 400, minAttemptMs: 200 }));
+    afterAll(() => Object.assign(SCANNER_TIMES, real));
+
+    // A Gemini that never answers: it only stops when the time limit aborts it.
+    const neverAnswers = (image, { signal }) =>
+      new Promise((resolve, reject) => signal.addEventListener('abort', () => reject(signal.reason)));
+
+    it('gives up after the time limit with a clear 504 instead of waiting for minutes', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(gemini.askGeminiForNutrition).mockImplementation(neverAnswers);
+
+      const started = Date.now();
+      const response = await analyze({ image: PHOTO });
+
+      expect(Date.now() - started).toBeLessThan(3500);
+      expect(response.status).toBe(504);
+      expect(response.body.error).toMatchObject({ code: 'SCANNER_TIMEOUT', message: expect.stringContaining('took too long') });
+    });
+
+    it('gives the main model only part of the time, so the fallback can still answer', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.mocked(gemini.askGeminiForNutrition).mockImplementationOnce(neverAnswers).mockResolvedValueOnce(MEAL);
+
+      const response = await analyze({ image: PHOTO });
+
+      expect(response.status).toBe(200);
+      expect(response.body.totals.calories).toBeGreaterThan(0);
+    });
   });
 
   it('answers 502 when Gemini returns nonsense (checked like any outside input)', async () => {

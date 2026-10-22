@@ -1,6 +1,9 @@
 import { env } from '../config/env.js';
 import { AppError } from '../utils/AppError.js';
 
+// Shown instead of the real message when something unexpected breaks in production.
+export const GENERIC_MESSAGE = 'Something went wrong on our side. Please try again in a moment.';
+
 // Central error handler: every error thrown in a route ends up here
 // and is turned into the same JSON shape: { error: { message, details?, code? } }
 // Express recognises an error handler by its 4 parameters, so `next` must stay
@@ -17,9 +20,11 @@ export function errorHandler(err, req, res, next) {
     console.error(err);
   }
 
-  // Never leak internal details (stack traces, SQL errors) to clients in production.
-  const message =
-    statusCode >= 500 && env.NODE_ENV === 'production' ? 'Internal server error' : err.message;
+  // Never leak internal details (stack traces, SQL errors) to clients in production. Our own
+  // AppError messages are written for users (e.g. "The food scanner is busy …"), so they are
+  // always shown – also for 5xx answers like 502 or 504.
+  const isUnexpected = !(err instanceof AppError) && statusCode >= 500;
+  const message = isUnexpected && env.NODE_ENV === 'production' ? GENERIC_MESSAGE : err.message;
 
   const body = { error: { message } };
   if (err.details) {

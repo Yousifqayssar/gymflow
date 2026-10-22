@@ -1,4 +1,5 @@
 import { askGeminiForNutrition, isGeminiConfigured } from '../lib/gemini.js';
+import { env } from '../config/env.js';
 import { AppError } from '../utils/AppError.js';
 import { geminiNutritionSchema } from '../validation/nutrition.schemas.js';
 
@@ -21,6 +22,42 @@ export function resetRateLimit() {
   recentAnalyses.clear();
 }
 
+// Time limit for one analysis: a member waits at most totalMs – never minutes. The main model gets
+// mainModelMs of it; if it is busy or slow, the faster fallback model gets the rest.
+// An object (not constants) so tests can shorten the times.
+export const SCANNER_TIMES = { totalMs: 30_000, mainModelMs: 15_000, retryPauseMs: 2_000, minAttemptMs: 3_000 };
+
+// Asks Gemini within the time limit: first the main model, then – if it fails, is overloaded
+// or too slow – the lighter fallback model with the time that is left (twice, see below).
+async function askWithTimeLimit(image) {
+  const deadline = Date.now() + SCANNER_TIMES.totalMs;
+  // When Google is overloaded it often refuses within a second ("high demand"); a moment later it may
+  // answer. So the fallback model gets a second chance after a short pause, as long as time is left.
+  const attempts = [
+    { model: env.GEMINI_MODEL, ms: SCANNER_TIMES.mainModelMs },
+    { model: env.GEMINI_FALLBACK_MODEL, ms: null }, // null = all the time that is left
+    { model: env.GEMINI_FALLBACK_MODEL, ms: null, pauseMs: SCANNER_TIMES.retryPauseMs },
+  ];
+  let timedOut = false;
+
+  for (const { model, ms, pauseMs } of attempts) {
+    if (pauseMs) await new Promise((resolve) => setTimeout(resolve, pauseMs));
+    const left = deadline - Date.now();
+    if (left < SCANNER_TIMES.minAttemptMs) break;
+    try {
+      return await askGeminiForNutrition(image, { model, signal: AbortSignal.timeout(ms ? Math.min(ms, left) : left) });
+    } catch (error) {
+      timedOut ||= error.name === 'TimeoutError' || error.name === 'AbortError';
+      console.error(`Gemini (${model}) failed:`, error.name, String(error.message).slice(0, 200));
+    }
+  }
+
+  if (timedOut) {
+    throw new AppError(504, 'The food scanner took too long (over 30 seconds). It is very busy right now – please try again in a minute.', undefined, 'SCANNER_TIMEOUT');
+  }
+  throw new AppError(502, 'The food scanner is very busy right now (Google’s AI service is overloaded). Please try again in a minute.', undefined, 'SCANNER_UNAVAILABLE');
+}
+
 const round = (value) => Math.round(value);
 const round1 = (value) => Math.round(value * 10) / 10;
 
@@ -32,13 +69,7 @@ export async function analyzeMeal(userId, image, now = Date.now()) {
   }
   checkRateLimit(userId, now);
 
-  let answer;
-  try {
-    answer = await askGeminiForNutrition(image);
-  } catch (error) {
-    console.error('Gemini request failed:', error.message);
-    throw new AppError(502, 'The food scanner is not available right now. Please try again in a moment.');
-  }
+  const answer = await askWithTimeLimit(image);
 
   const parsed = geminiNutritionSchema.safeParse(answer);
   if (!parsed.success) {

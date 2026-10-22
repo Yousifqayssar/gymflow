@@ -43,15 +43,20 @@ and fat for that portion. If the photo does not show food or a drink, set isFood
 Answer in English.`;
 
 // Sends one photo to Gemini and returns its JSON answer as an object (not yet checked).
-export async function askGeminiForNutrition({ mimeType, base64 }) {
-  client ??= new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+//   model:  which Gemini model to ask (the service tries a faster one when the first is busy)
+//   signal: stops the request when the time limit is reached (AbortSignal)
+export async function askGeminiForNutrition({ mimeType, base64 }, { model = env.GEMINI_MODEL, signal } = {}) {
+  // retryOptions: no hidden retries inside the SDK – when Google is overloaded those made one
+  // request take over 3 minutes. The service decides itself what to try next.
+  client ??= new GoogleGenAI({ apiKey: env.GEMINI_API_KEY, httpOptions: { retryOptions: { attempts: 1 } } });
   const response = await client.models.generateContent({
-    model: env.GEMINI_MODEL,
+    model,
     contents: [{ role: 'user', parts: [{ inlineData: { mimeType, data: base64 } }, { text: INSTRUCTIONS }] }],
     config: {
       responseMimeType: 'application/json',
       responseJsonSchema: NUTRITION_SCHEMA,
       temperature: 0.2, // stable estimates: the same photo should give (almost) the same numbers
+      abortSignal: signal,
     },
   });
   return JSON.parse(response.text);
