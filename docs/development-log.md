@@ -332,3 +332,66 @@ Make the application look and feel professional, give every user a profile, prov
 ### Next step
 
 **Stage 3a – QR check-in and loyalty points:** a personal QR code per member (random token), staff scan or type it to record a check-in, members without a valid membership cannot check in, +10 points per visit (once per day) with Bronze/Silver/Gold levels.
+---
+
+## Week 5 – Stage 3a + 3c, Payments, Membership Types and the Web App
+
+**Date:** 17–20 October 2026 (Week 5)
+
+### Objective
+
+Planned: Stage 3a – QR check-in and loyalty points. Stage 3a was finished early, so Stage 3c (exercises, workout plans, logging, progress), planned for Week 6, was done too. While testing the app on a phone, it became clear that a real gym also needs payments, attendance and different membership types, so these were added this week. Finally, the phone layout was rebuilt as an app and the whole system was deployed online.
+
+### Implemented functionality
+
+- **QR check-in (Stage 3a):** personal QR code per member (random token, resettable); staff check-in page with camera scanner or member number; members without a valid membership are refused with a clear reason; today's check-ins on the admin and trainer home.
+- **Loyalty points and rewards:** +10 points per visit (once per day), −10 per missed class; levels Bronze, Silver (100), Gold (300), Platinum (600) with 0/5/10/15 % off every new membership; Rewards page.
+- **Design:** display font, dark mode on every page, page and number animations (off for reduced motion), 3D dumbbell on the login page, avatar picker, redesigned home, profile and class schedule; contrast, tap-target and screen-reader fixes.
+- **Health and extras:** monthly body check-ins (height, weight, goal, BMI, weight chart, reminder); partner gyms on a map with opening hours (admin Locations page); food photo analysis with Google Gemini (calories and macros).
+- **Workouts (Stage 3c):** exercise library (32 exercises, muscle groups, equipment, 3D demos); trainers write workout plans with days, sets, reps, weight and rest; live workout session with rest timer; progress page with weekly stats, exercise charts and personal bests.
+- **Online card payments:** membership checkout with a card preview, test gateway and receipts; declined attempts are saved; admin Payments page with revenue totals and filters; payments on each member's page.
+- **Class attendance QR:** trainer shows a QR code that changes every 30 s (from 15 min before the start); members scan it; live list with manual marking; booked members who do not come lose 10 points.
+- **Basic and Premium memberships:** `classesPerMonth` on plans (0 = Basic, 10 = Premium), balance per membership month, unused classes lost at the reset; balance card on the Classes and Membership pages.
+- **Paying per class:** every class has a price; Basic members pay it, Premium members with no classes left pay it −30 %; "Book & pay" with the card form; refunds when the member or the trainer cancels.
+- **Web app:** bottom tab bar per role on phones and tablets, "More" sheet, footer only on desktop; installable Progressive Web App (manifest, icons, service worker without caching).
+- **Deployment:** one Render web service serves the API and the built website; Neon PostgreSQL; migrations run on every deploy; demo data can be refreshed online.
+
+### Technical decisions
+
+| Decision | Reason |
+| --- | --- |
+| QR code holds a random token, not the member id | Cannot be guessed; can be reset if it was shared. |
+| Unique index on `(memberId, gymDay)` for check-ins | Points can be earned only once per day, even if two staff scan at once. |
+| Points calculated from visits and missed classes, never stored | They can never get out of sync. |
+| Attendance code changes every 30 s; the server sends its own time | A shared photo stops working; a wrong tablet clock does not break the countdown. |
+| No-show penalty only when the trainer opened the attendance screen | Members are not punished when attendance was never taken. |
+| Card number and CVC never stored; unique `checkoutId` | Privacy; a double click never charges twice. |
+| Price, discount and `classesPerMonth` copied onto each membership | Editing a plan later never changes what members already bought. |
+| Class balance per membership month, counted from bookings | Fair for members who join late in a month; nothing to keep in sync. |
+| Booking locks the class row **and** the member row | No overbooking, and two quick bookings cannot both use the last included class. |
+| Card charged only after every booking rule passed, in the same transaction | A member is never charged for a class they cannot get. |
+| Food photos analysed on the server | The Gemini API key never reaches the browser. |
+| Progressive Web App instead of native apps | One code base for every device, installable without an app store. |
+| Service worker without offline cache | Bookings, balances and payments must always be live. |
+| One Render service for API and website | One address, no CORS configuration, free hosting. |
+
+### Problems encountered and solutions
+
+1. **QR scanner did not start on some laptops.** *Cause:* the scanner library demanded a camera height of at least 640 px, which 480p webcams cannot give. *Solution:* the picture size is now a wish (`ideal`), not a requirement.
+2. **Users always landed on the home page after logging in.** *Cause:* the login page and the guest route redirected at the same moment. *Solution:* both send the user to the page they asked for, including its query, so a member who scans a class QR while logged out comes back to the check-in.
+3. **Payments page crashed after the first class payment.** *Cause:* the payment list expected every payment to have a plan. *Solution:* payment lists show plans, classes and refunds; found in local testing before deployment.
+4. **A test failed only because time moved.** *Cause:* moving the fake clock one month ahead made the test user's token expire. *Solution:* create the user after moving the clock.
+5. **Dev server stopped after schema changes.** *Cause:* on Windows, `prisma generate` locks the client files of the running server. *Solution:* restart the server after each migration.
+6. **Slow first load online.** *Cause:* the free Render plan sleeps after 15 minutes. *Solution:* open the site a minute before demonstrations.
+
+### Tests
+
+458 tests in 35 files, all passing (261 new this week). New files: `check-ins.test.js` (24) and `check-ins-database.test.js` (8), `me-qr-visits.test.js` (11), `account-avatar.test.js` (11), `gym-stats.test.js` (4), `body.test.js` (19), `partner-gyms.test.js` (13), `nutrition.test.js` (13, AI mocked), `exercises.test.js` (13), `workout-plans.test.js` (16), `workout-logs.test.js` (11), `progress.test.js` (4), `payments.test.js` (18), `attendance.test.js` (20), `class-balance.test.js` (14), `class-payments.test.js` (15), and unit tests `points` (4), `progress` (9), `cardGateway` (7), `serveClient` (4); `demo-data.test.js` grew to 26.
+
+### Related commits
+
+55 commits, from `feat(server): add QR token and check-in model` to `feat(client): book and pay for single classes with refunds on cancel` (full list in the Week 5 report), plus `docs: add week 5 development log and report`.
+
+### Next step
+
+**Stage 4 – tests, validation and security:** review inputs and permissions, rate-limit login, add client-side tests for booking, checkout and check-in, and test the installed app on real phones.
