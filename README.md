@@ -177,18 +177,36 @@ Every user has a profile page with their member number (e.g. `GF-00004`).
 | `npm run build`   | Build the production version into `dist/`   |
 | `npm run preview` | Preview the production build                |
 | `npm run lint`    | Check the code with Oxlint                  |
+| `npm test`        | Run the screen tests (Vitest + Testing Library) |
 
 ## Running tests
 
-The database container must be running (`docker compose up -d`).
+The database container must be running (`docker compose up -d`). There are three kinds of tests:
+
+| Kind | Folder | Command | What it checks |
+| --- | --- | --- | --- |
+| API tests | `server/` | `npm test` | Every endpoint and business rule, against a real test database |
+| Screen tests | `client/` | `npm test` | Components in a simulated browser (booking panel, checkout, check-in) |
+| End-to-end tests | `e2e/` | `npm test` | The whole app in Chrome: login, booking, paying for a class, check-in, phone layout |
 
 ```bash
 cd server
-npm test                                # all tests
+npm test                                # all API tests
 npx vitest run --reporter=verbose       # list every test by name
 ```
 
-Tests use a **separate database** (`gymflow_test`, configured in `server/.env.test`). It is created and migrated automatically, and its tables are emptied before each test. As a safety check, tests refuse to run if the database name does not end in `_test`.
+API tests use a **separate database** (`gymflow_test`, configured in `server/.env.test`). It is created and migrated automatically, and its tables are emptied before each test. As a safety check, tests refuse to run if the database name does not end in `_test`.
+
+### End-to-end tests (Playwright)
+
+```bash
+cd e2e
+npm install        # first time only
+npm test           # builds the website, starts everything, runs the tests in Chrome
+npm run report     # open the HTML report of the last run
+```
+
+They use another **separate database** (`gymflow_e2e`): before every run it is migrated and filled with fresh demo data, then the server starts in production mode on port 4300 and serves the built website – just like online. The installed Google Chrome is used, so no extra browser download is needed.
 
 ## API endpoints
 

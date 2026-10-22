@@ -1,0 +1,13 @@
+{
+  "name": "gymflow-e2e",
+  "private": true,
+  "description": "End-to-end tests: the whole GymFlow app (server, database, website) driven in Chrome by Playwright.",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0"
+  }
+}
