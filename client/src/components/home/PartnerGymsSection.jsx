@@ -140,12 +140,13 @@ function PartnerGymsSection({ now }) {
       {isMember && data && <AccessBanner access={data.access} partnerCount={data.gyms.length} />}
       {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}
       {locationError && <p className="mt-3 text-sm text-amber-700 dark:text-amber-300">{locationError}</p>}
+      {/* Normal text flow (not flex), so it wraps like a sentence on narrow phones. */}
       {nearestOpen && (
-        <p className="mt-3 flex items-center gap-2 text-sm text-ink-2">
-          <Navigation className="size-4 text-brand-600" aria-hidden="true" />
-          Nearest open gym{isMember ? ' in your plan' : ''}: <strong>{nearestOpen.name}</strong> · {formatDistance(nearestOpen.distance)}
+        <p className="mt-3 text-sm text-ink-2">
+          <Navigation className="mr-1.5 inline size-4 align-[-3px] text-brand-600" aria-hidden="true" />
+          Nearest open gym{isMember ? ' in your plan' : ''}: <strong>{nearestOpen.name}</strong> · <span className="whitespace-nowrap">{formatDistance(nearestOpen.distance)}</span>{' '}
           <button type="button" onClick={() => setSelectedId(nearestOpen.id)} className="font-semibold text-brand-700 underline dark:text-brand-300">
-            Show
+            Show on map
           </button>
         </p>
       )}

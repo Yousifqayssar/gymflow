@@ -11,7 +11,7 @@ export const securityHeaders = helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'wasm-unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'blob:', 'https://*.tile.openstreetmap.org'],
+      imgSrc: ["'self'", 'data:', 'blob:', 'https://tile.openstreetmap.org'],
       fontSrc: ["'self'", 'data:'],
       connectSrc: ["'self'"],
       mediaSrc: ["'self'", 'blob:'],
@@ -23,6 +23,10 @@ export const securityHeaders = helmet({
       formAction: ["'self'"],
     },
   },
+  // OpenStreetMap only serves map tiles to browsers that say which website asks (Referer); helmet's
+  // default 'no-referrer' got our map blocked. This sends only the address of the site (never the page)
+  // to other websites – the normal browser default.
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 });
 
 // Against password guessing: at most 10 login or registration attempts per 15 minutes from one

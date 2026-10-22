@@ -64,6 +64,9 @@ describe('security headers', () => {
     expect(csp).toContain("script-src 'self' 'wasm-unsafe-eval'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(response.headers['x-content-type-options']).toBe('nosniff');
+    // OpenStreetMap blocks map tiles requested without a Referer, so it must not be 'no-referrer'.
+    expect(response.headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
+    expect(csp).toContain("img-src 'self' data: blob: https://tile.openstreetmap.org");
     expect(response.headers['strict-transport-security']).toBeDefined();
     expect(response.headers['x-powered-by']).toBeUndefined();
   });
