@@ -6,7 +6,10 @@
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 self.addEventListener('fetch', (event) => {
-  // Only plain page/file loads; everything else (API posts, uploads) is not touched at all.
+  // Only plain page/file loads of GymFlow itself; everything else (API posts, uploads, map tiles from
+  // OpenStreetMap) is not touched at all. Fetching other websites from here would also be blocked by
+  // the Content Security Policy (connect-src 'self').
   if (event.request.method !== 'GET') return;
+  if (new URL(event.request.url).origin !== self.location.origin) return;
   event.respondWith(fetch(event.request));
 });

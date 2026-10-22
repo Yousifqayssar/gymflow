@@ -5,6 +5,7 @@ import { app } from '../src/app.js';
 import { prisma } from '../src/lib/prisma.js';
 import { verifyPassword } from '../src/utils/password.js';
 import { resetDatabase } from './helpers/database.js';
+import { authLimiterStore } from '../src/middleware/security.js';
 import { createUser, bearer, TEST_PASSWORD } from './helpers/users.js';
 
 const validRegistration = {
@@ -15,7 +16,11 @@ const validRegistration = {
 };
 
 // Every test starts with an empty database.
-beforeEach(resetDatabase);
+// A clean database and a clean login-attempt counter for every test (see security.test.js for the limit itself).
+beforeEach(async () => {
+  await resetDatabase();
+  await authLimiterStore.resetAll();
+});
 
 afterAll(async () => {
   await prisma.$disconnect();

@@ -20,12 +20,16 @@ import paymentRoutes from './routes/payment.routes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { serveClient } from './lib/serveClient.js';
+import { securityHeaders } from './middleware/security.js';
 
 // Builds the Express app without starting it.
 // Keeping this separate from server.js lets tests import the app directly.
 export const app = express();
 
 // 1. Global middleware
+// Online the app runs behind Render's proxy: trust it, so the rate limiter sees the visitor's real address.
+if (env.NODE_ENV === 'production') app.set('trust proxy', 1);
+app.use(securityHeaders);
 app.use(cors({ origin: env.CLIENT_ORIGIN }));
 // Meal photos are bigger than normal requests: allow up to 4 MB only on this route.
 // (It runs first; the general parser below then sees the body is already read and skips it.)

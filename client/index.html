@@ -16,15 +16,8 @@
     <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)" />
     <title>GymFlow</title>
-    <!-- Sets light/dark mode before the page is drawn, so dark-mode users never see a white flash.
-         Same rule as src/theme/ThemeProvider.jsx: the saved choice, otherwise the system setting. -->
-    <script>
-      try {
-        var saved = localStorage.getItem('gymflow_theme');
-        var dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-      } catch (e) {}
-    </script>
+    <!-- Sets light/dark mode before the page is drawn (no white flash). A file, not inline: see public/theme-init.js -->
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>
