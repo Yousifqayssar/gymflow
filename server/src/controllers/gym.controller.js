@@ -4,3 +4,8 @@ import * as gymService from '../services/gym.service.js';
 export async function getStats(req, res) {
   res.json(await gymService.getGymStats());
 }
+
+// GET /api/gym/admin-dashboard  (Admin only)
+export async function getAdminDashboard(req, res) {
+  res.json(await gymService.getAdminDashboard());
+}

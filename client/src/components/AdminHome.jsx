@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ArrowRight, CircleCheck, CreditCard, ReceiptText, ScanLine, TriangleAlert, UserPlus, UserRound, UserX, Users } from 'lucide-react';
+import { ArrowRight, CalendarCheck, CircleCheck, CreditCard, ReceiptText, ScanLine, TriangleAlert, UserPlus, UserRound, UserX, Users } from 'lucide-react';
 import { listTodaysCheckIns } from '../api/checkIns.js';
 import { listUsers } from '../api/users.js';
+import { getAdminDashboard } from '../api/gym.js';
 import { useApiData } from '../hooks/useApiData.js';
 import TodaysCheckIns from './checkIn/TodaysCheckIns.jsx';
+import MonthlyRevenueBars from './charts/MonthlyRevenueBars.jsx';
 import Avatar from './ui/Avatar.jsx';
 import Button from './ui/Button.jsx';
 import Card from './ui/Card.jsx';
@@ -12,8 +14,77 @@ import EmptyState from './ui/EmptyState.jsx';
 import ErrorMessage from './ErrorMessage.jsx';
 import StatCard from './ui/StatCard.jsx';
 import SystemStatus from './SystemStatus.jsx';
-import { formatDate } from '../utils/format.js';
+import { AnimatedNumber } from './ui/motion.jsx';
+import { formatDate, formatPrice } from '../utils/format.js';
 import { Stagger, StaggerItem } from './ui/motion.jsx';
+
+// Revenue over the last 6 months and how many booked members actually came in the last 30 days.
+function GymHealth() {
+  const { data, error } = useApiData(getAdminDashboard);
+
+  return (
+    <div className="mt-6 grid gap-6 lg:grid-cols-3">
+      <Card className="lg:col-span-2" title="Revenue" description="Paid memberships and single classes, last 6 months.">
+        <ErrorMessage>{error}</ErrorMessage>
+        {!data && !error && <div className="h-44 animate-pulse rounded-xl bg-surface-3 @4xl:h-64" />}
+        {data && (
+          <>
+            <p className="mb-5 flex items-baseline gap-2">
+              <span className="font-display text-4xl font-bold tracking-tight text-ink">{formatPrice(data.revenueByMonth.at(-1).revenue)}</span>
+              <span className="text-sm text-muted">this month</span>
+            </p>
+            <MonthlyRevenueBars months={data.revenueByMonth} />
+          </>
+        )}
+      </Card>
+
+      <Card title="Class attendance" description="Booked members who came, last 30 days.">
+        {!data && !error && <div className="h-44 animate-pulse rounded-xl bg-surface-3" />}
+        {data && <AttendanceSummary attendance={data.attendance} />}
+      </Card>
+    </div>
+  );
+}
+
+function AttendanceSummary({ attendance }) {
+  if (attendance.rate === null) {
+    return <EmptyState icon={CalendarCheck} title="No attendance yet" description="Once trainers take attendance at classes, the show-up rate appears here." />;
+  }
+  return (
+    <div className="flex h-full flex-col">
+      <p className="flex items-baseline gap-2">
+        <span className="font-display text-6xl font-bold leading-none text-brand-700 dark:text-brand-300">
+          <AnimatedNumber value={attendance.rate} />%
+        </span>
+        <span className="text-sm text-muted">came</span>
+      </p>
+      <div
+        className="mt-5 h-2 overflow-hidden rounded-full bg-surface-3"
+        role="progressbar"
+        aria-valuenow={attendance.rate}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Share of booked members who came"
+      >
+        <div className="h-full rounded-full bg-brand-500" style={{ width: `${attendance.rate}%` }} />
+      </div>
+      <dl className="mt-6 space-y-2.5 text-sm">
+        <div className="flex justify-between gap-4">
+          <dt className="text-muted">Attended</dt>
+          <dd className="font-semibold text-ink tabular-nums">{attendance.attended} of {attendance.booked}</dd>
+        </div>
+        <div className="flex justify-between gap-4">
+          <dt className="text-muted">No-shows</dt>
+          <dd className={`font-semibold tabular-nums ${attendance.noShows ? 'text-amber-700 dark:text-amber-300' : 'text-ink'}`}>{attendance.noShows}</dd>
+        </div>
+        <div className="flex justify-between gap-4">
+          <dt className="text-muted">Classes</dt>
+          <dd className="font-semibold text-ink tabular-nums">{attendance.classes}</dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
 
 // Admin home: key numbers, members who need to renew, today's visits, quick actions.
 // One request gives everything: the expiring members (sorted by urgency) and the counts per status.
@@ -64,6 +135,8 @@ function AdminHome() {
           </StaggerItem>
         ))}
       </Stagger>
+
+      <GymHealth />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
