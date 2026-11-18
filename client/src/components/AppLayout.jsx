@@ -86,6 +86,13 @@ function AppLayout() {
 
   return (
     <div className="min-h-screen bg-canvas">
+      {/* Keyboard users can jump straight past the menu to the page content (WCAG 2.4.1). */}
+      <a
+        href="#main"
+        className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:left-4 focus-visible:top-3 focus-visible:z-50 focus-visible:rounded-lg focus-visible:bg-brand-700 focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium focus-visible:text-white focus-visible:shadow-lg"
+      >
+        Skip to main content
+      </a>
       <header className="sticky top-0 z-20 border-b border-line bg-surface/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 lg:px-8">
           <Logo />
@@ -214,7 +221,7 @@ function AppLayout() {
 
       {/* ---------- Page content ---------- */}
       {/* Phones: extra space at the bottom, so the tab bar never covers the end of the page */}
-      <main className="mx-auto max-w-6xl px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:py-10">
+      <main id="main" tabIndex={-1} className="mx-auto max-w-6xl px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] outline-none sm:px-6 lg:px-8 lg:py-10">
         {/* The key makes the animation start again on every new page */}
         <PageTransition key={location.pathname}>
           {/* Pages are loaded on demand (see App.jsx); this shows while one is downloading */}

@@ -1,14 +1,14 @@
 import { Bike, Dumbbell, Flower2, Footprints, HandFist, PersonStanding, StretchHorizontal, Zap } from 'lucide-react';
 // Photos from Unsplash (free to use under the Unsplash License), stored in the project.
 // Vite bundles them and gives each a unique file name, so browsers can cache them safely.
-import runningPhoto from '../assets/classes/running.jpg';
-import yogaPhoto from '../assets/classes/yoga.jpg';
-import hiitPhoto from '../assets/classes/hiit.jpg';
-import cyclingPhoto from '../assets/classes/cycling.jpg';
-import pilatesPhoto from '../assets/classes/pilates.jpg';
-import boxingPhoto from '../assets/classes/boxing.jpg';
-import strengthPhoto from '../assets/classes/strength.jpg';
-import mobilityPhoto from '../assets/classes/mobility.jpg';
+import runningPhoto from '../assets/classes/running.webp';
+import yogaPhoto from '../assets/classes/yoga.webp';
+import hiitPhoto from '../assets/classes/hiit.webp';
+import cyclingPhoto from '../assets/classes/cycling.webp';
+import pilatesPhoto from '../assets/classes/pilates.webp';
+import boxingPhoto from '../assets/classes/boxing.webp';
+import strengthPhoto from '../assets/classes/strength.webp';
+import mobilityPhoto from '../assets/classes/mobility.webp';
 
 // How each class category looks: label, icon, photo and colours (one place for the whole app).
 // `gradient` tints the photo in the category's colours; `soft` is for small icon boxes.

@@ -42,7 +42,7 @@ function TrainersSection() {
               <TiltCard className="h-full">
                 <article className="h-full overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
                   <div className="relative h-28">
-                    <img src={CATEGORY_DISPLAY[categories[0]].photo} alt="" className="size-full object-cover" />
+                    <img src={CATEGORY_DISPLAY[categories[0]].photo} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
                     <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   </div>
                   <div className="px-5 pb-5">

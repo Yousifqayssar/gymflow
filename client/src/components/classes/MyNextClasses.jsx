@@ -68,6 +68,8 @@ function MyNextClasses() {
               <img
                 src={CATEGORY_DISPLAY[gymClass.category].photo}
                 alt=""
+                loading="lazy"
+                decoding="async"
                 className="size-14 shrink-0 rounded-xl object-cover"
               />
               <div className="min-w-0 flex-1">

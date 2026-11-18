@@ -7,7 +7,7 @@ import Button from '../components/ui/Button.jsx';
 import ThemeToggle from '../components/ui/ThemeToggle.jsx';
 import SocialIcon from '../components/ui/SocialIcon.jsx';
 import { GYM, OPENING_HOURS, SOCIAL_LINKS } from '../config/gym.js';
-import heroPhoto from '../assets/classes/strength.jpg';
+import heroPhoto from '../assets/classes/strength.webp';
 
 // The year shown in the footer; set once when the page loads.
 const YEAR = new Date().getFullYear();

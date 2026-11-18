@@ -302,7 +302,7 @@ function UpcomingClassList({ title, description, emptyText, classes }) {
         {classes?.slice(0, 6).map((gymClass) => (
           <li key={gymClass.id}>
             <Link to={`/classes/${gymClass.id}`} className="flex items-center gap-4 px-5 py-3 transition-colors hover:bg-surface-2">
-              <img src={CATEGORY_DISPLAY[gymClass.category].photo} alt="" className="size-12 shrink-0 rounded-xl object-cover" />
+              <img src={CATEGORY_DISPLAY[gymClass.category].photo} alt="" loading="lazy" decoding="async" className="size-12 shrink-0 rounded-xl object-cover" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium text-ink">{gymClass.title}</span>
                 <span className="block truncate text-sm text-muted">
