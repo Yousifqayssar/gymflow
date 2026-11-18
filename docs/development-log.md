@@ -451,3 +451,53 @@ Make GymFlow secure and prove with tests that it works: security headers, a limi
 ### Next step
 
 **Stage 5 – user testing and polish:** real-phone test (S6 checklist), short sessions with a member, a trainer and an admin, then fixes and dashboard improvements.
+
+---
+
+## Week 7 – Stage 5: Polish, Admin Dashboard and Accessibility
+
+**Date:** 18 November 2026 (Week 7)
+
+### Objective
+
+Polish GymFlow for real users: a public front page for visitors, a dashboard that shows the admin how the gym is doing, and an accessibility and performance check. Problems found on the live site during the week were fixed along the way.
+
+### Implemented functionality
+
+- **Public landing page** (`/welcome`): visitors who are not logged in now see a front page instead of the login form. Large condensed headline over a gym photo, three steps from sign-up to first workout, the QR membership card, Basic vs Premium plans (₺1,000 / ₺1,500), the partner gyms in Istanbul, and a closing call to action. Logged-out visits to `/` go to `/welcome`; logged-in users are sent into the app.
+- **Map tiles fixed online:** OpenStreetMap refused the tiles ("403 Access blocked") because the site sent no `Referer`. The security headers now use `strict-origin-when-cross-origin`, and the tiles come from the single `tile.openstreetmap.org` address.
+- **Admin dashboard – "gym health"**: a new admin-only endpoint `GET /api/gym/admin-dashboard` and two new cards on the admin home page:
+  - **Revenue:** paid payments (memberships and single classes) per month for the last 6 months, as a bar chart with this month's total on top. Declined and refunded payments are not counted.
+  - **Class attendance:** the share of booked members who actually came in the last 30 days, with attended, no-shows and number of classes. Only classes where the trainer took attendance are counted, so members are not wrongly marked as no-shows.
+- **Accessibility:** a "Skip to main content" link that appears on the first Tab key press, so keyboard users can jump past the menu (WCAG 2.4.1).
+- **Performance:** the 8 class photos were converted from JPG to WebP (1,008 KB → 520 KB, about half), and the small class pictures further down the page load only when the user scrolls to them (`loading="lazy"`).
+
+### Technical decisions
+
+| Decision | Reason |
+| --- | --- |
+| Hand-drawn bar chart instead of a chart library | Matches the existing charts and adds nothing to the download. |
+| Count attendance only for classes where attendance was taken | A class without an attendance check would show everyone as a no-show. |
+| Revenue grouped by the gym's month (Istanbul time) | A payment at 01:00 on the 1st belongs to the new month, as the admin expects. |
+| Dashboard endpoint for admins only | Revenue is business information; trainers get 403. |
+| Check accessibility by reading the components | An automatic in-browser scanner could not be run here; reading the code also shows exactly what to change. |
+| WebP at quality 80 with the `cwebp` tool already on the machine | Half the size with no visible difference, and no new package. |
+
+### Problems encountered and solutions
+
+1. **Map still blocked after the first fix.** *Cause:* the helmet default `Referrer-Policy: no-referrer`; OpenStreetMap requires a `Referer`. *Solution:* `strict-origin-when-cross-origin`; a hard refresh (Ctrl+Shift+R) was needed to see it.
+2. **Classes page online said "No classes planned".** *Cause:* not a bug – demo classes are created only for the 14 days after the demo data is loaded, and that period had passed. *Solution:* reloaded the online demo data; this must be repeated before each presentation.
+3. **Screen tests did not start ("Vitest failed to find the current suite").** *Cause:* Vitest's default worker type crashed while many other programs were running on the laptop; the code was not the problem. *Solution:* `npx vitest run --pool=forks` runs all tests.
+4. **The development server (port 5173) kept dropping during screenshots.** *Solution:* built the app and ran it in production mode on port 4300, as for the end-to-end tests.
+
+### Tests
+
+685 API tests (40 files), 31 screen tests (6 files), 12 end-to-end tests. New: `gym-admin-dashboard.test.js` (revenue per month, ignored payment states, attendance rate, excluded classes, empty case, admin-only access), `MonthlyRevenueBars.test.jsx` (chart label, screen-reader table, current month value), e2e `landing.spec.js` (front page, Join and Log in buttons, logged-in redirect). The skip link and the WebP images were checked in the production build.
+
+### Related commits
+
+`fix: let OpenStreetMap see the site address so map tiles load` · `feat(client): add public landing page at /welcome` · `feat: add gym-health dashboard with monthly revenue and class attendance` · `perf(client): add skip link and convert class photos to WebP` · `docs: add week 7 development log`
+
+### Next step
+
+**Stage 5, continued – user testing:** a short test script for real people (a member, a trainer, an admin) on their phones, collect their feedback, and fix what they find.
