@@ -1,0 +1,80 @@
+{
+  "server": {
+    "tests": 685,
+    "files": 40
+  },
+  "client": {
+    "tests": 33,
+    "files": 6
+  },
+  "e2e": {
+    "tests": 12
+  },
+  "routeProtection": {
+    "summary": "197 automatic checks, 0 open endpoints"
+  },
+  "audit": "client 0, e2e 0; server 6 new advisories (see 9.3)",
+  "outputLines": [
+    "server> npm test   Test Files  40 passed (40)   Tests  685 passed (685)   (266 s)",
+    "client> npm test   Test Files   6 passed (6)    Tests   33 passed (33)",
+    "e2e>    npm test   12 passed (54 s)",
+    "",
+    "retests> auth 20/20 · security 5/5 · route-protection 197/197 · nutrition 18/18 · errorHandler 3/3"
+  ],
+  "mutation": {
+    "broken": "80 of 197 checks FAIL (every wrong-role check)",
+    "restored": "197 of 197 checks PASS"
+  },
+  "failures": [
+    {
+      "id": "D1",
+      "title": "Map tiles blocked by the new security policy",
+      "failure": "After the security headers were added, the partner-gym map in the production build showed no map tiles; the browser reported requests blocked by the Content Security Policy.",
+      "diagnosis": "The service worker (sw.js) re-fetched every request itself, including the OpenStreetMap tiles. Requests made by the service worker fall under connect-src, which only allows GymFlow's own address.",
+      "correction": "The service worker now ignores requests to other websites; the browser loads the tiles directly, as the policy allows (img-src).",
+      "retest": "22 Oct: every page of the production build opened again, map tiles shown, no blocked request. 23 Nov: security.test.js 5/5 PASS; T08 PASS; end-to-end test \"the website is served with the security headers\" PASS.",
+      "status": "Fixed – PASS",
+      "commit": "8d38aaa"
+    },
+    {
+      "id": "D2",
+      "title": "Food scanner took over three minutes",
+      "failure": "On the live site one meal photo took 195 seconds and then ended with an error.",
+      "diagnosis": "The Google AI library retries a failed call 5 times by default; the model was overloaded, so the member waited for all retries.",
+      "correction": "No hidden retries. A fixed 30-second budget: main model up to 15 s, then a lighter fallback model, a 2-second pause, and the fallback once more. Clear messages for \"busy\" and \"too slow\"; a timer, Cancel and \"Try again\" on the page.",
+      "retest": "22 Oct: 9–19 s per photo on the live site. 23 Nov: nutrition.test.js 18/18 PASS (time budget, fallback order, messages).",
+      "status": "Fixed – PASS",
+      "commit": "7608678"
+    },
+    {
+      "id": "D3",
+      "title": "\"Internal server error\" instead of the written message",
+      "failure": "When the scanner was busy, the live site showed \"Internal server error\" instead of the friendly message written for that case.",
+      "diagnosis": "In production the error handler replaced the message of every 5xx error, including the messages written for users (AppError).",
+      "correction": "Messages written for users are always shown; only unexpected errors are replaced by a general sentence, so no internal details leak.",
+      "retest": "23 Nov: unit/errorHandler.test.js 3/3 PASS – own messages shown also for 5xx answers; unexpected errors hidden behind a friendly message; the real message kept for debugging during development.",
+      "status": "Fixed – PASS",
+      "commit": "7608678"
+    },
+    {
+      "id": "D4",
+      "title": "Raw \"Invalid or expired token\" after the demo data was refreshed",
+      "failure": "After the online demo data was loaded again, members who were still logged in saw the raw message \"Invalid or expired token\" on every page.",
+      "diagnosis": "Loading the demo data recreates the demo accounts with new ids, so the saved login pointed to an account that no longer existed. The app showed the server message as it was.",
+      "correction": "Any 401 answer during a session now clears the saved login; the login page says \"Your session has ended. Please log in again.\" and returns the user to the same page afterwards.",
+      "retest": "23 Nov: client api/client.test.js 2/2 PASS (polite message after a lost session; a wrong password stays a normal error); end-to-end test \"a login that stopped working … leads politely back to login and then to the same page\" PASS.",
+      "status": "Fixed – PASS",
+      "commit": "2bb6480"
+    },
+    {
+      "id": "D5",
+      "title": "Login tests blocked by the new login limit",
+      "failure": "After the login limit was added, many existing API tests failed with 429 Too Many Requests.",
+      "diagnosis": "The limit counts failed logins in memory for the whole test run; tests that deliberately use wrong passwords used up the limit for the tests after them.",
+      "correction": "The counter is reset before each test; separate tests check the limit itself (10 failures allowed, then 429, successful logins not counted).",
+      "retest": "23 Nov: auth.test.js 20/20 PASS, security.test.js 5/5 PASS; T18 PASS on the running app.",
+      "status": "Fixed – PASS",
+      "commit": "8d38aaa"
+    }
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "ranAt": "2026-11-22T21:24:06.560Z",
+  "base": "http://localhost:4300",
+  "results": [
+    {
+      "id": "T01",
+      "req": "F1",
+      "component": "Login – reject a wrong password",
+      "input": "elif@demo… / wrong password",
+      "expected": "401, no token, message without saying which part was wrong",
+      "actual": "401, token: none, \"Invalid email or password\"",
+      "status": "PASS"
+    },
+    {
+      "id": "T02",
+      "req": "F1",
+      "component": "Login – accept correct details",
+      "input": "elif@demo… / correct password",
+      "expected": "200, signed token, role MEMBER",
+      "actual": "200, token: yes, role MEMBER",
+      "status": "PASS"
+    },
+    {
+      "id": "T03",
+      "req": "F1",
+      "component": "Register – invalid input",
+      "input": "email \"not-an-email\", password \"123\"",
+      "expected": "400 with an error for each wrong field; no account created",
+      "actual": "400, fields: email, password",
+      "status": "PASS"
+    },
+    {
+      "id": "T04",
+      "req": "NFR Security",
+      "component": "Admin endpoint without a token",
+      "input": "GET /api/users, no token",
+      "expected": "401",
+      "actual": "401, \"Authentication required\"",
+      "status": "PASS"
+    },
+    {
+      "id": "T05",
+      "req": "NFR Security",
+      "component": "Forged token claiming ADMIN",
+      "input": "token signed with a wrong secret, role ADMIN",
+      "expected": "401",
+      "actual": "401, \"Invalid or expired token\"",
+      "status": "PASS"
+    },
+    {
+      "id": "T06",
+      "req": "F1",
+      "component": "Member opens an admin endpoint",
+      "input": "GET /api/users with a member token",
+      "expected": "403",
+      "actual": "403, \"You do not have permission to do this\"",
+      "status": "PASS"
+    },
+    {
+      "id": "T07",
+      "req": "F1",
+      "component": "Admin opens the same endpoint",
+      "input": "GET /api/users with an admin token",
+      "expected": "200 with the member list",
+      "actual": "200, 16 users",
+      "status": "PASS"
+    },
+    {
+      "id": "T08",
+      "req": "NFR Security",
+      "component": "Security headers on every page",
+      "input": "GET /",
+      "expected": "CSP default-src 'self', frame-ancestors 'none', HSTS, nosniff",
+      "actual": "CSP self, frame-ancestors none, HSTS set, nosniff, Referrer-Policy strict-origin-when-cross-origin",
+      "status": "PASS"
+    },
+    {
+      "id": "T09",
+      "req": "F6",
+      "component": "Check-in of a member with a valid membership",
+      "input": "trainer types GF-00434 (Ayse, Premium Monthly)",
+      "expected": "201, visit created, member and membership shown",
+      "actual": "201, Ayse, EXPIRING_SOON, already today: false",
+      "status": "PASS"
+    },
+    {
+      "id": "T10",
+      "req": "F6, rule: points once a day",
+      "component": "Second check-in the same day",
+      "input": "the same number again",
+      "expected": "200, \"already checked in today\", no extra points",
+      "actual": "200, alreadyCheckedIn: true, points 50 → 50",
+      "status": "PASS"
+    },
+    {
+      "id": "T11",
+      "req": "F6, rule: valid membership",
+      "component": "Check-in of a member whose membership ended",
+      "input": "GF-00438 (Burak, ended 20 days ago)",
+      "expected": "403 with the reason",
+      "actual": "403, \"Burak's membership expired on 29 Oct 2026\"",
+      "status": "PASS"
+    },
+    {
+      "id": "T12",
+      "req": "E4/E5",
+      "component": "Basic member at a partner gym",
+      "input": "GF-00437 (Zeynep, Basic 3 Months) at Atasehir Fitness Park",
+      "expected": "403 PARTNER_GYM_PREMIUM_ONLY with the reason",
+      "actual": "403, PARTNER_GYM_PREMIUM_ONLY, \"Zeynep has a Basic membership, which is for our own gym only. Training at partner gyms is included in Premium.\"",
+      "status": "PASS"
+    },
+    {
+      "id": "T13",
+      "req": "E2",
+      "component": "Card number with a typo",
+      "input": "4242 4242 4242 4241 (fails the Luhn check)",
+      "expected": "400 \"not valid – check for a typo\", nothing charged",
+      "actual": "400, \"card.number: This card number is not valid – check for a typo\"",
+      "status": "PASS"
+    },
+    {
+      "id": "T14",
+      "req": "E2 (boundary)",
+      "component": "Expiry month out of range",
+      "input": "expMonth 13 (valid range 1–12)",
+      "expected": "400 \"Month must be 01–12\"",
+      "actual": "400, \"card.expMonth: Month must be 01–12\"",
+      "status": "PASS"
+    },
+    {
+      "id": "T15",
+      "req": "E2 (boundary)",
+      "component": "Security code too short",
+      "input": "CVC \"12\" (needs 3 digits)",
+      "expected": "400 with the CVC message",
+      "actual": "400, \"card.cvc: The security code is the 3 digits on the back\"",
+      "status": "PASS"
+    },
+    {
+      "id": "T16",
+      "req": "E2",
+      "component": "Declined card",
+      "input": "test card 4000 0000 0000 0002",
+      "expected": "402 CARD_DECLINED, payment stored as DECLINED, no membership",
+      "actual": "402, CARD_DECLINED, \"Your card was declined. Please use another card.\"",
+      "status": "PASS"
+    },
+    {
+      "id": "T17",
+      "req": "F5, rule: no double booking",
+      "component": "Book the same class twice",
+      "input": "\"Morning Yoga\" (Premium member Elif), twice",
+      "expected": "first 201, second 409 with a message",
+      "actual": "201, then 409 \"You have already booked this class\"",
+      "status": "PASS"
+    },
+    {
+      "id": "T18",
+      "req": "NFR Security",
+      "component": "Login limit against password guessing",
+      "input": "10 wrong passwords, then the correct one",
+      "expected": "attempts 1–10: 401; then 429 even with the correct password",
+      "actual": "attempts 1–10: 401; 11th (correct): 429 \"Too many attempts. Please wait 15 minutes and try again.\"",
+      "status": "PASS"
+    }
+  ]
+}

@@ -470,7 +470,7 @@ Polish GymFlow for real users: a public front page for visitors, a dashboard tha
   - **Revenue:** paid payments (memberships and single classes) per month for the last 6 months, as a bar chart with this month's total on top. Declined and refunded payments are not counted.
   - **Class attendance:** the share of booked members who actually came in the last 30 days, with attended, no-shows and number of classes. Only classes where the trainer took attendance are counted, so members are not wrongly marked as no-shows.
 - **Accessibility:** a "Skip to main content" link that appears on the first Tab key press, so keyboard users can jump past the menu (WCAG 2.4.1).
-- **Performance:** the 8 class photos were converted from JPG to WebP (1,008 KB → 520 KB, about half), and the small class pictures further down the page load only when the user scrolls to them (`loading="lazy"`).
+- **Performance:** the 8 class photos were converted from JPG to WebP (1,015 kB → 520 kB, about half), and the small class pictures further down the page load only when the user scrolls to them (`loading="lazy"`).
 
 ### Technical decisions
 
@@ -487,16 +487,18 @@ Polish GymFlow for real users: a public front page for visitors, a dashboard tha
 
 1. **Map still blocked after the first fix.** *Cause:* the helmet default `Referrer-Policy: no-referrer`; OpenStreetMap requires a `Referer`. *Solution:* `strict-origin-when-cross-origin`; a hard refresh (Ctrl+Shift+R) was needed to see it.
 2. **Classes page online said "No classes planned".** *Cause:* not a bug – demo classes are created only for the 14 days after the demo data is loaded, and that period had passed. *Solution:* reloaded the online demo data; this must be repeated before each presentation.
-3. **Screen tests did not start ("Vitest failed to find the current suite").** *Cause:* Vitest's default worker type crashed while many other programs were running on the laptop; the code was not the problem. *Solution:* `npx vitest run --pool=forks` runs all tests.
+3. **Screen tests sometimes did not start ("Vitest failed to find the current suite").** *Cause:* it happened only when the tests were started from Git Bash, which names the folder `d:\` instead of `D:\`, so the test library can be loaded twice. *Solution:* run the tests from PowerShell, where all of them run every time.
 4. **The development server (port 5173) kept dropping during screenshots.** *Solution:* built the app and ran it in production mode on port 4300, as for the end-to-end tests.
+5. **Check-in ignored a second typed number.** Found when the end-to-end tests ran just after midnight. *Cause:* the page ignores the same code for 10 seconds – right for the camera, which reads one QR code many times a second, but it also blocked numbers typed by hand. The test had passed before only because the demo data usually already had a visit for that member today. *Solution:* the 10-second rule applies only to the camera.
+6. **Front page said "6 partner gyms".** GymFlow has its own gym plus 5 partner gyms; the Premium card now says 5.
 
 ### Tests
 
-685 API tests (40 files), 31 screen tests (6 files), 12 end-to-end tests. New: `gym-admin-dashboard.test.js` (revenue per month, ignored payment states, attendance rate, excluded classes, empty case, admin-only access), `MonthlyRevenueBars.test.jsx` (chart label, screen-reader table, current month value), e2e `landing.spec.js` (front page, Join and Log in buttons, logged-in redirect). The skip link and the WebP images were checked in the production build.
+685 API tests (40 files), 33 screen tests (6 files), 12 end-to-end tests. New: `gym-admin-dashboard.test.js` (revenue per month, ignored payment states, attendance rate, excluded classes, empty case, admin-only access), `MonthlyRevenueBars.test.jsx` (chart label, screen-reader table, current month value), two `CheckInPage` tests (a typed number is sent again; the same QR code from the camera is not), e2e `landing.spec.js` (front page, Join and Log in buttons, logged-in redirect). The skip link and the WebP images were checked in the production build.
 
 ### Related commits
 
-`fix: let OpenStreetMap see the site address so map tiles load` · `feat(client): add public landing page at /welcome` · `feat: add gym-health dashboard with monthly revenue and class attendance` · `perf(client): add skip link and convert class photos to WebP` · `docs: add week 7 development log`
+`fix: let OpenStreetMap see the site address so map tiles load` · `feat(client): add public landing page at /welcome` · `feat: add gym-health dashboard with monthly revenue and class attendance` · `perf(client): add skip link and convert class photos to WebP` · `docs: add week 7 development log` · `docs: add user-testing script for stage 5` · `fix(client): answer a second typed check-in and show 5 partner gyms` · `docs: add week 7 report`
 
 ### Next step
 
