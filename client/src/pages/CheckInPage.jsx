@@ -10,8 +10,9 @@ import QrScannerCard from '../components/checkIn/QrScannerCard.jsx';
 import TodaysCheckIns from '../components/checkIn/TodaysCheckIns.jsx';
 import PageHeader from '../components/ui/PageHeader.jsx';
 
-// The same code within this time is ignored: a member holding their phone in front of
-// the camera would otherwise be sent to the server every second.
+// The same QR code within this time is ignored: a member holding their phone in front of
+// the camera would otherwise be sent to the server every second. Typed numbers are always
+// sent – pressing "Check in" again is on purpose and must show an answer.
 const REPEAT_SCAN_MS = 10_000;
 
 // What to show when the server says no.
@@ -68,9 +69,9 @@ function CheckInPage() {
   const { data: today, error: todayError, reload: reloadToday } = useApiData(listTodaysCheckIns);
 
   // Sends one code to the server and shows the answer. Returns true when the server answered.
-  async function handleCode(code) {
+  async function handleCode(code, { fromCamera = false } = {}) {
     const now = Date.now();
-    const isRepeat = code === lastScan.current.code && now - lastScan.current.at < REPEAT_SCAN_MS;
+    const isRepeat = fromCamera && code === lastScan.current.code && now - lastScan.current.at < REPEAT_SCAN_MS;
     if (isBusy || isRepeat) return false;
     lastScan.current = { code, at: now };
 
@@ -115,7 +116,7 @@ function CheckInPage() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3">
-          <QrScannerCard onCode={handleCode} isBusy={isBusy}>
+          <QrScannerCard onCode={(code) => handleCode(code, { fromCamera: true })} isBusy={isBusy}>
             <ManualCheckInForm onCode={handleCode} isBusy={isBusy} />
           </QrScannerCard>
         </div>

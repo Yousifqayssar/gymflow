@@ -10,8 +10,16 @@ vi.mock('../api/checkIns.js', () => ({ checkInMember: vi.fn(), listTodaysCheckIn
 vi.mock('../api/partnerGyms.js', () => ({
   listPartnerGyms: vi.fn().mockResolvedValue({ access: null, homeGym: {}, gyms: [{ id: 3, name: 'Besiktas Strength Studio' }] }),
 }));
-// The camera cannot run in the simulated browser: keep only what is shown below the camera (the manual form).
-vi.mock('../components/checkIn/QrScannerCard.jsx', () => ({ default: ({ children }) => <div>{children}</div> }));
+// The camera cannot run in the simulated browser: keep what is shown below the camera (the manual form),
+// plus a button that pretends the camera read the QR code of member GF-00004.
+vi.mock('../components/checkIn/QrScannerCard.jsx', () => ({
+  default: ({ children, onCode }) => (
+    <div>
+      <button type="button" onClick={() => onCode('GF-00004')}>Fake camera scan</button>
+      {children}
+    </div>
+  ),
+}));
 
 const STAFF = { id: 2, firstName: 'Mert', lastName: 'Aydin', role: 'TRAINER' };
 const EMPTY_DAY = { date: '2026-10-22', count: 0, checkIns: [] };
@@ -67,6 +75,31 @@ describe('CheckInPage', () => {
 
     expect(await screen.findByText('Already checked in today')).toBeInTheDocument();
     expect(listTodaysCheckIns).toHaveBeenCalledTimes(1); // nothing new to show
+  });
+
+  it('sends a typed number again when staff press "Check in" a second time', async () => {
+    listTodaysCheckIns.mockResolvedValue(EMPTY_DAY);
+    checkInMember.mockResolvedValueOnce(member()).mockResolvedValueOnce({ ...member(), alreadyCheckedIn: true });
+    renderWithApp(<CheckInPage />, { user: STAFF });
+
+    await typeAndCheckIn('GF-00004');
+    expect(await screen.findByText('Checked in')).toBeInTheDocument();
+    await typeAndCheckIn('GF-00004');
+
+    expect(await screen.findByText('Already checked in today')).toBeInTheDocument();
+    expect(checkInMember).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores the same QR code read again by the camera a moment later', async () => {
+    listTodaysCheckIns.mockResolvedValue(EMPTY_DAY);
+    checkInMember.mockResolvedValue(member());
+    renderWithApp(<CheckInPage />, { user: STAFF });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Fake camera scan' }));
+    expect(await screen.findByText('Welcome, Elif!')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Fake camera scan' }));
+
+    expect(checkInMember).toHaveBeenCalledTimes(1);
   });
 
   it('explains when the browser is logged in as a member instead of staff', async () => {

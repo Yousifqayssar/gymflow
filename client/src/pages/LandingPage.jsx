@@ -49,7 +49,7 @@ const PLANS = [
     name: 'Premium',
     price: '1,500',
     pitch: 'The gym plus classes and the whole network.',
-    perks: ['Everything in Basic', '10 group classes every month', 'Train at all 6 partner gyms', 'A free intro session with a trainer'],
+    perks: ['Everything in Basic', '10 group classes every month', 'Train at all 5 partner gyms', 'A free intro session with a trainer'],
     featured: true,
   },
 ];
