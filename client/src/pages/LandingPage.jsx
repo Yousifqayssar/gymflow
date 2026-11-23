@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 import { m } from 'motion/react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -8,7 +9,9 @@ import ThemeToggle from '../components/ui/ThemeToggle.jsx';
 import SocialIcon from '../components/ui/SocialIcon.jsx';
 import { GYM, OPENING_HOURS, SOCIAL_LINKS } from '../config/gym.js';
 import { CATEGORY_DISPLAY } from '../utils/classDisplay.js';
-import heroPhoto from '../assets/classes/strength.webp';
+// The strength class photo, saved 50% brighter: a CSS filter on such a big image would have to be
+// redrawn by the phone while scrolling.
+import heroPhoto from '../assets/landing/hero-gym.webp';
 // Real screens of the member app (demo member Elif, phone size), so visitors see the product itself.
 import appHome from '../assets/landing/app-home.webp';
 import appWorkouts from '../assets/landing/app-workouts.webp';
@@ -31,6 +34,45 @@ const reveal = {
   hidden: { opacity: 0, y: 20 },
   show: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.6, delay: 0.1 + i * 0.12, ease: [0.22, 1, 0.36, 1] } }),
 };
+
+// Content below the hero fades and rises into place as it scrolls into view – once, not every time.
+// An IntersectionObserver only adds the class "is-shown"; the animation itself is a CSS transition of
+// opacity and position (.reveal in index.css), which the browser runs on the graphics card. A JavaScript
+// animation library would compute every frame on the main thread, and that made scrolling stutter
+// (measured: 20–25% slow frames instead of about 1%). `index` delays items in a row one after another.
+// The class is added straight to the element, not through React state: a React update for every element
+// that scrolls into view also cost frames.
+const canObserve = typeof IntersectionObserver !== 'undefined';
+
+function Reveal({ as: Tag = 'div', index = 0, className = '', children }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return undefined;
+    if (!canObserve) {
+      element.classList.add('is-shown');
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-shown');
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -5% 0px' },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <Tag ref={ref} style={index ? { transitionDelay: `${index * 90}ms` } : undefined} className={`reveal ${className}`}>
+      {children}
+    </Tag>
+  );
+}
 
 // Buttons on dark or green backgrounds. Written out in full instead of overriding a Button variant:
 // two Tailwind classes for the same property do not override each other by their order in the list,
@@ -112,7 +154,9 @@ const CLASS_TYPES = ['RUNNING', 'YOGA', 'HIIT', 'CYCLING', 'PILATES', 'BOXING', 
 
 function TopBar() {
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-canvas/85 backdrop-blur">
+    // A solid bar instead of a see-through blurred one: the blur had to be recalculated for every
+    // frame while scrolling, which makes phones stutter.
+    <header className="sticky top-0 z-30 border-b border-line bg-canvas">
       <div className={`${WRAP} flex h-16 items-center justify-between gap-4`}>
         <Logo />
         <nav className="hidden items-center gap-7 text-sm font-medium text-ink-2 md:flex" aria-label="Page sections">
@@ -164,7 +208,7 @@ function HeroFacts() {
 function Hero() {
   return (
     <section className="relative isolate overflow-hidden bg-slate-950 text-white">
-      <img src={heroPhoto} alt="" aria-hidden="true" className="absolute inset-0 size-full object-cover object-[70%_center] brightness-150 saturate-125" />
+      <img src={heroPhoto} alt="" aria-hidden="true" fetchPriority="high" className="absolute inset-0 size-full object-cover object-[70%_center]" />
       {/* Darken the left where the text sits so it stays legible; the right keeps more of the photo. */}
       <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-slate-950 from-25% via-slate-950/75 via-50% to-slate-950/10" />
       <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent via-40% to-transparent" />
@@ -218,8 +262,10 @@ function HowItWorks() {
   return (
     <section id="how" className={`${SECTION} bg-canvas`}>
       <div className={WRAP}>
-        <h2 className={`${H2} max-w-2xl`}>From the street to your first workout in three steps</h2>
-        <ol className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-3">
+        <Reveal>
+          <h2 className={`${H2} max-w-2xl`}>From the street to your first workout in three steps</h2>
+        </Reveal>
+        <Reveal as="ol" index={1} className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-3">
           {STEPS.map((step, index) => (
             <li key={step.title}>
               <div className="flex items-baseline gap-4">
@@ -233,7 +279,7 @@ function HowItWorks() {
               <p className="mt-2 max-w-xs leading-relaxed text-muted">{step.text}</p>
             </li>
           ))}
-        </ol>
+        </Reveal>
       </div>
     </section>
   );
@@ -243,13 +289,13 @@ function Classes() {
   return (
     <section id="classes" className={`${SECTION} bg-surface`}>
       <div className={WRAP}>
-        <div className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:items-end">
+        <Reveal className="grid gap-6 lg:grid-cols-[1fr_1fr] lg:items-end">
           <h2 className={H2}>Classes for every way you like to train</h2>
           <p className="max-w-lg text-lg leading-relaxed text-muted">
             Small groups led by certified trainers, from calm yoga to boxing. Book a spot in the app and see how many places are left.
           </p>
-        </div>
-        <ul className="mt-12 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        </Reveal>
+        <Reveal as="ul" index={1} className="mt-12 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {CLASS_TYPES.map((key) => {
             const category = CATEGORY_DISPLAY[key];
             return (
@@ -263,7 +309,7 @@ function Classes() {
               </li>
             );
           })}
-        </ul>
+        </Reveal>
       </div>
     </section>
   );
@@ -273,7 +319,7 @@ function OneCode() {
   return (
     <section className={`${SECTION} bg-canvas`}>
       <div className={`${WRAP} grid items-center gap-14 lg:grid-cols-2`}>
-        <div className="order-2 lg:order-1">
+        <Reveal className="order-2 lg:order-1">
           <h2 className={`${H2} max-w-md`}>One code opens everything</h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-muted">
             Your GymFlow QR code is your key to the whole network. There is nothing else to remember, and nothing to lose at the
@@ -289,10 +335,10 @@ function OneCode() {
               </li>
             ))}
           </ul>
-        </div>
+        </Reveal>
 
         {/* A representative member card – the same shape members carry in the app. */}
-        <div className="order-1 flex justify-center lg:order-2 lg:justify-end">
+        <Reveal index={1} className="order-1 flex justify-center lg:order-2 lg:justify-end">
           <div className="w-full max-w-xs rotate-1 overflow-hidden rounded-[1.75rem] border border-line bg-surface shadow-2xl">
             <div className="flex items-center justify-between bg-gradient-to-br from-brand-600 to-brand-900 px-6 py-5 text-white">
               <Logo inverted />
@@ -306,7 +352,7 @@ function OneCode() {
               <p className="text-lg font-semibold text-ink">Your name here</p>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -316,8 +362,10 @@ function Features() {
   return (
     <section className={`${SECTION} bg-surface`}>
       <div className={WRAP}>
-        <h2 className={`${H2} max-w-2xl`}>Everything after the door is in the app too</h2>
-        <ul className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 sm:mt-12 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4">
+        <Reveal>
+          <h2 className={`${H2} max-w-2xl`}>Everything after the door is in the app too</h2>
+        </Reveal>
+        <Reveal as="ul" index={1} className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 sm:mt-12 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4">
           {FEATURES.map((feature) => (
             <li key={feature.title}>
               {/* Only the top of each screen is shown, so four phones fit side by side. */}
@@ -328,7 +376,7 @@ function Features() {
               <p className="mt-1.5 text-sm leading-relaxed text-muted sm:text-base">{feature.text}</p>
             </li>
           ))}
-        </ul>
+        </Reveal>
       </div>
     </section>
   );
@@ -338,10 +386,12 @@ function Plans() {
   return (
     <section id="plans" className={`${SECTION} bg-canvas`}>
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <h2 className={`${H2} max-w-2xl`}>Pick the plan that fits how you train</h2>
-        <p className="mt-4 max-w-xl text-lg text-muted">Monthly, with no automatic renewal. Three- and twelve-month plans save more, and you can see them all after you join.</p>
+        <Reveal>
+          <h2 className={`${H2} max-w-2xl`}>Pick the plan that fits how you train</h2>
+          <p className="mt-4 max-w-xl text-lg text-muted">Monthly, with no automatic renewal. Three- and twelve-month plans save more, and you can see them all after you join.</p>
+        </Reveal>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2">
+        <Reveal index={1} className="mt-12 grid gap-6 sm:grid-cols-2">
           {PLANS.map((plan) => (
             <div
               key={plan.name}
@@ -373,7 +423,7 @@ function Plans() {
               </Button>
             </div>
           ))}
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -427,7 +477,7 @@ function Network() {
   return (
     <section id="network" className={`${SECTION} bg-surface`}>
       <div className={`${WRAP} grid items-center gap-12 lg:grid-cols-[1fr_1.2fr]`}>
-        <div>
+        <Reveal>
           <h2 className={H2}>Six gyms, one membership</h2>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-muted">
             Premium members train at our Kadıköy gym and at five partner gyms on both sides of the Bosphorus, all with the same QR code.
@@ -437,8 +487,10 @@ function Network() {
             <span className="flex items-center gap-1.5"><span className="size-3 rounded-full bg-brand-600" aria-hidden="true" />Our gym</span>
             <span className="flex items-center gap-1.5"><span className="size-3 rounded-full border-[3px] border-brand-600" aria-hidden="true" />Partner gym</span>
           </p>
-        </div>
-        <IstanbulMap />
+        </Reveal>
+        <Reveal index={1}>
+          <IstanbulMap />
+        </Reveal>
       </div>
     </section>
   );
@@ -448,8 +500,10 @@ function Faq() {
   return (
     <section id="faq" className={`${SECTION} bg-canvas`}>
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <h2 className={H2}>Questions before you join</h2>
-        <div className="mt-10 divide-y divide-line border-y border-line">
+        <Reveal>
+          <h2 className={H2}>Questions before you join</h2>
+        </Reveal>
+        <Reveal index={1} className="mt-10 divide-y divide-line border-y border-line">
           {FAQ.map((item) => (
             <details key={item.q} className="group">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-lg font-semibold text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 [&::-webkit-details-marker]:hidden">
@@ -459,7 +513,7 @@ function Faq() {
               <p className="max-w-2xl pb-6 leading-relaxed text-muted">{item.a}</p>
             </details>
           ))}
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -469,14 +523,14 @@ function ClosingCta() {
   return (
     <section className="bg-canvas pb-16 sm:pb-24">
       <div className={WRAP}>
-        <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-900 px-6 py-14 text-center text-white sm:px-16 sm:py-16">
+        <Reveal className="overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-900 px-6 py-14 text-center text-white sm:px-16 sm:py-16">
           <h2 className="mx-auto max-w-2xl font-display text-4xl font-bold tracking-tight sm:text-6xl">Your first workout is a few taps away</h2>
           <p className="mx-auto mt-4 max-w-md text-lg text-brand-50">Join today and check in with your QR code on your very first visit.</p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link to="/register" className={ON_GREEN_SOLID}>Join GymFlow</Link>
             <Link to="/login" className={ON_DARK_OUTLINE}>Log in</Link>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

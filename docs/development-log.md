@@ -536,6 +536,23 @@ Polish the public front page (`/welcome`) that visitors see before they log in o
 2. **No way back from the login and join pages.** *Found by:* the developer, while clicking through the site. *Solution:* on both pages the GymFlow logo and a new "Back to the front page" link ("Back" on phones) lead to `/welcome`.
 3. **The page became twice as long on phones** after the first version. *Solution:* two columns for the app screens and a smaller hero phone (8,949 px instead of 10,746 px).
 
+### Smooth scrolling and scroll animations (24 November)
+
+The user found scrolling the front page not smooth and asked for content that appears while scrolling. Every step was measured: the whole page scrolled in Chrome with the processor slowed down 4× (like a phone), counting frames slower than 20 ms.
+
+| Version | Slow frames, fast scroll (desktop / phone) |
+| --- | --- |
+| Before (no animations) | 1.0% / 0.1% |
+| Animations with the Motion library (JavaScript every frame) | 24.6% / 20.1% |
+| CSS transitions started by an IntersectionObserver | 11.5% / 8.3% |
+| … class added directly, without a React update | 8.8% / – |
+| … 15 blocks appear instead of 29 single items (final) | 5.4% / 2.7% |
+| Final, at normal reading speed | 4.3% / 1.7% |
+
+- **Cheaper drawing for every scroll:** the menu bar no longer blurs what is behind it (a blur has to be recalculated every frame), and the hero photo is saved 50% brighter instead of being brightened by a CSS filter.
+- **Scroll animations:** each block fades and rises into place once, when it scrolls into view (`Reveal` in `LandingPage.jsx`, `.reveal` in `index.css`). Only opacity and position change, which the graphics card animates without repainting. People who ask their system for less motion see everything immediately.
+- **What did not help:** `will-change` (prepared layers) and keeping layers after the animation – no measurable gain, more memory, so not used. Chrome's long-animation-frame report showed 0 ms of script while scrolling: the remaining cost is painting, which is why fewer, larger blocks helped most.
+
 ### Tests
 
 New end-to-end tests in `landing.spec.js`: from the login and join pages the Back link and the logo lead to the front page; in dark mode the closing Join button has a contrast of at least 4.5:1, and an FAQ answer opens. Mutation-checked: with the old button code the test fails (contrast 1.23). 685 API, 33 screen and 14 end-to-end tests pass; lint clean.

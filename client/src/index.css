@@ -89,6 +89,26 @@
   }
 }
 
+/* Front page: content fades and rises into place when it scrolls into view (Reveal in LandingPage.jsx).
+   Only opacity and transform change, so the graphics card animates it without redrawing the page. */
+.reveal {
+  opacity: 0;
+  transform: translateY(2rem);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.is-shown {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Popups (<dialog>, see components/ui/Modal.jsx) grow in softly and the backdrop fades in. */
 @keyframes dialog-in {
   from {
