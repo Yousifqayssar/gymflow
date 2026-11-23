@@ -505,6 +505,7 @@ Polish GymFlow for real users: a public front page for visitors, a dashboard tha
 - **Fresh install from GitHub:** the project was cloned into an empty folder and installed using only the README, with a new empty database (port 5433 and a renamed container, because the developer's own database already uses 5432). All 14 steps worked in about 2 minutes of commands, and the fresh copy passed 685 API, 33 screen and 12 end-to-end tests. Results: `docs/reports/evidence/week-07-fresh-install.json`.
 - **README rewritten:** the install showed it still described the first stages. Now it lists every feature, all 61 API endpoints with roles, status codes 402/429, the error shape, test cards, the demo accounts, a "check that everything works" table, deployment (Render + Neon) and troubleshooting, plus two screenshots of the fresh install.
 - **Lint warning fixed:** `client/public/theme-init.js` no longer keeps an unused error variable (0 warnings).
+- **Package advisories:** `npm audit fix` (without `--force`) updated body-parser 2.3.0 → 2.4.0, qs 6.16.0 → 6.17.1 and fast-uri 3.1.8 → 3.1.9 in the server lock file; 685 API and 12 end-to-end tests pass. One advisory remains: `effect`, pinned to 3.20.0 by the Prisma command-line tool (also in the newest Prisma 7). It runs only during builds and never sees user input; `--force` would downgrade Prisma to 6, so we wait for a Prisma update.
 - **Week 7 report** written for the topic "Reproducibility, Installation and Integration" (`docs/reports/week-07-report.docx`).
 
 ### Next step
