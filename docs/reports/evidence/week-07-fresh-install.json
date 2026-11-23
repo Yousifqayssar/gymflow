@@ -1,0 +1,29 @@
+{
+  "recorded": "2026-11-23",
+  "source": "git clone https://github.com/Yousifqayssar/gymflow.git (commit e1ba86c) into an empty folder, then only the steps in README.md",
+  "machine": "Windows 11, Node 24.12.0, npm 11.6.2, Docker 29.8.2, PowerShell",
+  "adaptation": "The developer's own GymFlow database already runs on this computer (container gymflow-db, port 5432). The fresh copy therefore used POSTGRES_PORT=5433 and a one-line docker-compose.override.yml that renames the container to gymflow-db-fresh. Everything else followed the README as published.",
+  "steps": [
+    { "id": "R01", "step": "Get the code", "command": "git clone …/gymflow.git", "expected": "Project folder with all files", "actual": "Cloned commit e1ba86c", "time": "4 s", "status": "PASS" },
+    { "id": "R02", "step": "Settings files", "command": "copy .env.example, server/.env.example, server/.env.test.example", "expected": "3 .env files, ignored by git", "actual": "3 files created with new random password, JWT secret and admin password; git status shows none of them", "time": "–", "status": "PASS" },
+    { "id": "R03", "step": "Start the database", "command": "docker compose up -d", "expected": "Container \"healthy\"", "actual": "healthy (new empty volume)", "time": "36 s", "status": "PASS" },
+    { "id": "R04", "step": "Install the server", "command": "cd server; npm install", "expected": "Exit code 0, Prisma client generated", "actual": "Exit 0; npm reports the 6 known server advisories (see Week 6, 9.3)", "time": "39 s", "status": "PASS" },
+    { "id": "R05", "step": "Create the tables", "command": "npx prisma migrate deploy", "expected": "All migrations applied", "actual": "18 migrations found, all applied", "time": "14 s", "status": "PASS" },
+    { "id": "R06", "step": "First admin account", "command": "npm run db:seed", "expected": "Admin account created", "actual": "\"Admin account ready\"", "time": "5 s", "status": "PASS" },
+    { "id": "R07", "step": "Start the API", "command": "npm run dev; open /api/health", "expected": "status ok, database up", "actual": "{\"status\":\"ok\",\"database\":\"up\"}", "time": "–", "status": "PASS" },
+    { "id": "R08", "step": "Install the website", "command": "cd client; npm install", "expected": "Exit code 0", "actual": "144 packages, 0 vulnerabilities", "time": "23 s", "status": "PASS" },
+    { "id": "R09", "step": "Start the website", "command": "npm run dev; open localhost:5173", "expected": "Page loads", "actual": "HTTP 200; /api requests reach the API through the Vite proxy", "time": "–", "status": "PASS" },
+    { "id": "R10", "step": "Demo data", "command": "npm run db:seed:demo", "expected": "Demo users and classes", "actual": "6 plans, 2 trainers, 12 members, 25 classes, 145 check-ins, 17 payments, 5 partner gyms, 32 exercises …", "time": "5 s", "status": "PASS" },
+    { "id": "R11", "step": "Use the app", "command": "Log in as elif@demo.gymflow.local in Chrome", "expected": "Member home and classes", "actual": "\"Welcome back, Elif!\", membership card, 25 classes on the Classes page (Figures 1–2)", "time": "–", "status": "PASS" },
+    { "id": "R12", "step": "API tests", "command": "cd server; npm test", "expected": "All pass", "actual": "40 files, 685 of 685 passed", "time": "336 s", "status": "PASS" },
+    { "id": "R13", "step": "Screen tests + lint", "command": "cd client; npm test; npm run lint", "expected": "All pass, no lint errors", "actual": "6 files, 33 of 33 passed; lint 0 errors, 1 warning (unused variable in theme-init.js)", "time": "20 s", "status": "PASS" },
+    { "id": "R14", "step": "End-to-end tests", "command": "cd e2e; npm install; npm test", "expected": "All pass", "actual": "12 of 12 passed in Chrome against the production build", "time": "4 s + 60 s", "status": "PASS" }
+  ],
+  "readmeGaps": [
+    "Features list and user roles described only the first stages (no payments, check-in desk, rewards, food scanner, workouts, map)",
+    "Demo data text said 4 plans; the script creates 6 plans plus check-ins, payments, body check-ins, workouts, partner gyms and exercises",
+    "API table listed 21 of 61 endpoints; status codes 402 and 429 and the error shape were missing",
+    "No word about GEMINI_API_KEY, a busy port 5432, the test cards, how the live site is hosted, or what to do when something fails",
+    "Screenshots section said \"Coming soon\""
+  ]
+}

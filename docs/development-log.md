@@ -500,6 +500,13 @@ Polish GymFlow for real users: a public front page for visitors, a dashboard tha
 
 `fix: let OpenStreetMap see the site address so map tiles load` · `feat(client): add public landing page at /welcome` · `feat: add gym-health dashboard with monthly revenue and class attendance` · `perf(client): add skip link and convert class photos to WebP` · `docs: add week 7 development log` · `docs: add user-testing script for stage 5` · `fix(client): answer a second typed check-in and show 5 partner gyms` · `docs: add week 7 report`
 
+### Reproducibility, installation and integration (23 November)
+
+- **Fresh install from GitHub:** the project was cloned into an empty folder and installed using only the README, with a new empty database (port 5433 and a renamed container, because the developer's own database already uses 5432). All 14 steps worked in about 2 minutes of commands, and the fresh copy passed 685 API, 33 screen and 12 end-to-end tests. Results: `docs/reports/evidence/week-07-fresh-install.json`.
+- **README rewritten:** the install showed it still described the first stages. Now it lists every feature, all 61 API endpoints with roles, status codes 402/429, the error shape, test cards, the demo accounts, a "check that everything works" table, deployment (Render + Neon) and troubleshooting, plus two screenshots of the fresh install.
+- **Lint warning fixed:** `client/public/theme-init.js` no longer keeps an unused error variable (0 warnings).
+- **Week 7 report** written for the topic "Reproducibility, Installation and Integration" (`docs/reports/week-07-report.docx`).
+
 ### Next step
 
 **Stage 5, continued – user testing:** a short test script for real people (a member, a trainer, an admin) on their phones, collect their feedback, and fix what they find.
