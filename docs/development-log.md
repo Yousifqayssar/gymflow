@@ -511,3 +511,31 @@ Polish GymFlow for real users: a public front page for visitors, a dashboard tha
 ### Next step
 
 **Stage 5, continued – user testing:** a short test script for real people (a member, a trainer, an admin) on their phones, collect their feedback, and fix what they find.
+
+## Week 8 – Stage 5: Front Page Polish
+
+**Date:** 24 November 2026 (Week 8)
+
+### Objective
+
+Polish the public front page (`/welcome`) that visitors see before they log in or join, so it shows the real product and answers the first questions of a new member.
+
+### Implemented functionality
+
+- **Real app in the hero:** the member home screen on a phone next to the headline, and three short facts (opening hours, 8 kinds of classes, 6 gyms with one QR code). The hero photo is brighter, so the gym is visible.
+- **Classes section:** the 8 class types with their real photos.
+- **"Everything after the door is in the app too":** real screens of workout plans, progress, food scanner and rewards, with one sentence each.
+- **Partner gyms as a map:** a simple drawing of Istanbul with the Bosphorus; our gym in Kadıköy and the 5 partner gyms on the correct side.
+- **FAQ:** five questions answered as the app really works (no automatic renewal, Basic pays per class, cancelling a class, payment, no card needed). Built with native `<details>`, so it works with the keyboard and screen readers.
+- **Plans:** the made-up perk "free intro session with a trainer" was removed (GymFlow has no such feature); Basic now says "Book any class and pay per class", Premium "Extra classes 30% cheaper".
+- **Spacing and sections:** light-mode sections now alternate white and light grey (before, both colours were the same `slate-50`); less empty space between sections; phone layout shows classes and app screens two per row.
+
+### Problems encountered and solutions
+
+1. **"Join GymFlow" unreadable in dark mode** (white text on white, contrast 1.23:1). *Cause:* the button combined the `secondary` variant with `bg-white text-brand-800`; two Tailwind classes for the same property do not override each other by their order in the list, so dark mode used the variant's light text colour. *Solution:* buttons on dark and green backgrounds have their own complete class lists.
+2. **No way back from the login and join pages.** *Found by:* the developer, while clicking through the site. *Solution:* on both pages the GymFlow logo and a new "Back to the front page" link ("Back" on phones) lead to `/welcome`.
+3. **The page became twice as long on phones** after the first version. *Solution:* two columns for the app screens and a smaller hero phone (8,949 px instead of 10,746 px).
+
+### Tests
+
+New end-to-end tests in `landing.spec.js`: from the login and join pages the Back link and the logo lead to the front page; in dark mode the closing Join button has a contrast of at least 4.5:1, and an FAQ answer opens. Mutation-checked: with the old button code the test fails (contrast 1.23). 685 API, 33 screen and 14 end-to-end tests pass; lint clean.

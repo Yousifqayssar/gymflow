@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { m } from 'motion/react';
-import { CalendarDays, Gift, QrCode } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Gift, QrCode } from 'lucide-react';
 import Logo from './ui/Logo.jsx';
 import PageTitle from './ui/PageTitle.jsx';
 import ThemeToggle from './ui/ThemeToggle.jsx';
@@ -50,9 +51,26 @@ function AuthCard({ title, tabTitle, subtitle, children }) {
         {/* Soft brand-coloured glow behind the form */}
         <div aria-hidden="true" className="absolute -top-40 -left-40 -z-10 size-96 rounded-full bg-brand-400/20 blur-3xl" />
 
-        <div className="flex items-center justify-between">
-          <Logo />
-          <ThemeToggle />
+        {/* Visitors can always go back to the public front page: by the logo or the "Back" link. */}
+        <div className="flex items-center justify-between gap-3">
+          <Link
+            to="/welcome"
+            aria-label="GymFlow front page"
+            className="rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-600"
+          >
+            <Logo />
+          </Link>
+          <div className="flex items-center gap-1">
+            <Link
+              to="/welcome"
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-3 transition hover:bg-surface-3 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+            >
+              <ArrowLeft className="size-4" aria-hidden="true" />
+              <span className="sm:hidden">Back</span>
+              <span className="hidden sm:inline">Back to the front page</span>
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
 
         <m.div

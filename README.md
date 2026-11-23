@@ -224,7 +224,7 @@ The database container must be running (`docker compose up -d`). There are three
 | --- | --- | --- | --- |
 | API tests | `server/` | `npm test` | Every endpoint and business rule, against a real test database (685 tests, about 4–5 minutes) |
 | Screen tests | `client/` | `npm test` | Components in a simulated browser: booking panel, checkout, check-in (33 tests) |
-| End-to-end tests | `e2e/` | `npm test` | The whole app in Chrome: login, booking, paying for a class, check-in, phone layout (12 tests, about 1 minute) |
+| End-to-end tests | `e2e/` | `npm test` | The whole app in Chrome: login, booking, paying for a class, check-in, phone layout, front page (14 tests, about 1 minute) |
 
 On Windows, run the tests from **PowerShell** or the VS Code terminal set to PowerShell. In Git Bash, Vitest can stop with "failed to find the current suite" because the drive letter is passed in lower case.
 
