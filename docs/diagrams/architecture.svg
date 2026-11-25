@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" font-family="Segoe UI, Arial, sans-serif">
+  <title>GymFlow – final system architecture</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1F3A5F"/>
+    </marker>
+    <style>
+      .zone { fill: #F7F9FC; stroke: #BFCBDA; stroke-width: 1.5; }
+      .zoneTitle { font-size: 17px; font-weight: 700; fill: #1F3A5F; }
+      .zoneSub { font-size: 13px; fill: #595959; }
+      .box { fill: #FFFFFF; stroke: #1F3A5F; stroke-width: 1.5; }
+      .new { fill: #FFFFFF; stroke: #059669; stroke-width: 2; stroke-dasharray: 6 4; }
+      .layer { fill: #EAF0F7; stroke: #1F3A5F; stroke-width: 1.2; }
+      .layerNew { fill: #ECFDF5; stroke: #059669; stroke-width: 1.5; stroke-dasharray: 6 4; }
+      .t { font-size: 14px; font-weight: 600; fill: #1F3A5F; }
+      .s { font-size: 12px; fill: #404040; }
+      .lbl { font-size: 12px; fill: #1F3A5F; font-weight: 600; }
+      .line { stroke: #1F3A5F; stroke-width: 1.8; fill: none; }
+      .dash { stroke: #059669; stroke-width: 1.8; fill: none; stroke-dasharray: 6 4; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="720" fill="#FFFFFF"/>
+  <text x="30" y="38" font-size="22" font-weight="700" fill="#1F3A5F">GymFlow – final architecture (Week 8)</text>
+  <text x="30" y="60" class="zoneSub">Solid outline: planned in Weeks 1–3 · Dashed green outline: added during development (Weeks 4–7)</text>
+
+  <!-- Browser -->
+  <rect x="30" y="85" width="290" height="440" rx="14" class="zone"/>
+  <text x="48" y="112" class="zoneTitle">Browser</text>
+  <text x="48" y="130" class="zoneSub">phone or computer</text>
+  <rect x="48" y="145" width="254" height="150" rx="10" class="box"/>
+  <text x="62" y="170" class="t">React website (SPA)</text>
+  <text x="62" y="190" class="s">React 19 · React Router · Tailwind 4</text>
+  <text x="62" y="208" class="s">pages/ – one file per screen</text>
+  <text x="62" y="226" class="s">components/ – design system</text>
+  <text x="62" y="244" class="s">api/ – one function per endpoint,</text>
+  <text x="62" y="262" class="s">adds the login token (JWT)</text>
+  <text x="62" y="280" class="s">auth/ · theme/ – user, dark mode</text>
+  <rect x="48" y="310" width="254" height="62" rx="10" class="new"/>
+  <text x="62" y="335" class="t">Service worker + manifest</text>
+  <text x="62" y="355" class="s">installable app, phone layout</text>
+  <rect x="48" y="387" width="254" height="62" rx="10" class="new"/>
+  <text x="62" y="412" class="t">Camera QR scanner</text>
+  <text x="62" y="432" class="s">check-in desk, class attendance</text>
+  <rect x="48" y="464" width="254" height="46" rx="10" class="new"/>
+  <text x="62" y="492" class="t">Leaflet map</text>
+
+  <!-- Render web service -->
+  <rect x="380" y="85" width="440" height="440" rx="14" class="zone"/>
+  <text x="398" y="112" class="zoneTitle">Web service – Node.js 24 + Express 5</text>
+  <text x="398" y="130" class="zoneSub">Render online · npm run dev locally (port 4000)</text>
+  <rect x="398" y="145" width="404" height="40" rx="8" class="layerNew"/>
+  <text x="412" y="170" class="t">Security: helmet (CSP, HSTS) · login limit · CORS</text>
+  <rect x="398" y="193" width="404" height="40" rx="8" class="layer"/>
+  <text x="412" y="218" class="t">Routes + Zod validation</text>
+  <rect x="398" y="241" width="404" height="40" rx="8" class="layer"/>
+  <text x="412" y="266" class="t">authenticate (JWT) · authorize (role)</text>
+  <rect x="398" y="289" width="404" height="40" rx="8" class="layer"/>
+  <text x="412" y="314" class="t">Controllers – HTTP in and out</text>
+  <rect x="398" y="337" width="404" height="56" rx="8" class="layer"/>
+  <text x="412" y="361" class="t">Services – business rules</text>
+  <text x="412" y="380" class="s">memberships · bookings (transactions, row locks) · payments · points</text>
+  <rect x="398" y="401" width="404" height="40" rx="8" class="layer"/>
+  <text x="412" y="426" class="t">Prisma 7 client – data access</text>
+  <rect x="398" y="455" width="404" height="56" rx="8" class="layerNew"/>
+  <text x="412" y="479" class="t">Static files: built website (client/dist)</text>
+  <text x="412" y="498" class="s">one address for website and API (production)</text>
+
+  <!-- Database -->
+  <rect x="880" y="85" width="290" height="200" rx="14" class="zone"/>
+  <text x="898" y="112" class="zoneTitle">Database – PostgreSQL 16</text>
+  <rect x="898" y="128" width="254" height="62" rx="10" class="box"/>
+  <text x="912" y="153" class="t">Local: Docker container</text>
+  <text x="912" y="173" class="s">gymflow · gymflow_test · gymflow_e2e</text>
+  <rect x="898" y="204" width="254" height="62" rx="10" class="new"/>
+  <text x="912" y="229" class="t">Online: Neon (managed)</text>
+  <text x="912" y="249" class="s">same 18 migrations</text>
+
+  <!-- External services -->
+  <rect x="880" y="310" width="290" height="215" rx="14" class="zone"/>
+  <text x="898" y="337" class="zoneTitle">External services</text>
+  <rect x="898" y="352" width="254" height="72" rx="10" class="new"/>
+  <text x="912" y="377" class="t">Google Gemini API</text>
+  <text x="912" y="397" class="s">food photo → calories (optional,</text>
+  <text x="912" y="414" class="s">called only by the server)</text>
+  <rect x="898" y="438" width="254" height="72" rx="10" class="new"/>
+  <text x="912" y="463" class="t">OpenStreetMap tiles</text>
+  <text x="912" y="483" class="s">map images, loaded by the browser</text>
+  <text x="912" y="500" class="s">(allowed by the CSP)</text>
+
+  <!-- Connections -->
+  <path d="M302 210 L398 210" class="line" marker-end="url(#arrow)"/>
+  <text x="306" y="198" class="lbl">HTTPS /api</text>
+  <text x="306" y="232" class="lbl">JSON + token</text>
+  <path d="M398 470 L302 282" class="dash" marker-end="url(#arrow)"/>
+  <text x="326" y="452" class="lbl" fill="#059669">website</text>
+  <text x="326" y="468" class="lbl" fill="#059669">files</text>
+  <path d="M802 421 L898 160" class="line" marker-end="url(#arrow)"/>
+  <path d="M802 421 L898 235" class="dash" marker-end="url(#arrow)"/>
+  <text x="812" y="250" class="lbl">SQL</text>
+  <path d="M802 365 L898 388" class="dash" marker-end="url(#arrow)"/>
+  <text x="830" y="414" class="lbl" fill="#059669">HTTPS</text>
+  <path d="M302 487 C600 600 760 560 898 474" class="dash" marker-end="url(#arrow)"/>
+  <text x="560" y="578" class="lbl" fill="#059669">map tiles (HTTPS)</text>
+
+  <!-- Build and deploy -->
+  <rect x="30" y="610" width="1140" height="86" rx="14" class="zone"/>
+  <text x="48" y="637" class="zoneTitle">Build and deploy</text>
+  <text x="48" y="662" class="s">GitHub (main) → push → Render build: npm ci (server + client) → vite build → prisma migrate deploy → npm start.  Secrets only in Render settings / local .env files.</text>
+  <text x="48" y="682" class="s">Tests: Vitest + Supertest (API, real test database) · Vitest + Testing Library (screens) · Playwright (whole system in Chrome, production build, own database).</text>
+</svg>
