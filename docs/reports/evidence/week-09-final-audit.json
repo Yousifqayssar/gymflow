@@ -1,0 +1,202 @@
+{
+  "date": "25 November 2026",
+  "commit": "52f9327 docs: rewrite README as a professional project overview",
+  "environment": "Windows 11, Node 24.12.0, npm 11.6.2, Docker 29.8.2, Google Chrome; PowerShell",
+  "adaptation": "The developer's own database already runs on this computer (port 5432, container gymflow-db). The fresh copy therefore used POSTGRES_PORT=5433 and a one-line docker-compose.override.yml renaming its container; everything else followed the README as published.",
+  "install": [
+    {
+      "step": "Clone repository",
+      "actual": "git clone in 2.7 s, commit 52f9327",
+      "status": "PASS"
+    },
+    {
+      "step": "Install server packages",
+      "actual": "npm install: exit 0 in 32 s, before any .env file existed (Prisma client generated)",
+      "status": "PASS"
+    },
+    {
+      "step": "Install website packages",
+      "actual": "npm install: exit 0 in 26 s, found 0 vulnerabilities",
+      "status": "PASS"
+    },
+    {
+      "step": "Configure",
+      "actual": "3 .env files from the templates, new random secrets",
+      "status": "PASS"
+    },
+    {
+      "step": "Database",
+      "actual": "docker compose up -d: container healthy after 7 s",
+      "status": "PASS"
+    },
+    {
+      "step": "Create tables",
+      "actual": "npx prisma migrate deploy: 18 migrations found, all applied (12 s)",
+      "status": "PASS"
+    },
+    {
+      "step": "Admin account and demo data",
+      "actual": "npm run db:seed: exit 0; npm run db:seed:demo: 6 plans, 2 trainers, 12 members, 24 classes, 145 check-ins, 17 payments …",
+      "status": "PASS"
+    },
+    {
+      "step": "Start API and website",
+      "actual": "npm run dev in server/ and client/: health 200 {status ok, database up}; website on port 5173",
+      "status": "PASS"
+    }
+  ],
+  "useCase": [
+    {
+      "id": "U1",
+      "check": "API and database running",
+      "expected": "200, status ok, database up",
+      "actual": "200, status ok, database up",
+      "status": "PASS"
+    },
+    {
+      "id": "U2",
+      "check": "Member logs in on the website",
+      "expected": "Home page \"Welcome back, Elif!\"",
+      "actual": "Home page shows \"Welcome back, Elif!\"",
+      "status": "PASS"
+    },
+    {
+      "id": "U3",
+      "check": "Member books a class (website → API → database)",
+      "expected": "\"You're booked\" shown",
+      "actual": "Class 69: 16 of 20 spots left before; \"You're booked\" shown after tapping Book",
+      "status": "PASS"
+    },
+    {
+      "id": "U4",
+      "check": "Booking the same class twice",
+      "expected": "409 refused",
+      "actual": "409 \"You have already booked this class\"",
+      "status": "PASS"
+    },
+    {
+      "id": "U5",
+      "check": "Front desk checks the member in by member number",
+      "expected": "\"Checked in\" or \"Already checked in today\"",
+      "actual": "GF-00032: \"Already checked in today\"",
+      "status": "PASS"
+    },
+    {
+      "id": "U6",
+      "check": "Basic member pays with a declined test card",
+      "expected": "402 CARD_DECLINED, no booking",
+      "actual": "402 CARD_DECLINED",
+      "status": "PASS"
+    },
+    {
+      "id": "U7",
+      "check": "Basic member pays with a valid test card",
+      "expected": "2xx, class booked and paid",
+      "actual": "201, amount 170.00, status PAID",
+      "status": "PASS"
+    },
+    {
+      "id": "U8",
+      "check": "Member tries an admin-only endpoint",
+      "expected": "403",
+      "actual": "403 \"You do not have permission to do this\"",
+      "status": "PASS"
+    }
+  ],
+  "useCaseNote": "The use case was run three times. Run 1 stopped at U5 because the audit script read the member number from a field that does not exist (the website builds it from the user id as GF- plus 5 digits); the script was corrected. In run 2, U2 failed: the script checked for the heading the moment the page reported \"loaded\", while the home page was still animating its numbers – the check now waits up to 10 seconds like all others. Both were mistakes in the audit script, not in GymFlow; the demo data was reloaded before each run. Run 3 (shown above): 8 of 8 PASS.",
+  "tests": {
+    "server": {
+      "passed": 685,
+      "total": 685,
+      "files": 40,
+      "duration": "392 s"
+    },
+    "client": {
+      "passed": 33,
+      "total": 33,
+      "files": 6,
+      "duration": "16 s"
+    },
+    "e2e": {
+      "passed": 14,
+      "total": 14,
+      "duration": "1.1 min (73 s with the website build)"
+    },
+    "lint": "0 warnings, 0 errors",
+    "serverRetest": "685/685 again (350.6 s) on the developer copy during the warning investigation"
+  },
+  "terminal": [
+    "server> npm test   Test Files  40 passed (40)",
+    "                   Tests  685 passed (685)      Duration 391.61s",
+    "client> npm test   Test Files  6 passed (6)",
+    "                   Tests  33 passed (33)        Duration 16.28s",
+    "client> npm run lint   (no warnings, no errors)",
+    "e2e>    npm test   14 passed (1.1m)"
+  ],
+  "security": [
+    {
+      "check": "Secret files in the repository",
+      "actual": "No .env file tracked; only the three .env.example templates",
+      "status": "PASS"
+    },
+    {
+      "check": "Git history (131 commits, 62,392 lines)",
+      "actual": "0 Google API keys, 0 database URLs with passwords, 0 private keys, 0 GitHub tokens; the only secret settings ever committed are placeholders",
+      "status": "PASS"
+    },
+    {
+      "check": "Built website (143 files)",
+      "actual": "Byte-exact search: the Gemini key and any Google-key pattern absent",
+      "status": "PASS"
+    },
+    {
+      "check": "Live website (75 script files)",
+      "actual": "No Google-key pattern in any file served",
+      "status": "PASS"
+    },
+    {
+      "check": "Live security headers",
+      "actual": "Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options: nosniff",
+      "status": "PASS"
+    },
+    {
+      "check": "Role check on the live API",
+      "actual": "Member → GET /api/payments: 403",
+      "status": "PASS"
+    },
+    {
+      "check": "Package advisories",
+      "actual": "Website 0, end-to-end tools 0; server 1 high in effect, pinned to 3.20.0 by the Prisma CLI (also in the newest Prisma 7.10.1); build-time only",
+      "status": "Partial"
+    }
+  ],
+  "securityNote": "The demo password demo1234 is published on purpose (README) and only opens demo accounts. One check gave a false alarm during the audit: PowerShell's -Quiet search reported a key in the built website; a byte-exact search of every file showed it was absent – the -Quiet option returns one yes/no per file, and a list of \"no\" answers still counts as true.",
+  "other": [
+    {
+      "check": "GitHub access and history",
+      "actual": "Repository public; readable without login; 131 commits with descriptive messages",
+      "status": "PASS"
+    },
+    {
+      "check": "Architecture diagram vs. code",
+      "actual": "All 18 elements of the diagram found in the code (routes, validation, authenticate, authorize, controllers, services, Prisma client, static website, service worker, Gemini service …); 18 migrations as stated",
+      "status": "PASS"
+    },
+    {
+      "check": "Report and README claims",
+      "actual": "Test numbers (685 / 33 / 14), 61 endpoints, 18 migrations and the install steps match the audited version",
+      "status": "PASS"
+    },
+    {
+      "check": "Live demo",
+      "actual": "Health 200, database up; demo login works; 11 classes, the last on 1 December – must be refreshed before the demonstration",
+      "status": "Partial"
+    },
+    {
+      "check": "Warnings in the test output",
+      "actual": "6 warnings from the pg database driver: \"client.query() while already executing … removed in pg@9\". First theory – two queries started together inside a transaction in memberPoints – was tested and disproved (0 warnings; Prisma queues them), so that change was undone. Proven cause: Prisma 7's adapter loads several relations (4 includes) in parallel inside a transaction (1 warning; with 1 include or outside a transaction: 0). Results stay correct; pg is locked to 8.23.1, so version 9 cannot arrive unnoticed.",
+      "status": "Partial"
+    }
+  ],
+  "liveClassesUntil": "1 December 2026"
+}

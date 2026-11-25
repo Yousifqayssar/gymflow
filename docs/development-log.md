@@ -557,3 +557,39 @@ The user found scrolling the front page not smooth and asked for content that ap
 ### Tests
 
 New end-to-end tests in `landing.spec.js`: from the login and join pages the Back link and the logo lead to the front page; in dark mode the closing Join button has a contrast of at least 4.5:1, and an FAQ answer opens. Mutation-checked: with the old button code the test fails (contrast 1.23). 685 API, 33 screen and 14 end-to-end tests pass; lint clean.
+
+### Professional GitHub portfolio (25 November)
+
+Following the official Week 8 guide ("Report completion and professional GitHub portfolio"):
+
+- **Traceability:** `docs/traceability.md` – every requirement (F1–F9, E1–E6) and quality goal → implementation → tests → actual status: 16 Pass, 5 Partial, 1 Not tested (usability, user tests planned 26 Nov).
+- **Final architecture diagram:** `docs/diagrams/architecture.svg` with `architecture.md` (original design vs. final system, six changes and why).
+- **Final screenshots:** 12 in `docs/screenshots/` (main workflow, admin, phone), 560 kB.
+- **README rewritten** with the guide's sections (Overview, Problem, Objectives, Features, Architecture, Stack, Installation, Configuration, Running, Tests, Usage, Screenshots, Structure, Limitations, Future Improvements, Authors, References); API reference and business rules moved to `docs/api.md` and `docs/business-rules.md`.
+- **Repository:** no clutter, secrets never committed, install order re-checked on a fresh clone; made **public**.
+- **Week 8 report:** `docs/reports/week-08-report.docx`. The project report update was planned chapter by chapter and moves to Week 9.
+
+## Week 9 – Final Demonstration and Career Presentation
+
+**Date:** 25 November 2026 (Week 9)
+
+### Final technical audit
+
+The exact version to be demonstrated (`52f9327`) was cloned from GitHub into an empty folder and installed with the README alone (own database on port 5433, new random secrets). Results: install, settings, database, 18 migrations and demo data all worked; the main use case passed 8 of 8 checks (login, booking, double booking refused with 409, desk check-in, declined card 402, paid card 201, member refused an admin endpoint 403); 685/685 API, 33/33 screen and 14/14 end-to-end tests passed; lint clean. Security: no secrets in files, in 131 commits, in the built website (143 files) or the live website (75 script files). Every element of the architecture diagram exists in the code. Evidence: `docs/reports/evidence/week-09-final-audit.json`.
+
+### Problems encountered and solutions
+
+1. **Audit script mistakes, not app bugs.** The script first read the member number from a field that does not exist (the website builds it from the user id), then checked the home page heading before it had finished loading. Both were corrected; the final run passed 8/8.
+2. **False alarm for a leaked key.** A PowerShell search with `-Quiet` reported the Gemini key in the built website. A byte-exact search of every file showed it was not there: `-Quiet` returns one yes/no per file, and a list of "no" answers still counts as true.
+3. **pg driver warnings in the test output** ("client.query() while already executing … removed in pg@9"). The first theory – two queries started together inside a transaction (`memberPoints`) – was tested and disproved (Prisma queues them), so that change was undone. Small experiments proved the real cause: Prisma 7's adapter loads several related records in parallel inside a transaction. Results are correct; pg is locked to 8.23.1. Documented as a known limitation.
+
+### Prepared for the final demonstration
+
+- `docs/final/demo-plan.md` – 8-minute plan with checklist for the day before, browser setup, timeline and a failure plan.
+- `docs/final/career-materials.md` – CV entry, LinkedIn draft and 60–120 second pitch; every claim linked to evidence (checked: the parallel-request tests exist for overbooking, overlapping memberships and double charges).
+- **Week 9 report:** `docs/reports/week-09-report.docx`.
+
+### Next step
+
+Write the final project report (PDF) from the Week 8 chapter plan; add the peer installation and user-test results; refresh the online demo data shortly before the demonstration (live classes end on 1 December).
+
