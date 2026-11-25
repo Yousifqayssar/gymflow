@@ -507,6 +507,7 @@ Polish GymFlow for real users: a public front page for visitors, a dashboard tha
 - **Lint warning fixed:** `client/public/theme-init.js` no longer keeps an unused error variable (0 warnings).
 - **Package advisories:** `npm audit fix` (without `--force`) updated body-parser 2.3.0 → 2.4.0, qs 6.16.0 → 6.17.1 and fast-uri 3.1.8 → 3.1.9 in the server lock file; 685 API and 12 end-to-end tests pass. One advisory remains: `effect`, pinned to 3.20.0 by the Prisma command-line tool (also in the newest Prisma 7). It runs only during builds and never sees user input; `--force` would downgrade Prisma to 6, so we wait for a Prisma update.
 - **Week 7 report** written for the topic "Reproducibility, Installation and Integration" (`docs/reports/week-07-report.docx`).
+- **25 November – Week 7 report rebuilt to the official university guide** (received 25 Nov): the six tasks, one complete use case traced through all components (a member books a class), dependencies with the tested versions, installation procedure with real expected output, the guide's R01–R06 reproducibility table, corrections C1–C5 with commit links, the Stage 5 record, answers to the eight questions, the submission checklist and references. The Git history (127 commits) was searched for secrets: only placeholders were ever committed. A peer installation sheet was added (`docs/user-testing/peer-install-sheet.md`) for the planned peer test.
 
 ### Next step
 

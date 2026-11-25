@@ -1,254 +1,323 @@
-// Builds the Week 7 report: Reproducibility, Installation and Integration.
+// Builds the Week 7 report, structured like the university's Week 7 guide
+// ("Reproducibility, installation and integration": six tasks, Steps 1–6, Stage 5 record, questions, checklist).
 // usage: node build-week7.js <out.docx>   (needs week-07-fresh-install.json and img/ next to this file)
 const fs = require('fs');
 const path = require('path');
-const { PageBreak, Paragraph } = require('docx');
+const { PageBreak, Paragraph, Table, TableRow, WidthType } = require('docx');
 const {
-  p, lead, why, note, h1, h2, bullets, list, table, sheet, gap, code, fig, coverPage, buildDocument, writeDocument,
+  p, lead, why, note, h1, h2, bullets, list, table, sheet, gap, code, fig, cell, coverPage, buildDocument, writeDocument,
 } = require('./report-lib');
 
 const evidence = JSON.parse(fs.readFileSync(path.join(__dirname, 'week-07-fresh-install.json'), 'utf8'));
 const out = process.argv[2] || 'week-07-report.docx';
 const REPO = 'https://github.com/Yousifqayssar/gymflow';
-const commit = (hash) => `${REPO}/commit/${hash}`;
+const link = (hash) => `${REPO}/commit/${hash}`;
 const pageBreak = () => new Paragraph({ children: [new PageBreak()] });
 
+// A row of boxes joined by arrows: the path of one request through the system.
+function flow(steps) {
+  const arrow = 300;
+  const box = Math.floor((9026 - arrow * (steps.length - 1)) / steps.length);
+  const widths = steps.flatMap((_, i) => (i === 0 ? [box] : [arrow, box]));
+  const cells = steps.flatMap((text, i) => {
+    const boxCell = cell(text, box, { fill: i === 0 || i === steps.length - 1 ? 'EAF0F7' : 'F7F9FC', bold: true, size: 17 });
+    return i === 0 ? [boxCell] : [cell('→', arrow, { fill: 'FFFFFF', bold: true, size: 22 }), boxCell];
+  });
+  return new Table({ width: { size: widths.reduce((a, b) => a + b, 0), type: WidthType.DXA }, columnWidths: widths, rows: [new TableRow({ children: cells })] });
+}
+
+const s = Object.fromEntries(evidence.steps.map((step) => [step.id, step]));
+
 const children = [
-  ...coverPage({ week: 7, stage: 'Stage 5: Reproducibility, Installation and Integration', date: '23 November 2026', status: 'Completed' }),
+  ...coverPage({ week: 7, stage: 'Stage 5: Reproducibility, Installation and Integration', date: '25 November 2026', status: 'Completed – peer test planned for 26 November' }),
 
   // 1 ─────────────────────────────────────────────────────────────
   h1('1. Summary'),
-  p('The goal of Week 7 was that **another developer can understand, install, run and test GymFlow using only the written instructions**. To prove this, the project was downloaded from GitHub into an empty folder on 23 November and installed by following the README step by step, with a new, empty database. Every step was recorded with its real result and time.'),
-  p('All 14 steps worked. The fresh copy ran the complete app and passed all **685 API tests, 33 screen tests and 12 end-to-end tests**. The test also showed that the README described GymFlow as it was in the first weeks: most features, 40 of the 61 API endpoints and several setup details were missing. The README was rewritten and now covers everything a new developer needs, including troubleshooting and how the live site is hosted.'),
-  p('The week also brought the features of Stage 5 into the integrated system: a public front page, an admin dashboard with revenue and class attendance, an accessibility and performance pass, and a script for user tests. A check-in bug found by the integration tests was fixed.'),
+  p('The key question of Week 7 is: **can another software engineer install and run GymFlow using only the repository and its instructions?** To answer it with evidence, the project was cloned from GitHub into an empty folder on 23 November and installed by following only the README, with a new, empty database and newly generated secrets.'),
+  p('Every step worked. The fresh copy started, ran the main use case (a member logs in and books a class) and passed all **685 API tests, 33 screen tests and 12 end-to-end tests**. The test also showed that the README still described GymFlow as it was in the first weeks; it was rewritten and checked against the code. During the week, five real problems were corrected and committed (section 6.2). A test by a fellow student on their own computer is planned for 26 November (section 5.6).'),
   lead('Key results'),
-  table([4200, 4826], [
-    ['Measure', 'Result (23 November 2026)'],
-    ['Fresh install from GitHub, following only the README', '14 of 14 steps PASS'],
-    ['Time from download to a running app (commands only)', 'about 2 minutes (4 + 36 + 39 + 14 + 5 + 23 + 5 s)'],
+  table([4300, 4726], [
+    ['Measure', 'Result'],
+    ['Clean-environment install from GitHub (R01–R06)', '6 of 6 PASS (14 of 14 detailed steps)'],
+    ['Time of the install commands, download to running app', 'about 2 minutes (4 + 36 + 39 + 14 + 5 + 23 + 5 s)'],
     ['Tests on the fresh copy', 'API 685/685 · screen 33/33 · end-to-end 12/12'],
-    ['README API table', '21 → all 61 endpoints'],
-    ['Lint check of the website code', '1 warning → 0'],
-    ['Bugs found by integration tests and fixed', '1 (second typed check-in ignored)'],
+    ['Secrets in the Git history (127 commits)', 'none – only placeholders in .env.example files'],
+    ['Problems corrected and committed', '5 (README, setup details, lint, check-in, package advisories)'],
+    ['Peer installation test', 'planned for 26 November'],
   ], { boldFirst: true }),
 
   // 2 ─────────────────────────────────────────────────────────────
-  h1('2. Objectives of Week 7'),
-  table([600, 5000, 3426], [
-    ['#', 'Objective', 'Result'],
-    ['1', 'Installation instructions that a new developer can follow without help', 'README rewritten and checked by a fresh install (section 3)'],
-    ['2', 'Prove the project can be reproduced from GitHub alone', '14/14 steps PASS on an empty folder (section 4)'],
-    ['3', 'Show how the parts work together and test them together', 'Integration map and 12 end-to-end tests (section 5)'],
-    ['4', 'Integrate the Stage 5 features into the system', 'Front page, dashboard, accessibility, user-test script (section 7)'],
+  h1('2. The Six Week 7 Tasks'),
+  table([2000, 4826, 2200], [
+    ['Task', 'What was done', 'Section'],
+    ['1. System integration', 'One complete use case traced and tested through browser, website, API, business rules and database; 12 end-to-end tests of the whole system', '3'],
+    ['2. Dependencies', 'Every runtime, framework, library and tool with the version actually tested', '4.1'],
+    ['3. Installation guide', 'README rewritten: download, configure, install, build, run, expected output, tests, common problems', '4.2–4.4'],
+    ['4. Reproducibility test', 'Clean-environment install recorded step by step (R01–R06); peer test prepared', '5'],
+    ['5. GitHub improvements', 'README, screenshots, dependency files, peer test sheet; history checked for secrets', '4.2, 6.2'],
+    ['6. Report update', 'This report: implementation, installation, testing, results, Stage 5 record, references', '3–10'],
   ], { boldFirst: true }),
 
   // 3 ─────────────────────────────────────────────────────────────
-  h1('3. Installation Guide (README)'),
-  p('The README in the root of the repository is the installation guide. A developer needs only Git, Node.js 24, Docker Desktop and, for the end-to-end tests, Google Chrome. The database runs in Docker, so PostgreSQL does not have to be installed.'),
-  h2('3.1 What the README now contains'),
-  table([3000, 6026], [
-    ['Section', 'Content'],
-    ['Features + live demo', 'All features of GymFlow and the link to the live site'],
-    ['Prerequisites', 'Git, Node 24, Docker Desktop (with the WSL 2 note for Windows), Chrome; the clone command'],
-    ['1. Settings', 'Copy the three .env.example files; what each value means; the optional Gemini key; what to do when port 5432 is taken'],
-    ['2.–4. Run', 'Start the database, install and start the API, install and start the website'],
-    ['5. Demo data', 'One command; the demo accounts and what each is good for'],
-    ['6. Check', 'A table of checks with the expected result: health, login, classes, tests'],
-    ['Running tests', 'The three test suites, their size and duration, and a Windows note'],
-    ['API endpoints', 'All 61 endpoints with who may use them; status codes; error shape; test cards'],
-    ['Deployment', 'How the live site runs on Render + Neon: build and start commands, settings'],
-    ['Troubleshooting', 'Seven common problems and their fix'],
-  ], { boldFirst: true }),
-  h2('3.2 Short version of the installation'),
+  h1('3. Implementation – System Integration'),
+  h2('3.1 Components'),
+  table([2000, 2700, 4326], [
+    ['Component', 'Technology', 'How it connects'],
+    ['Website (client)', 'React 19, Vite 8, Tailwind 4', 'Sends requests to /api with the login token. In development Vite forwards /api to port 4000; online the same server sends both, so there is only one address.'],
+    ['API (server)', 'Node 24, Express 5, Zod', 'route → controller → service → Prisma. Checks the login, the role and every business rule.'],
+    ['Database', 'PostgreSQL 16 via Prisma 7', 'Local: Docker container. Online: Neon. The same 18 migrations build both.'],
+    ['Food scanner', 'Google Gemini (optional)', 'Called only by the server, so the key never reaches the browser. 30-second budget with a fallback model.'],
+    ['Map', 'Leaflet + OpenStreetMap tiles', 'Tiles loaded by the browser, allowed by the Content Security Policy.'],
+    ['Hosting', 'Render (web service) + Neon (database)', 'A push to main builds everything with one command and applies the migrations.'],
+  ], { boldFirst: true, size: 18 }),
+  h2('3.2 One complete use case: a member books a class'),
+  p('The guide asks to run a complete use case from input to output. For a web application this is: user action → application logic → database → displayed result. The path of one class booking:'),
+  flow(['Member taps "Book"', 'React website', 'Express API: token + role', 'Booking rules (transaction)', 'PostgreSQL', '"Booked" shown']),
+  gap(),
+  table([600, 2200, 6226], [
+    ['#', 'Component (file)', 'What happens'],
+    ['1', 'Website – BookingPanel.jsx', 'The member opens a class and taps Book.'],
+    ['2', 'Website – api/classes.js', 'bookClass() sends POST /api/classes/:id/book with the login token.'],
+    ['3', 'API – middleware', 'Security headers; authenticate checks the token (401 if missing or forged); authorize allows only the MEMBER role (403).'],
+    ['4', 'API – booking.service.js', 'One database transaction locks the class and the member (SELECT … FOR UPDATE), then checks: valid membership on the day of the class (403), not booked already (409), not full (409), classes left this month.'],
+    ['5', 'Database – PostgreSQL', 'Prisma saves the booking. A unique index on (class, member) is a second guard against double bookings.'],
+    ['6', 'Website – result', 'The API returns the updated class; the page shows "Booked", one spot less and one class less in the monthly allowance.'],
+  ], { boldFirst: true, size: 18 }),
+  p('**Evidence:** the end-to-end test "a Premium member books a class with an included class and cancels it again" runs exactly this path in Chrome against the production build and a real database; it passed on the fresh copy (section 5). Figure 2 shows a booked class (from the demo data) on the fresh copy.'),
+  h2('3.3 Architecture changes'),
+  p('No structural change was made in Week 7. The architecture is the one from Week 5 (one web service: the Express server also sends the built website) with the Week 6 security layer (security headers, login limit) in front of the routes. The diagram in the project report remains valid.'),
+
+  // 4 ─────────────────────────────────────────────────────────────
+  h1('4. Installation and Deployment'),
+  h2('4.1 Dependencies and environment (versions actually tested)'),
+  table([2300, 3400, 3326], [
+    ['Requirement', 'Tested version', 'Where it is defined'],
+    ['Runtime / language', 'Node.js 24.12.0 (JavaScript)', 'README; "engines": "24.x" in package.json'],
+    ['Package manager', 'npm 11.6.2', 'package-lock.json in server/, client/, e2e/ (exact versions)'],
+    ['Database', 'PostgreSQL 16.15 (image postgres:16-alpine)', 'docker-compose.yml'],
+    ['Containers', 'Docker Desktop, Docker 29.8.2 (WSL 2 on Windows)', 'README prerequisites'],
+    ['Server libraries', 'Express 5.3.0, Prisma 7.10.1, Zod 4.6.7, helmet 8.3.0, express-rate-limit 8.7.1, jsonwebtoken 9.0.3, bcryptjs 3.0.3, @google/genai 2.27.0', 'server/package.json'],
+    ['Website libraries', 'React 19.3.0, React Router 8.4.0, Vite 8.3.4, Tailwind CSS 4.3.3, motion 13.5.1, Leaflet 1.9.4, three 0.186.1', 'client/package.json'],
+    ['Test tools', 'Vitest 5.0.3, Supertest 7.3.0, Testing Library 16.3.3, jsdom 30.1.2, Playwright 1.64.0', 'package.json files'],
+    ['Operating system', 'Windows 11 (PowerShell); commands also written for bash', 'README'],
+    ['Hardware', 'Any computer that runs Docker Desktop; no special hardware or GPU', '–'],
+    ['Browser', 'Google Chrome (used by the end-to-end tests)', 'e2e/playwright.config.js'],
+  ], { boldFirst: true, size: 18 }),
+  why('package-lock.json fixes the exact version of every package, including the packages they depend on, so a fresh install gets the same code that was tested. The hosting build uses npm ci, which installs exactly the lock file and fails if it does not match package.json.'),
+  h2('4.2 Configuration, sample data and secrets'),
+  table([2600, 6426], [
+    ['File', 'Purpose'],
+    ['.env.example', 'Database name, user, password and port for Docker'],
+    ['server/.env.example', 'API settings: database address, login-token secret, time zone, first admin account, optional Gemini key'],
+    ['server/.env.test.example', 'A separate test database (name must end in _test)'],
+    ['docker-compose.yml', 'The PostgreSQL container with a health check'],
+    ['prisma/migrations (18)', 'Builds every table from nothing: npx prisma migrate deploy'],
+    ['npm run db:seed / db:seed:demo', 'First admin account; demo data (6 plans, 2 trainers, 12 members, 25 classes, payments, check-ins …)'],
+  ], { boldFirst: true, size: 18 }),
+  p('**Secrets:** real .env files are ignored by Git (.gitignore: .env and .env.* except the examples). The whole history (127 commits) was searched: the only password, key and secret lines ever committed are the placeholders of the example files (e.g. change_me); no Google API key and no online database address with a password appear. The fresh install generated its own random secrets.'),
+  h2('4.3 Installation procedure'),
+  p('From the README (Windows PowerShell; the same commands work in bash):'),
   code([
     'git clone https://github.com/Yousifqayssar/gymflow.git',
     'cd gymflow',
-    'cp .env.example .env                          # then fill in the values',
+    'cp .env.example .env                       # then fill in the values (README step 1)',
     'cp server/.env.example server/.env',
     'cp server/.env.test.example server/.env.test',
-    'docker compose up -d                          # database',
-    'cd server; npm install; npx prisma migrate deploy; npm run db:seed; npm run dev',
-    'cd client; npm install; npm run dev           # second terminal → http://localhost:5173',
+    'docker compose up -d                       # database; "docker compose ps" shows healthy',
+    'cd server',
+    'npm install',
+    'npx prisma migrate deploy                  # creates the tables',
+    'npm run db:seed                            # first admin account',
+    'npm run db:seed:demo                       # optional demo data',
+    'npm run dev                                # API on http://localhost:4000',
+    'cd ../client                               # in a second terminal',
+    'npm install',
+    'npm run dev                                # website on http://localhost:5173',
   ]),
-  why('reproducibility depends on more than the commands. All package versions are fixed in package-lock.json files that are in Git, the database is a fixed Docker image (postgres:16-alpine), the database structure is built from 18 migrations in Git, and the settings come from templates. The demo data uses dates relative to today, so a fresh copy always has upcoming classes.'),
-
-  // 4 ─────────────────────────────────────────────────────────────
-  pageBreak(),
-  h1('4. Reproducibility Test – Fresh Install from GitHub'),
-  h2('4.1 Method'),
-  p('The project was cloned from GitHub into a new, empty folder and every README step was run in order in PowerShell. Nothing was copied from the existing project folder: the settings files were created from the templates with new random secrets, and the database started from an empty Docker volume. For each step the expected result was written down from the README, then compared with what actually happened.'),
-  table([2600, 6426], [
-    ['Item', 'Value'],
-    ['Source', evidence.source],
-    ['Computer', evidence.machine],
-    ['Date', '23 November 2026'],
-    ['One adaptation', evidence.adaptation],
-  ], { boldFirst: true }),
-  h2('4.2 Results'),
-  table([560, 1500, 2100, 3266, 900, 700], [
-    ['ID', 'Step', 'Command', 'Actual result', 'Time', 'Status'],
-    ...evidence.steps.map((s) => [s.id, s.step, s.command, s.actual, s.time, s.status]),
-  ], { boldFirst: true, size: 17, statusCol: 5 }),
-  note('Times are the measured duration of each command on this computer. The Docker image postgres:16-alpine was already downloaded, so the time of its one-time download is not included.'),
-  ...fig('fresh-member-home.png', 6.0, 'The freshly installed copy: member home page after logging in as the demo member Elif'),
-  ...fig('fresh-classes.png', 6.0, 'The freshly installed copy: the Classes page with the demo classes of the next two weeks'),
-  h2('4.3 Gaps found in the README'),
-  p('The install itself worked, but the README did not describe the system a new developer would find:'),
-  ...bullets(evidence.readmeGaps),
-  p('All of these were corrected (section 6, problems P1–P3). The README is the part of the project a new developer reads first; out-of-date instructions are a reproducibility problem even when the code is right.'),
+  lead('Expected output (real output of the fresh install)'),
+  code([
+    '> npx prisma migrate deploy',
+    '18 migrations found in prisma/migrations',
+    'All migrations have been successfully applied.',
+    '> GET http://localhost:4000/api/health',
+    '{"status":"ok","database":"up", …}',
+    '> npm run db:seed:demo',
+    'Demo data ready: 6 plans, 2 trainers, 12 members, 25 classes, 145 check-ins, …',
+  ]),
+  h2('4.4 Common installation problems'),
+  table([3800, 5226], [
+    ['Problem', 'Fix (also in the README)'],
+    ['"cannot connect to the Docker daemon"', 'Start Docker Desktop and wait for "Engine running"'],
+    ['Port 5432 already in use', 'POSTGRES_PORT=5433 in .env and port 5433 in both DATABASE_URL lines'],
+    ['Health check says "database": "down"', 'Container not running, or the password in DATABASE_URL does not match .env'],
+    ['Classes page empty some weeks later', 'Demo classes cover 14 days: run npm run db:seed:demo again'],
+    ['Dev server stopped after npx prisma generate (Windows)', 'Normal; start it again with npm run dev'],
+    ['Vitest: "failed to find the current suite"', 'Run the tests from PowerShell, not Git Bash'],
+    ['Food scanner "not set up yet"', 'Add GEMINI_API_KEY to server/.env (optional feature)'],
+  ], { boldFirst: true, size: 18 }),
+  h2('4.5 Deployment'),
+  p('The live demo (https://gymflow-bw46.onrender.com) is one Render web service connected to the GitHub repository. Build command npm run build (installs server and website with npm ci, builds the website, applies the migrations); start command npm start. The database is Neon PostgreSQL. Settings are entered in Render, never in Git. Every push to main deploys again.'),
 
   // 5 ─────────────────────────────────────────────────────────────
-  h1('5. Integration – How the Parts Work Together'),
-  h2('5.1 Components'),
-  table([2000, 2700, 4326], [
-    ['Part', 'Technology', 'How it connects'],
-    ['Website (client)', 'React 19, Vite 8, Tailwind 4', 'Calls the API under /api with the login token. In development Vite forwards /api to port 4000; online the same server sends both, so there is one address.'],
-    ['API (server)', 'Node 24, Express 5, Zod', 'route → controller → service → Prisma. Checks login, role and every business rule.'],
-    ['Database', 'PostgreSQL 16 via Prisma 7', 'Local: Docker container. Online: Neon. Same 18 migrations in both.'],
-    ['Food scanner', 'Google Gemini', 'Optional. Server-side only, so the key never reaches the browser. 30-second time budget with a fallback model.'],
-    ['Map', 'Leaflet + OpenStreetMap tiles', 'Loaded by the browser; allowed by the Content Security Policy (img-src).'],
-    ['Hosting', 'Render (web) + Neon (database)', 'A push to main builds everything with one command and applies migrations.'],
-  ], { boldFirst: true, size: 18 }),
-  h2('5.2 Integration tests'),
-  p('The 12 end-to-end tests check the integrated system the way a user sees it: they build the website, start the server in production mode on port 4300 with its own database (gymflow_e2e, filled with fresh demo data) and control Google Chrome. Each test passes through every layer – browser, website, API, database – and back.'),
-  table([2000, 7026], [
-    ['Area', 'End-to-end test'],
-    ['Security', 'the website is served with the security headers'],
-    ['Login', 'a wrong password is refused with a clear message'],
-    ['Login', 'a logged-out admin who opens Payments logs in and comes back to Payments'],
-    ['Roles', 'a member cannot open admin pages'],
-    ['Session', 'a login that stopped working (demo data refreshed) leads politely back to login and to the same page'],
-    ['Booking', 'a Premium member books a class with an included class and cancels it again'],
-    ['Payment', 'a Basic member pays for a single class by card, then cancels and gets a refund'],
-    ['Check-in', 'a trainer checks members in by member number'],
-    ['Front page', 'a logged-out visitor sees the public landing page, not the login form'],
-    ['Front page', 'the landing page leads to join and to log in'],
-    ['Front page', 'a logged-in member who opens the landing page is taken into the app'],
-    ['Phone', 'on a phone the member uses the bottom tab bar and the "More" sheet'],
-  ], { boldFirst: true, size: 18 }),
-  p('Below the end-to-end tests, the 685 API tests check the API and database together against a real PostgreSQL test database (not a mock), and the 33 screen tests check the website components. Results on the fresh copy:'),
-  code([
-    'server> npm test   Test Files  40 passed (40)   Tests  685 passed (685)   (336 s)',
-    'client> npm test   Test Files   6 passed (6)    Tests   33 passed (33)    (20 s)',
-    'e2e>    npm test   12 passed (58.4 s)',
+  h1('5. Testing and Validation – Reproducibility and Integration'),
+  h2('5.1 Method'),
+  p('Clean-environment test: the repository was cloned into a new, empty folder and only the README was followed, step by step. Nothing was copied from the developer\'s project folder. For each step the expected result was taken from the README and compared with what actually happened. The integration was tested by the end-to-end tests, which run the whole system together (section 5.5).'),
+  h2('5.2 Test record'),
+  sheet([
+    ['Date', '23 November 2026'],
+    ['Tester', 'The developer (peer test planned – section 5.6)'],
+    ['Repository commit', 'e1ba86c – https://github.com/Yousifqayssar/gymflow/commit/e1ba86c'],
+    ['Environment', evidence.machine],
+    ['Clean environment', 'New empty folder, git clone from GitHub, new empty database volume, new random secrets'],
+    ['Adaptation', evidence.adaptation],
   ]),
+  h2('5.3 Results R01–R06'),
+  table([560, 1500, 1900, 4166, 900], [
+    ['ID', 'Operation', 'Expected result', 'Actual result', 'Status'],
+    ['R01', 'Clone repository', 'Repository downloaded', `git clone finished in ${s.R01.time}; commit e1ba86c`, 'PASS'],
+    ['R02', 'Install dependencies', 'Installation completes', `server npm install: exit 0 (${s.R04.time}); website: ${s.R08.actual} (${s.R08.time}); e2e: 3 packages (4 s)`, 'PASS'],
+    ['R03', 'Configure system', 'Required settings work', `3 .env files from the templates; database healthy (${s.R03.time}); 18 migrations applied (${s.R05.time}); admin account created (${s.R06.time})`, 'PASS'],
+    ['R04', 'Build / start', 'System starts correctly', 'API health: {"status":"ok","database":"up"}; website HTTP 200 on port 5173; production build started by the end-to-end tests', 'PASS'],
+    ['R05', 'Main use case', 'Expected output produced', 'Demo data loaded; logged in as Elif: "Welcome back, Elif!" and 25 classes (Figures 1–2); the end-to-end booking test books a class and sees "Booked"', 'PASS'],
+    ['R06', 'Run tests', 'Expected tests execute', `API 685/685 (${s.R12.time}); screen 33/33 + lint (${s.R13.time}); end-to-end 12/12 (60 s)`, 'PASS'],
+  ], { boldFirst: true, size: 17, statusCol: 4 }),
+  h2('5.4 Detailed step log'),
+  table([560, 1600, 2300, 3266, 1300], [
+    ['ID', 'Step', 'Command', 'Actual result', 'Time'],
+    ...evidence.steps.map((step) => [step.id, step.step, step.command, step.actual, step.time]),
+  ], { boldFirst: true, size: 16 }),
+  note('Times are measured on this computer. The Docker image postgres:16-alpine was already downloaded, so its one-time download is not included. The detailed results are saved in docs/reports/evidence/week-07-fresh-install.json.'),
+  h2('5.5 Terminal evidence'),
+  code([
+    'client> npm install      added 144 packages, and audited 145 packages in 23s',
+    '                         found 0 vulnerabilities',
+    'server> npm test         Test Files  40 passed (40)',
+    '                         Tests  685 passed (685)      Duration 333.06s',
+    'client> npm test         Test Files  6 passed (6)',
+    '                         Tests  33 passed (33)',
+    'e2e>    npm test         [WebServer] 18 migrations found … successfully applied',
+    '                         [WebServer] Demo data ready: 6 plans, 2 trainers, 12 members …',
+    '                         12 passed (58.4s)',
+  ]),
+  ...fig('fresh-member-home.png', 5.8, 'Fresh install (commit e1ba86c): member home page after logging in as the demo member Elif'),
+  ...fig('fresh-classes.png', 5.8, 'Fresh install: the Classes page; the next class is marked "Booked"'),
+  h2('5.6 Peer test'),
+  p('The guide prefers that another student follows the README on their own computer. This is planned for **26 November 2026**. The tester fills in the same R01–R06 table on docs/user-testing/peer-install-sheet.md, together with every unclear instruction. Until then the clean-environment test above is the evidence, and this limitation is stated openly. The peer results and any README corrections will be added to the next report.'),
 
   // 6 ─────────────────────────────────────────────────────────────
-  h1('6. Problems Found, Corrections and Retests'),
+  h1('6. Results'),
+  h2('6.1 Execution results'),
+  table([3600, 2700, 2726], [
+    ['Check', 'Fresh copy (e1ba86c, 23 Nov)', 'main today (70eddbf, 25 Nov)'],
+    ['API tests (Vitest + Supertest)', '685 / 685', '685 / 685'],
+    ['Screen tests (Vitest + Testing Library)', '33 / 33', '33 / 33'],
+    ['End-to-end tests (Playwright)', '12 / 12', '14 / 14 (2 new front-page tests)'],
+    ['Lint (oxlint)', '1 warning', '0 warnings'],
+    ['npm audit, server', '6 advisories', '1 advisory in a build-time tool (npm counts it 3×; 6.3)'],
+  ], { boldFirst: true }),
+  h2('6.2 Corrections'),
   ...[
-    ['P1', 'README described only the first stages', 'Fresh install (4.3): features, roles and API table were out of date – 21 of 61 endpoints, no 402/429 codes.', 'The README was written step by step during Stages 0–2 and not updated when features were added.', 'Features, roles and the full API table rewritten from the route files; error shape and test cards added.', 'Every endpoint in the table compared with the 15 route files: 61/61 listed with the right role.', 'docs: update README for a fresh install (this week)'],
-    ['P2', 'Demo data described wrongly', 'README said 4 plans; the fresh run printed 6 plans and many more records.', 'The demo script grew with every stage; the README text stayed.', 'Text replaced by what the script really creates, with a table of demo accounts.', 'R10 output matches the README text.', 'docs: update README for a fresh install (this week)'],
-    ['P3', 'Missing setup details', 'No word about the Gemini key, a busy port 5432, hosting, or common errors.', 'These were known only to the developer.', 'Settings notes, "Check that everything works", Deployment and Troubleshooting sections added.', 'The fresh install needed exactly the port note (5433) – now documented.', 'docs: update README for a fresh install (this week)'],
-    ['P4', 'Check-in ignored a second typed number', 'End-to-end check-in test failed when run just after midnight.', 'A 10-second repeat guard meant for the camera also blocked numbers typed by staff. Earlier runs passed only because demo data already had a visit that day.', 'Guard applies only to camera scans; two new screen tests.', 'With the old code the new test fails (1 failed, 32 passed); with the fix 33/33 and e2e 12/12, also on the fresh copy.', '99726b0'],
-    ['P5', 'Screen tests sometimes did not start', '"Vitest failed to find the current suite."', 'Only when started from Git Bash, which passes the drive as d:\\ instead of D:\\, so the test library is loaded twice.', 'Run from PowerShell; documented in the README and troubleshooting table.', '33/33 three times in a row from PowerShell; 33/33 on the fresh copy.', 'docs: update README for a fresh install (this week)'],
-    ['P6', 'Lint warning in the website code', 'npm run lint on the fresh copy: 1 warning (unused variable).', 'theme-init.js caught an error into a variable it never used.', 'Removed the variable and explained why the error is ignored.', 'npm run lint: 0 warnings, 0 errors.', 'docs: update README for a fresh install (this week)'],
-  ].flatMap(([id, title, failure, diagnosis, correction, retest, c]) => [
+    ['C1', 'README described only the first stages', 'The fresh install showed missing features, roles and 40 of 61 API endpoints; status codes 402 and 429 were missing.', 'The README was written in Stages 0–2 and not updated when features were added.', 'Features, roles and the full endpoint table rewritten from the 15 route files; error shape, test cards and demo accounts added.', 'All 61 endpoints compared with the route files.', 'de178b0'],
+    ['C2', 'Missing setup details', 'No word about the optional Gemini key, a busy port 5432, hosting, or what to do when something fails.', 'Known only to the developer.', '"Check that everything works", Deployment and Troubleshooting sections; settings notes.', 'The fresh install needed exactly the port note (5433), which is now documented.', 'de178b0'],
+    ['C3', 'Lint warning on a clean install', 'npm run lint: 1 warning (unused variable in theme-init.js).', 'A caught error was stored in a variable that was never used.', 'Variable removed, with a comment why the error is ignored.', 'npm run lint: 0 warnings.', 'de178b0'],
+    ['C4', 'Check-in ignored a second typed number', 'The end-to-end check-in test failed when run just after midnight.', 'A 10-second repeat guard meant for the camera also blocked numbers typed by staff.', 'The guard applies only to camera scans; two new screen tests.', 'Old code: new test fails; fix: 33/33 screen and 12/12 end-to-end, also on the fresh copy.', '99726b0'],
+    ['C5', 'Security advisories in server packages', 'npm install reported 6 advisories (4 high, 2 moderate), published after Week 6.', 'body-parser and qs inside Express, fast-uri, and effect inside the Prisma tool.', 'npm audit fix without --force: body-parser 2.4.0, qs 6.17.1, fast-uri 3.1.9.', '685 API and 12 end-to-end tests pass; 1 advisory left (6.3).', '80e73a8'],
+  ].flatMap(([id, title, issue, diagnosis, solution, retest, c]) => [
     h2(`${id} – ${title}`),
-    sheet([
-      ['Failure', failure],
-      ['Diagnosis', diagnosis],
-      ['Correction', correction],
-      ['Retest', retest],
-      ['Status', 'Fixed – PASS'],
-      ['Commit', /^[0-9a-f]{7}$/.test(c) ? `${c} – ${commit(c)}` : c],
-    ]),
+    sheet([['Issue', issue], ['Diagnosis', diagnosis], ['Solution', solution], ['Retest', retest], ['Status', 'Fixed – PASS'], ['Commit', `${c} – ${link(c)}`]]),
     gap(),
+  ]),
+  h2('6.3 Limitations'),
+  ...bullets([
+    '**No peer test yet:** the clean install ran on the developer\'s computer, where Node.js, Docker and the database image were already installed. The peer test is planned for 26 November.',
+    '**Port and container name:** the fresh copy used port 5433 and a renamed container because the developer\'s own database already runs on this computer. A new developer does not need this; the port case is in the README.',
+    '**One package advisory left:** effect (high) is pinned by the Prisma command-line tool, also in the newest Prisma 7. It runs only during builds and never sees user input. npm audit fix --force would downgrade Prisma to version 6, so we wait for a Prisma update.',
+    '**Tested on Windows only:** the commands are written for both PowerShell and bash, but were not run on macOS or Linux.',
   ]),
 
   // 7 ─────────────────────────────────────────────────────────────
-  h1('7. Stage 5 Features Integrated This Week'),
-  table([2400, 6626], [
-    ['Feature', 'What it does'],
-    ['Public front page', 'Visitors who are not logged in see /welcome: what GymFlow offers, Basic vs Premium plans, partner gyms, and Join / Log in buttons. Logged-in users go straight into the app.'],
-    ['Map tiles fixed online', 'OpenStreetMap refused the tiles because the site sent no Referer. The Referrer-Policy is now strict-origin-when-cross-origin.'],
-    ['Admin dashboard', 'New admin-only endpoint GET /api/gym/admin-dashboard: paid revenue per month for 6 months, and class attendance (attended vs no-shows) for the last 30 days.'],
-    ['Accessibility', 'A "Skip to main content" link on the first Tab key press, for keyboard users (WCAG 2.4.1).'],
-    ['Performance', 'Class photos converted from JPG to WebP: 1,015 kB → 520 kB. Small pictures further down load only when scrolled to.'],
-    ['User-testing script', 'docs/user-testing/user-testing-script.md: tasks for a member, a trainer and an admin, with questions and a results sheet.'],
-  ], { boldFirst: true }),
-  ...fig('dashboard-light.png', 6.0, 'Admin dashboard with monthly revenue and class attendance'),
-  p('Each feature came with its own tests: gym-admin-dashboard.test.js (revenue per month, ignored payment states, attendance rate, admin-only access), MonthlyRevenueBars.test.jsx (chart and screen-reader table), and landing.spec.js (three end-to-end tests of the front page).'),
-
-  // 8 ─────────────────────────────────────────────────────────────
-  h1('8. Development Stage 5 Record'),
+  h1('7. Development Process – Stage 5 Record'),
   sheet([
-    ['Date and objective', '18–23 November 2026. Make GymFlow reproducible: another developer can install, run and test it from the documentation; integrate the Stage 5 features.'],
-    ['Functionality and technical decision', 'Rewritten README (installation, checks, tests, API, deployment, troubleshooting); fresh-install test from GitHub; admin dashboard, front page, accessibility and performance. Decision: prove reproducibility by a real install into an empty folder with a new database instead of only reading the README – it found gaps that reading did not.'],
-    ['Problem and solution', 'The README described the first stages only (P1–P3) → rewritten from the code and checked against the fresh run. Check-in ignored a second typed number (P4) → repeat guard only for the camera. Lint warning (P6) → fixed.'],
-    ['Evidence and GitHub commit', 'Section 4 (R01–R14 all PASS, Figures 1–2), section 5.2 (685 + 33 + 12 tests on the fresh copy), docs/reports/evidence/week-07-fresh-install.json. Commits in section 10.'],
-    ['Next step', 'Week 8: user tests with real people, and a classmate installs GymFlow from the README on their own computer (section 12).'],
-  ], [3000, 6026]),
-
-  // 9 ─────────────────────────────────────────────────────────────
-  h1('9. Results and Limitations'),
-  h2('9.1 Results'),
-  ...bullets([
-    '**Reproducible:** a copy downloaded from GitHub installs and runs with the README alone; all 14 steps and all 730 tests pass.',
-    '**Fast to set up:** about 2 minutes of commands from download to a running app with demo data (not counting the one-time Docker image download).',
-    '**Integrated:** the same build runs locally, in the end-to-end tests and online; one command builds everything for hosting.',
-  ]),
-  h2('9.2 Limitations'),
-  ...bullets([
-    '**Same computer:** the fresh install ran on the developer\'s computer, where Node, Docker and the database image were already installed. A test on another person\'s computer is planned for Week 8.',
-    '**Port and container name:** because the developer\'s own database already uses port 5432 and the name gymflow-db, the fresh copy used port 5433 and a renamed container. A new developer would not need this; the port case is now in the README.',
-    '**Package advisories:** npm install on the server still reports the 6 advisories found in the Week 6 re-check (4 high, 2 moderate, published after Week 6). Two are in Express and can be fixed with npm audit fix; the other two are only in the Prisma command-line tool.',
-    '**Windows only:** the commands were run in PowerShell on Windows 11. The README commands also work in bash, but this was not tested on macOS or Linux.',
-  ]),
-
-  // 10 ────────────────────────────────────────────────────────────
-  h1('10. Commit History'),
-  table([1100, 1300, 6626], [
+    ['Date and objective', '18–25 November 2026. Integrate all parts into one system that another developer can install, configure, run and test from the documentation alone.'],
+    ['Integrated components', 'React website, Express API with security layer, booking/membership/payment services, PostgreSQL via Prisma, Gemini food scanner, OpenStreetMap map, Render + Neon hosting. Stage 5 features: admin dashboard (revenue, attendance), public front page, accessibility and performance work.'],
+    ['Technical decision', 'Prove reproducibility with a real install from GitHub into an empty folder with a new database, not by reading the README – it found gaps that reading had missed. Keep exact versions in package-lock.json and install them with npm ci online. No architecture change.'],
+    ['Problem and solution', 'Out-of-date README (C1, C2) → rewritten from the code and checked against the fresh run; lint warning (C3); check-in bug found by integration tests (C4); new package advisories (C5) → safe update, one build-time advisory documented.'],
+    ['Evidence and test results', 'R01–R06 all PASS (5.3); 14-step log (5.4); terminal output (5.5); Figures 1–2; 685 + 33 + 12 tests on the fresh copy; evidence file docs/reports/evidence/week-07-fresh-install.json.'],
+    ['GitHub commit links', 'Section 7.1.'],
+    ['Limitations and next step', 'Peer test on 26 November, user tests with friends, then Week 8 corrections (6.3, section 11).'],
+  ], [2900, 6126]),
+  h2('7.1 Commits of the week'),
+  table([1100, 1000, 6926], [
     ['Commit', 'Date', 'Message'],
-    ['5f43d33', '22 Oct', 'fix: let OpenStreetMap see the site address so map tiles load'],
-    ['d5682ac', '22 Oct', 'feat(client): add public landing page at /welcome'],
     ['ccf390f', '18 Nov', 'feat: add gym-health dashboard with monthly revenue and class attendance'],
     ['15ee090', '18 Nov', 'perf(client): add skip link and convert class photos to WebP'],
     ['d255813', '18 Nov', 'docs: add week 7 development log'],
     ['1d93be9', '22 Nov', 'docs: add user-testing script for stage 5'],
     ['99726b0', '23 Nov', 'fix(client): answer a second typed check-in and show 5 partner gyms'],
-    ['e1ba86c', '23 Nov', 'docs: rebuild week 6 report to the university testing guide'],
-    ['(new)', '23 Nov', 'docs: update README for a fresh install, and the week 7 report'],
-  ], { mono: [0] }),
-  p(`All commits: ${REPO}/commits/main`),
+    ['de178b0', '23 Nov', 'docs: update README so a new developer can install, run and test GymFlow'],
+    ['98cfa5b', '23 Nov', 'docs: add week 7 report on reproducibility, installation and integration'],
+    ['80e73a8', '23 Nov', 'fix(server): update body-parser, qs and fast-uri for security advisories'],
+    ['a69f78a', '24 Nov', 'feat(client): polish the public front page with real app screens, classes, map and FAQ'],
+    ['8d9e84a', '24 Nov', 'feat(client): add a way back to the front page from login and join'],
+    ['70eddbf', '24 Nov', 'perf(client): smoother front page scrolling with lightweight scroll animations'],
+  ], { mono: [0], size: 18 }),
+  p(`Each commit: ${REPO}/commit/<id> · all commits: ${REPO}/commits/main`),
 
-  // 11 ────────────────────────────────────────────────────────────
-  h1('11. Week 7 Student Report Sheet'),
+  // 8 ─────────────────────────────────────────────────────────────
+  h1('8. Answers to the Week 7 Questions'),
+  table([3000, 6026], [
+    ['Question', 'Answer'],
+    ['1. What does software reproducibility mean, and why is it important?', 'Anyone can get the same working system from the repository and its instructions, with the same versions and the same results. Without it, a project only works on its developer\'s computer and cannot be checked, maintained or handed over.'],
+    ['2. What dependencies are necessary?', 'Git, Node.js 24 with npm, Docker Desktop (for PostgreSQL 16) and Chrome for the end-to-end tests. All libraries are installed by npm from the lock files (section 4.1). Optional: a Gemini API key for the food scanner.'],
+    ['3. How do the main components communicate?', 'The React website sends requests (HTTPS online) with a login token to the Express API under /api. The API checks the token and role, applies the business rules and reads or writes PostgreSQL through Prisma. Gemini is called only by the server (section 3).'],
+    ['4. What steps must another developer follow?', 'Clone, copy the three .env.example files and fill them in, docker compose up -d, then in server: npm install, npx prisma migrate deploy, npm run db:seed, npm run dev; in client: npm install, npm run dev (section 4.3).'],
+    ['5. What problems did you encounter?', 'An out-of-date README, missing setup details, a lint warning, a check-in bug found by the integration tests and new package advisories – all corrected (section 6.2).'],
+    ['6. How did you verify the integrated system works?', 'A clean install from GitHub with R01–R06 all PASS, and 730 automated tests on the fresh copy, including 12 end-to-end tests that run browser, API and database together.'],
+    ['7. What would happen if someone downloaded the repository today?', 'They get commit 70eddbf with the updated README. Following it gives a running app with demo data in a few minutes; all tests pass. npm reports the one remaining advisory of a build-time tool (counted 3 times, once per package that contains it; section 6.3).'],
+    ['8. What improvements are still necessary before the final demonstration?', 'The peer installation test and user tests with real people, then their corrections; refreshing the online demo data before the demonstration; the Prisma update when it fixes the last advisory.'],
+  ], { boldFirst: true, size: 18 }),
+
+  // 9 ─────────────────────────────────────────────────────────────
+  h1('9. Week 7 Student Report Sheet'),
   sheet([
     ['Student / ID', '____________________  /  ____________'],
     ['Project title', 'GymFlow – A Web-Based Gym Membership, Class Management and Workout Tracking System'],
     ['GitHub URL', REPO],
-    ['Week 7 dates', '18–23 November 2026'],
-    ['Topic', 'Reproducibility, Installation and Integration'],
+    ['Week 7 dates', '18–25 November 2026'],
+    ['Topic', 'Reproducibility, Installation and Integration (Development Stage 5)'],
   ]),
-  h2('11.1 Short summary'),
-  p('GymFlow was downloaded from GitHub into an empty folder and installed using only the README. All 14 steps worked, and the fresh copy passed 685 API, 33 screen and 12 end-to-end tests. The install showed that the README was out of date, so it was rewritten with every feature, all 61 endpoints, checks, deployment and troubleshooting. Stage 5 features were integrated, and a check-in bug found by the integration tests was fixed.'),
-  h2('11.2 Checklist'),
+  h2('9.1 Submission checklist'),
   ...bullets([
-    '☑ Installation instructions in the README, checked by a fresh install',
-    '☑ Fresh install from GitHub recorded step by step with real results (R01–R14)',
-    '☑ All tests run on the fresh copy (685 / 33 / 12)',
-    '☑ Integration of the parts described and tested end to end',
-    '☑ Problems recorded as failure → diagnosis → correction → retest',
-    '☑ Development Stage 5 record',
-    '☑ Commits pushed to GitHub',
-    '☐ Install on another person\'s computer (planned for Week 8)',
+    '☑ Integrated project and updated GitHub repository',
+    '☑ Updated README and step-by-step installation instructions',
+    '☑ Dependency and configuration documentation',
+    '☑ Reproducibility results and screenshots or terminal evidence (clean environment; peer test planned 26 Nov)',
+    '☑ Development Stage 5 record and meaningful commit links',
+    '☑ Updated report and answers to the questions',
   ]),
-  h2('11.3 Questions a supervisor may ask'),
-  table([3300, 5726], [
-    ['Question', 'Answer'],
-    ['Can someone else install it without your help?', 'The README alone was enough for a fresh copy from GitHub: 14/14 steps PASS (section 4). It has not yet been tried by another person – planned for Week 8.'],
-    ['How do you make sure the same versions are installed?', 'package-lock.json files are in Git, the database is a fixed Docker image, the tables come from 18 migrations in Git, and settings come from templates.'],
-    ['How do you know the parts work together?', '12 end-to-end tests run the built website, the API and a real database together in Chrome; they passed on the fresh copy (section 5.2).'],
-    ['What did the fresh install find?', 'An out-of-date README (P1–P3) and one lint warning (P6). The code installed and ran without changes.'],
-    ['What about secrets?', 'Only .env.example templates are in Git; the real .env files are ignored. The fresh install created its own random secrets.'],
-  ], { boldFirst: true, size: 18 }),
 
-  // 12 ────────────────────────────────────────────────────────────
-  h1('12. Next Step'),
+  // 10 ────────────────────────────────────────────────────────────
+  h1('10. References'),
   ...list([
-    '**User tests:** run the user-testing script with a member, a trainer and an admin on their phones, and fix what they find.',
-    '**Install by another person:** a classmate installs GymFlow from the README on their own computer; every question they ask becomes a README improvement.',
-    '**Package advisories:** apply npm audit fix for the two Express advisories, run all tests, and deploy.',
+    'Node.js documentation – https://nodejs.org/docs/latest-v24.x/api/',
+    'npm documentation: package-lock.json and npm ci – https://docs.npmjs.com/cli/commands/npm-ci',
+    'Docker Compose documentation – https://docs.docker.com/compose/',
+    'PostgreSQL 16 documentation – https://www.postgresql.org/docs/16/',
+    'Prisma ORM documentation: Prisma Migrate (migrate deploy) – https://www.prisma.io/docs/orm/prisma-migrate',
+    'Vite documentation: server options (proxy) – https://vite.dev/config/server-options',
+    'Playwright documentation: web server for tests – https://playwright.dev/docs/test-webserver',
+    'Vitest documentation – https://vitest.dev/guide/',
+    'Render documentation – https://render.com/docs',
+    'Neon documentation – https://neon.com/docs',
+    'GitHub documentation: ignoring files – https://docs.github.com/en/get-started/git-basics/ignoring-files',
+  ]),
+
+  // 11 ────────────────────────────────────────────────────────────
+  h1('11. Next Step'),
+  ...list([
+    '**Peer installation test (26 November):** a fellow student installs GymFlow from the README with docs/user-testing/peer-install-sheet.md; every question becomes a README correction.',
+    '**User tests:** friends use the live site with the user-testing script (member, trainer, admin); their findings are fixed in Week 8.',
+    '**Before the final demonstration:** refresh the online demo data and check the live site end to end.',
   ]),
 ];
 
