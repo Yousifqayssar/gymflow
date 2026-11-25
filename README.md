@@ -1,85 +1,102 @@
 # GymFlow
 
-A web-based gym membership, class management and workout tracking system.
+A web-based gym membership, class management and workout tracking system – one app for the front desk, the trainers and the members.
 
-> Graduation project – Software Engineering, Altınbaş University.
+> Graduation project – Software Engineering, Altınbaş University, 2026–2027.
+> **Live demo:** <https://gymflow-bw46.onrender.com> (free hosting: the first page can take up to a minute to wake up). Demo accounts are under [Usage](#usage).
 
-## Features
+![GymFlow front page](docs/screenshots/01-front-page.webp)
 
-- **Gym management:** login with roles (Admin, Trainer, Member), membership plans (Basic and Premium), membership expiry tracking, QR check-in at the front desk, partner gyms on a map, admin dashboard (revenue, visits, memberships).
-- **Classes:** class schedule and booking, monthly class allowance for Premium members, pay per class, attendance by QR code with a no-show penalty.
-- **Payments:** card checkout for memberships and classes through a built-in **test** payment gateway (no real money), front-desk sales, payment history and receipts.
-- **Loyalty:** +10 points per gym visit, levels Bronze → Silver → Gold → Platinum with membership discounts.
-- **Training and health:** exercise library with animated demos, trainer-written workout plans, workout logging, progress charts, monthly body check-ins, AI food photo scanner (Google Gemini).
-- **Website:** phone layout with a bottom tab bar, installable as an app (PWA), dark mode, keyboard and screen-reader friendly.
+## Project Overview
 
-**Live demo:** <https://gymflow-bw46.onrender.com> (free hosting: the first page can take up to a minute to wake up). Demo accounts are listed under [Demo data](#5-optional-demo-data).
+GymFlow runs a gym from one web application. The front desk sells memberships and checks members in with a QR code; trainers create classes, take attendance and write workout plans; members book classes, pay by card, collect loyalty points and follow their progress on their phone. It is a full-stack JavaScript application: a React website, an Express REST API with the business rules, and a PostgreSQL database – tested with 732 automated tests and running online.
 
-## Tech stack
+## Problem
 
-| Layer    | Technology                                           |
-| -------- | ---------------------------------------------------- |
-| Frontend | React, Vite, Tailwind CSS, React Router, Recharts    |
-| Backend  | Node.js, Express (REST API), Zod validation          |
-| Database | PostgreSQL, Prisma ORM                               |
-| Auth     | JWT, bcrypt                                          |
-| Testing  | Vitest, Supertest, Playwright                        |
-| Dev      | Docker Compose (PostgreSQL)                          |
+Many small and medium gyms still manage members with paper cards, spreadsheets and messaging apps. Staff cannot see at a glance whose membership is expiring, members do not know whether a class still has a free spot, trainers hand out workout plans on paper, and nobody can see a member's progress over time.
 
-## Project structure
+## Objectives
 
-```
-gymFlow/
-├── client/                 # React frontend (Vite + Tailwind)
-│   └── src/
-│       ├── api/            # functions that call the backend (adds the login token)
-│       ├── assets/classes/ # class category photos (Unsplash, see Photo credits)
-│       ├── auth/           # AuthProvider + useAuth: who is logged in
-│       ├── components/
-│       │   ├── ui/         # design system: Button, Card, Modal, Toast, Avatar, …
-│       │   └── classes/    # class cards, banners, booking panel, category picker
-│       ├── pages/          # one component per page
-│       └── utils/          # formatting (prices, dates, gym time zone)
-├── server/                 # Express REST API
-│   ├── prisma/             # database schema, migrations, admin seed and demo data
-│   ├── src/
-│   │   ├── config/         # environment variable validation
-│   │   ├── routes/         # URL → middleware → controller mapping
-│   │   ├── controllers/    # HTTP layer: read request, send response
-│   │   ├── services/       # business logic and business rules
-│   │   ├── validation/     # Zod schemas for request bodies
-│   │   ├── middleware/     # authentication, authorization, validation, errors
-│   │   ├── utils/          # password hashing, JWT, AppError
-│   │   └── lib/            # shared clients (Prisma)
-│   └── tests/              # Vitest + Supertest tests (+ helpers and setup)
-├── docs/                   # diagrams, development log, weekly reports
-└── docker-compose.yml      # local PostgreSQL database
-```
+- The gym sells memberships – at the desk or online – and always knows who is allowed to train.
+- Members check in with a QR code, book classes and follow workout plans on their phone.
+- Trainers manage their own classes, take attendance and write plans for members.
+- Everybody sees clear information: membership status, classes left, points and progress.
+- The rules that matter (no double booking, no overlapping memberships, no double charge) are enforced by the server and the database, not only by the screen.
 
-Request flow in the backend: **route → controller → service → Prisma (data access) → PostgreSQL**.
+## Main Features
 
-## Getting started
+| Area | What exists |
+| --- | --- |
+| Accounts and roles | Sign-up and login; three roles (Admin, Trainer, Member) checked on the server for every request; profile with picture and member number |
+| Memberships | Plans (Basic = gym only, Premium = gym + 10 classes a month), automatic start and end dates, renewal, status (active, expiring soon, expired, upcoming) |
+| Payments | Card checkout for memberships and single classes through a built-in **test** gateway (no real money), front-desk sales, receipts, refunds on cancelled classes, payments overview |
+| Check-in and loyalty | QR code on the member's phone, scanned at the desk by camera or typed member number; +10 points per visit; Silver, Gold and Platinum levels with 5–15% off the next membership |
+| Classes | Schedule for two weeks, booking with capacity and membership checks, monthly allowance for Premium, pay per class, attendance by a changing QR code, no-show penalty |
+| Training and health | Exercise library with animated demos, trainer-written workout plans, workout logging, progress charts, monthly body check-ins, AI food photo scanner (Google Gemini) |
+| Network | Partner gyms on a map; Premium members train at all of them with the same QR code |
+| Administration | Dashboard with members, revenue per month and class attendance; people, plans, payments and locations |
+| Website | Public front page, phone layout with a bottom tab bar, installable as an app (PWA), dark mode, keyboard and screen-reader friendly |
 
-### Prerequisites
+What each role can do:
+
+| Role | How the account is created | What they can do |
+| --- | --- | --- |
+| **Member** | Public sign-up, or created by an Admin | Buy or renew a membership, show the QR code at the desk, book and pay for classes, scan the class attendance QR, see points and level, log workouts and body check-ins, scan food photos, see progress and partner gyms |
+| **Trainer** | Created by an Admin | Create, edit and cancel their own classes, take attendance, check members in, write workout plans, follow members' progress |
+| **Admin** | Seed script from `SEED_ADMIN_*` in `.env` | Everything: dashboard, plans, people, memberships, payments, all classes, partner gyms, check-in desk |
+
+All rules (membership dates, booking, payments, points) are listed in [docs/business-rules.md](docs/business-rules.md).
+
+## Architecture
+
+![GymFlow architecture](docs/diagrams/architecture.svg)
+
+A member's action in the **React website** becomes an HTTP request to `/api/...` with a login token (JWT). In the **Express server** every request passes the same layers: security headers and login limit → route with **Zod** validation → `authenticate` (valid token?) and `authorize` (allowed role?) → controller → **service**, where the business rules live → **Prisma** → **PostgreSQL**. Rules that must never break – one booking per member and class, no booking beyond capacity, no overlapping memberships – run inside database transactions with row locks and are also protected by database constraints. Online, the same server also sends the built website, so the browser talks to one address.
+
+The diagram marks what was added after the original design (dashed green); the changes and the reasons are explained in [docs/diagrams/architecture.md](docs/diagrams/architecture.md). The database design: [ER diagram](docs/diagrams/er-diagram.md) (15 tables).
+
+## Technology Stack
+
+| Layer | Technology (tested version) | What it is used for in GymFlow |
+| --- | --- | --- |
+| Website | React 19.3, React Router 8.4, Vite 8.3, Tailwind CSS 4.3 | 26 pages for visitors and three roles, loaded on demand; one design system of components; light and dark mode |
+| Animation and 3D | motion 13.5, three.js 0.186 | Page transitions that respect "reduce motion"; animated exercise demos and the 3D dumbbell on the login page |
+| Maps and QR | Leaflet 1.9, qrcode.react, zxing-wasm | Partner-gym map; member QR codes; camera scanning at the check-in desk |
+| API | Node.js 24, Express 5.3, Zod 4.6 | REST API with 61 endpoints; every request body validated |
+| Security | bcryptjs, jsonwebtoken, helmet 8.3, express-rate-limit 8.7 | Password hashes, login tokens, Content Security Policy, 10 failed logins per 15 minutes |
+| Database | PostgreSQL 16, Prisma 7.10 | 15 tables, 18 migrations, constraints and transactions with row locks |
+| AI | Google Gemini (`@google/genai`) | Estimating calories, protein, carbs and fat from a meal photo, with a 30-second time budget |
+| Tests | Vitest 5, Supertest, Testing Library, Playwright 1.64 | API tests against a real database, screen tests, end-to-end tests in Chrome |
+| Hosting | Docker Compose (local), Render + Neon (online) | Local database in one command; one web service and a managed database online |
+
+Exact versions of every package are fixed in the `package-lock.json` files.
+
+## Installation
+
+**Prerequisites**
 
 - [Git](https://git-scm.com/)
 - [Node.js](https://nodejs.org/) **24** (the version the online server uses; npm comes with it)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-  - On Windows, Docker Desktop needs **WSL 2**. If `wsl --install` fails, install the `.msi` from [github.com/microsoft/WSL/releases](https://github.com/microsoft/WSL/releases).
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) – on Windows it needs **WSL 2**. If `wsl --install` fails, install the `.msi` from [github.com/microsoft/WSL/releases](https://github.com/microsoft/WSL/releases).
 - [Google Chrome](https://www.google.com/chrome/) – only for the end-to-end tests
 
-Get the code:
+**Get the code and install the packages**
 
 ```bash
 git clone https://github.com/Yousifqayssar/gymflow.git
 cd gymflow
+cd server
+npm install              # also generates the Prisma client
+cd ../client
+npm install
+cd ..
 ```
 
-The commands below work in PowerShell (Windows) as well as in bash (macOS, Linux). Each block is run from the project folder unless it starts with `cd`.
+The commands work in PowerShell (Windows) and in bash (macOS, Linux). Each block is run from the project folder unless it starts with `cd`.
 
-### 1. Configure environment variables
+## Configuration
 
-Three `.env` files are needed. Copy the examples and adjust the values:
+Three settings files are needed. Copy the examples and fill in the values:
 
 ```bash
 cp .env.example .env                             # database settings for Docker
@@ -87,299 +104,206 @@ cp server/.env.example server/.env               # settings for the API
 cp server/.env.test.example server/.env.test     # settings for the automated tests
 ```
 
-- The username, password and database name in `DATABASE_URL` must match the values in the root `.env`.
-- Set `JWT_SECRET` in `server/.env` to a long random value:
-  `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`
-- Choose your own `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` (the first Admin account).
-- `GYM_TIMEZONE` (default `Europe/Istanbul`): memberships start and end at midnight in this time zone.
-- `GEMINI_API_KEY` is optional. Without it everything works except the food photo scanner. A free key comes from [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
-- `server/.env.test` must use the same username and password as `.env`; only the database name differs (`gymflow_test`).
-- Port 5432 already taken by another PostgreSQL? Set `POSTGRES_PORT=5433` in `.env` and use `localhost:5433` in both `DATABASE_URL` lines.
+| Setting | File | What to put in |
+| --- | --- | --- |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | `.env` | Your own values; `DATABASE_URL` in both server files must use the same user and password |
+| `JWT_SECRET` | `server/.env` | A long random value: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
+| `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` | `server/.env` | The first Admin account |
+| `GYM_TIMEZONE` | `server/.env` | Default `Europe/Istanbul`: memberships start and end at midnight in this time zone |
+| `GEMINI_API_KEY` | `server/.env` | Optional. Without it everything works except the food scanner. Free key: [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+| `DATABASE_URL` | `server/.env.test` | Same user and password, database name `gymflow_test` |
 
-> `.env` files contain secrets and are ignored by git. Only the `.env.example` templates are committed.
+Port 5432 already taken by another PostgreSQL? Set `POSTGRES_PORT=5433` in `.env` and use `localhost:5433` in both `DATABASE_URL` lines.
 
-### 2. Start the database
+> `.env` files contain secrets and are ignored by Git. Only the `.env.example` templates are committed; the whole Git history was checked and contains only placeholders.
 
-Make sure Docker Desktop is running, then:
+## Running the Project
+
+**1. Database** – make sure Docker Desktop is running:
 
 ```bash
 docker compose up -d
-docker compose ps        # gymflow-db should show "healthy"
+docker compose ps          # gymflow-db should show "healthy"
 ```
 
-### 3. Run the server (API)
+**2. API** – creates the tables and the first Admin account, then starts on port 4000:
 
 ```bash
 cd server
-npm install              # also generates the Prisma client
-npx prisma migrate deploy  # creates the database tables
-npm run db:seed          # creates the first Admin account from .env
-npm run dev              # http://localhost:4000
+npx prisma migrate deploy  # creates the database tables (18 migrations)
+npm run db:seed            # creates the first Admin account from .env
+npm run db:seed:demo       # optional: demo members, trainers, classes, payments …
+npm run dev                # http://localhost:4000
 ```
 
-Check it: <http://localhost:4000/api/health> should return `"status": "ok"` and `"database": "up"`.
-
-### 4. Run the client (website)
-
-In a **second terminal**:
+**3. Website** – in a **second terminal**:
 
 ```bash
 cd client
-npm install
-npm run dev              # http://localhost:5173
+npm run dev                # http://localhost:5173
 ```
 
-Open <http://localhost:5173>. You are sent to the login page: log in with the seeded admin account, or click **Create an account** to register as a member.
+**Check that everything works**
 
-### 5. Optional: demo data
-
-To try the app with realistic data (and for presentations):
-
-```bash
-cd server
-npm run db:seed:demo              # create or refresh the demo data (dates relative to today)
-npm run db:seed:demo -- --remove  # remove all demo data again
-```
-
-It creates 6 membership plans, 2 trainers, 12 members in every membership situation (active, expiring soon, expired, upcoming, renewed, no membership), about 25 classes for the next 14 days with bookings, and a history of check-ins, payments, body check-ins and logged workouts, plus 5 partner gyms and 32 exercises. All demo accounts end in `@demo.gymflow.local` and use the password `demo1234`:
-
-| Account | Role | Good for trying |
-| --- | --- | --- |
-| `elif@demo.gymflow.local` | Member (Premium) | Home, QR code, classes, rewards, food, workouts, progress |
-| `mert@demo.gymflow.local` | Trainer | Own classes, attendance QR, workout plans for members |
-| the `SEED_ADMIN_EMAIL` account | Admin | Dashboard, people, plans, payments, check-in desk |
-
-Real accounts and data are never touched, and the script refuses to run when `NODE_ENV=production`. Classes are only created for 14 days from the day you run it; if the class list is empty some weeks later, run it again.
-
-### 6. Check that everything works
-
-| Check | Expected |
+| Check | Expected result |
 | --- | --- |
-| <http://localhost:4000/api/health> | `"status": "ok"`, `"database": "up"` |
+| <http://localhost:4000/api/health> | `{"status":"ok","database":"up", …}` |
+| `npx prisma migrate deploy` | `All migrations have been successfully applied.` |
+| `npm run db:seed:demo` | `Demo data ready: 6 plans, 2 trainers, 12 members, 25 classes, …` |
 | <http://localhost:5173> → log in as `elif@demo.gymflow.local` / `demo1234` | "Welcome back, Elif!" with her membership card |
-| **Classes** page | Classes for the next two weeks |
-| `npm test` in `server/`, `client/` and `e2e/` | All tests pass (see [Running tests](#running-tests)) |
 
-## User roles
+These steps were verified on a fresh clone into an empty folder with an empty database: all steps and all tests passed ([evidence](docs/reports/evidence/week-07-fresh-install.json)).
 
-| Role | How the account is created | What they can do |
-| --- | --- | --- |
-| **Member** | Public sign-up, or created by an Admin on the People page | Buy or renew a membership by card, show their QR code at the desk, book and pay for classes, scan the class attendance QR, see points and level, log workouts and body check-ins, scan food photos, see progress and partner gyms |
-| **Trainer** | Created by an Admin on the People page | Create, edit and cancel their own classes, take attendance, check members in, write workout plans, follow members' progress |
-| **Admin** | Seed script (`npm run db:seed`) from `SEED_ADMIN_*` in `.env` | Everything: dashboard, plans, people, memberships, payments, all classes, partner gyms, check-in desk |
-
-Every user has a profile page with their member number (e.g. `GF-00004`).
-
-## Membership rules
-
-- A plan has a name, a duration in months (1–60) and a positive price. Plans are deactivated, never deleted once sold.
-- A membership of _N_ months starting on a day _D_ ends the day before _D_ in month _N_ later (1 Oct → 31 Oct). If that day does not exist, it ends on the last day of that month (31 Jan → 28/29 Feb).
-- Without a chosen start date, a new membership starts today, or the day after the member's current membership ends (renewal). Start dates in the past and overlapping memberships are rejected.
-- The price is copied into the membership when it is sold.
-- Status is calculated, not stored: **Active**, **Expiring soon** (ends within 7 days), **Expired**, **Upcoming**, **No membership**.
-
-## Class and booking rules
-
-- A class has a title, category, description, meeting point, start time, duration (15–300 min), capacity (> 0), level, intensity, and optional "what to bring" and health notes – everything a member needs before booking.
-- Trainers create and manage only their own classes; admins manage all classes and choose the trainer.
-- Classes must start in the future. A class that has started, or was cancelled, cannot be changed. Capacity cannot be lowered below the number of bookings. Cancelled classes stay visible.
-- **Booking** (members only):
-  - not beyond capacity (409),
-  - not twice for the same class (409, also enforced by a unique index),
-  - not after the class has started (400),
-  - only with a membership valid on the day of the class, in the gym's time zone (403).
-- Booking runs in a transaction with a row lock, so two members can never take the last spot at the same time.
-- A booking can be cancelled until the class starts.
-
-## Available scripts
-
-### Server (`server/`)
-
-| Command              | Description                                      |
-| -------------------- | ------------------------------------------------ |
-| `npm run dev`        | Start the API and restart it when a file changes |
-| `npm start`          | Start the API (no auto-restart)                  |
-| `npm test`           | Run all tests once                               |
-| `npm run test:watch` | Re-run tests on every file change                |
-| `npm run db:migrate` | Create and apply a migration after a schema change |
-| `npm run db:seed`    | Create the first Admin account                   |
-| `npm run db:seed:demo` | Create or refresh demo data (`-- --remove` to delete it) |
-| `npm run db:studio`  | Open Prisma Studio to browse the database        |
-
-### Client (`client/`)
-
-| Command           | Description                                 |
-| ----------------- | ------------------------------------------- |
-| `npm run dev`     | Start the dev server with hot reload        |
-| `npm run build`   | Build the production version into `dist/`   |
-| `npm run preview` | Preview the production build                |
-| `npm run lint`    | Check the code with Oxlint                  |
-| `npm test`        | Run the screen tests (Vitest + Testing Library) |
-
-## Running tests
-
-The database container must be running (`docker compose up -d`). There are three kinds of tests:
-
-| Kind | Folder | Command | What it checks |
-| --- | --- | --- | --- |
-| API tests | `server/` | `npm test` | Every endpoint and business rule, against a real test database (685 tests, about 4–5 minutes) |
-| Screen tests | `client/` | `npm test` | Components in a simulated browser: booking panel, checkout, check-in (33 tests) |
-| End-to-end tests | `e2e/` | `npm test` | The whole app in Chrome: login, booking, paying for a class, check-in, phone layout, front page (14 tests, about 1 minute) |
-
-On Windows, run the tests from **PowerShell** or the VS Code terminal set to PowerShell. In Git Bash, Vitest can stop with "failed to find the current suite" because the drive letter is passed in lower case.
-
-```bash
-cd server
-npm test                                # all API tests
-npx vitest run --reporter=verbose       # list every test by name
-```
-
-API tests use a **separate database** (`gymflow_test`, configured in `server/.env.test`). It is created and migrated automatically, and its tables are emptied before each test. As a safety check, tests refuse to run if the database name does not end in `_test`.
-
-### End-to-end tests (Playwright)
-
-```bash
-cd e2e
-npm install        # first time only
-npm test           # builds the website, starts everything, runs the tests in Chrome
-npm run report     # open the HTML report of the last run
-```
-
-They use another **separate database** (`gymflow_e2e`): before every run it is migrated and filled with fresh demo data, then the server starts in production mode on port 4300 and serves the built website – just like online. The installed Google Chrome is used, so no extra browser download is needed.
-
-## API endpoints
-
-| Method | Path | Access | Description |
-| ------ | ---- | ------ | ----------- |
-| GET | `/api/health` | public | API and database status (200 ok / 503 error) |
-| POST | `/api/auth/register` | public | Create a member account → `{ user, token }` |
-| POST | `/api/auth/login` | public | Log in → `{ user, token }` |
-| GET | `/api/auth/me` | logged in | The current user |
-| GET | `/api/plans` | logged in | Membership plans (non-admins only see active ones) |
-| POST | `/api/plans` | Admin | Create a plan |
-| PATCH | `/api/plans/:id` | Admin | Edit or (de)activate a plan |
-| GET | `/api/users?role=&status=&search=` | Admin | List users; members include their membership status and `counts` per status |
-| POST | `/api/users` | Admin | Create a Member or Trainer account |
-| GET | `/api/users/:id` | Admin | A member with status and membership history |
-| GET | `/api/users/:id/memberships/preview?planId=&startDate=` | Admin | Calculated dates and price, without saving |
-| POST | `/api/users/:id/memberships` | Admin | Assign a plan to a member |
-| GET | `/api/me/membership` | Member | The logged-in member's own membership |
-| GET | `/api/me/membership/preview?planId=` | Member | Dates and price (with loyalty discount) before paying |
-| POST | `/api/me/checkout` | Member | Pay for a membership by card (test gateway) |
-| GET | `/api/me/payments` | Member | The member's own payments and receipts |
-| GET | `/api/me/bookings` | Member | The member's upcoming booked classes |
-| GET | `/api/me/class-balance` | Member | Classes left this membership month |
-| GET | `/api/me/qr` | Member | The member's check-in QR code |
-| POST | `/api/me/qr/reset` | Member | Make a new QR code (the old one stops working) |
-| GET | `/api/me/visits` | Member | Visits, points, level and missed classes |
-| GET / POST | `/api/me/body` | Member | Read or record a body check-in (weight, measurements) |
-| GET | `/api/me/workout-plans` | Member | Workout plans written for the member |
-| GET / POST | `/api/me/workouts` | Member | Read or log a workout |
-| GET | `/api/me/progress` | Member | Data for the progress charts |
-| PUT | `/api/account/avatar` | logged in | Change the profile picture |
-| GET | `/api/classes?category=&from=&to=` | logged in | Class schedule (default: next 14 days) with spots left and "booked by me" |
-| GET | `/api/classes/:id` | logged in | One class; its trainer and admins also get the list of booked members |
-| POST | `/api/classes` | Admin, Trainer | Create a class |
-| PATCH | `/api/classes/:id` | Admin, own Trainer | Edit a class |
-| POST | `/api/classes/:id/cancel` | Admin, own Trainer | Cancel a class |
-| POST | `/api/classes/:id/book` | Member | Book a spot (uses the monthly class allowance) |
-| DELETE | `/api/classes/:id/book` | Member | Cancel the booking |
-| GET | `/api/classes/:id/booking-quote` | Member | Price of a single class for members who pay per class |
-| POST | `/api/classes/:id/book-and-pay` | Member | Book and pay for one class by card |
-| GET | `/api/classes/:id/attendance` | Admin, own Trainer | Attendance list and the changing attendance QR code |
-| PUT | `/api/classes/:id/attendance/:memberId` | Admin, own Trainer | Mark a member present or absent by hand |
-| POST | `/api/classes/:id/attend` | Member | Scan the attendance QR code of a booked class |
-| POST | `/api/check-ins` | Admin, Trainer | Check a member in by QR code or member number |
-| GET | `/api/check-ins/today` | Admin, Trainer | Today's check-ins |
-| GET | `/api/members` | Admin, Trainer | Members list for trainers |
-| GET | `/api/members/:id/body` · `/workouts` · `/progress` | Admin, Trainer | A member's body check-ins, workouts and progress |
-| GET | `/api/exercises` | logged in | Exercise library |
-| POST / PUT | `/api/exercises` · `/api/exercises/:id` | Admin, Trainer | Add or edit an exercise |
-| GET | `/api/workout-plans` | Admin, Trainer | All workout plans |
-| GET | `/api/workout-plans/:id` | logged in | One plan (members only their own) |
-| POST / PUT | `/api/workout-plans` · `/api/workout-plans/:id` | Admin, Trainer | Write or edit a workout plan |
-| GET | `/api/partner-gyms` | logged in | Partner gyms for the map |
-| POST / PUT / DELETE | `/api/partner-gyms` · `/api/partner-gyms/:id` | Admin | Manage partner gyms |
-| GET | `/api/payments` | Admin | All payments with totals |
-| GET | `/api/gym/stats` | logged in | Gym numbers on the home page (members, trainers, classes, visits) |
-| GET | `/api/gym/admin-dashboard` | Admin | Revenue, visits and membership numbers for the dashboard |
-| POST | `/api/nutrition/analyze` | logged in | Estimate the calories of a meal photo (Google Gemini) |
-
-Status filters for `/api/users`: `active` (includes expiring soon), `expiring`, `expired`, `upcoming`, `none`. Prices are returned as exact strings, e.g. `"1500.00"`. Class times are exact moments with a time zone, e.g. `"2026-10-24T08:00:00+03:00"`.
-
-Protected endpoints expect the header `Authorization: Bearer <token>`.
-
-| Status | Meaning |
-| --- | --- |
-| 400 | Invalid input (`error.details` lists the fields) |
-| 401 | Not logged in, or invalid/expired token, or wrong credentials |
-| 402 | Card declined by the test payment gateway (`error.code` = `CARD_DECLINED`) |
-| 403 | Logged in, but the role is not allowed, or a business rule forbids it (e.g. membership expired at check-in) |
-| 404 | Not found (unknown plan, user or class) |
-| 409 | Conflict, e.g. email already registered, plan name taken, overlapping membership, class full, already booked |
-| 429 | Too many failed logins: 10 per 15 minutes per address |
-
-Every error has the same shape: `{ "error": { "message": "…", "code": "…", "details": [{ "field": "…", "message": "…" }] } }`.
-
-Test cards for the payment gateway (any future expiry date, any 3-digit CVC):
-
-| Card number | Result |
-| --- | --- |
-| 4242 4242 4242 4242 | Paid (Visa) |
-| 5555 5555 5555 4444 | Paid (Mastercard) |
-| 4000 0000 0000 0002 | Declined |
-| 4000 0000 0000 9995 | Declined – insufficient funds |
-
-## Database design
-
-See the [ER diagram](docs/diagrams/er-diagram.md).
-
-## Running it online (deployment)
-
-The live demo runs as **one** web service: the Express server also sends the built React website, so there is no separate frontend hosting.
-
-| Part | Service |
-| --- | --- |
-| Web service | [Render](https://render.com), Node 24, connected to the GitHub repository: every push to `main` deploys again |
-| Database | [Neon](https://neon.tech) PostgreSQL |
-
-- **Build command:** `npm run build` (root `package.json`): installs server and client, builds the website and applies the database migrations (`prisma migrate deploy`).
-- **Start command:** `npm start`.
-- **Environment variables on Render:** `NODE_ENV=production`, `DATABASE_URL` (from Neon), `JWT_SECRET`, `JWT_EXPIRES_IN`, `GYM_TIMEZONE`, `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `GEMINI_API_KEY`. In production the server serves the website from `client/dist`, so `CLIENT_ORIGIN` is not needed for it.
-
-## Troubleshooting
+<details>
+<summary><strong>Common problems</strong></summary>
 
 | Problem | Fix |
 | --- | --- |
-| `docker compose up -d` fails: "cannot connect to the Docker daemon" | Start Docker Desktop and wait until it says "Engine running" |
-| Port 5432 is already in use | See step 1: use `POSTGRES_PORT=5433` and port 5433 in both `DATABASE_URL` lines |
+| `docker compose up -d`: "cannot connect to the Docker daemon" | Start Docker Desktop and wait until it says "Engine running" |
+| Port 5432 is already in use | Use `POSTGRES_PORT=5433` and port 5433 in both `DATABASE_URL` lines |
 | Health check says `"database": "down"` | The database container is not running, or the password in `DATABASE_URL` does not match `.env` |
 | The Classes page says there are no classes | Demo classes only cover 14 days: run `npm run db:seed:demo` in `server/` again |
 | The dev server stopped after `npx prisma generate` (Windows) | Normal: the new Prisma client replaces files the server was using. Start it again with `npm run dev` |
 | Vitest: "failed to find the current suite" | Run the tests from PowerShell instead of Git Bash |
 | Food scanner: "The food scanner is not set up yet" | Add a `GEMINI_API_KEY` to `server/.env` and restart the server |
 
-## Screenshots
+</details>
 
-| Member home | Classes |
+<details>
+<summary><strong>All scripts</strong></summary>
+
+| Folder | Command | What it does |
+| --- | --- | --- |
+| `server/` | `npm run dev` / `npm start` | Start the API (with / without restart on file changes) |
+| `server/` | `npm run db:migrate` | Create and apply a migration after a schema change |
+| `server/` | `npm run db:seed` · `npm run db:seed:demo` | First Admin account · demo data (`-- --remove` deletes it) |
+| `server/` | `npm run db:studio` | Browse the database in Prisma Studio |
+| `client/` | `npm run dev` · `npm run build` · `npm run preview` | Development server · production build into `dist/` · preview it |
+| `client/` | `npm run lint` | Check the code with Oxlint |
+
+</details>
+
+<details>
+<summary><strong>Deployment (live demo)</strong></summary>
+
+The live demo is **one** Render web service connected to this repository – every push to `main` deploys again – with a Neon PostgreSQL database. Build command `npm run build` (root `package.json`: installs server and website with `npm ci`, builds the website, applies the migrations); start command `npm start`. Settings on Render: `NODE_ENV=production`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `GYM_TIMEZONE`, `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `GEMINI_API_KEY`. In production the server sends the website from `client/dist`.
+
+</details>
+
+## Running Tests
+
+The database container must be running (`docker compose up -d`).
+
+| Kind | Folder | Command | What it checks |
+| --- | --- | --- | --- |
+| API tests | `server/` | `npm test` | Every endpoint and business rule, against a real test database – including an automatic check of every endpoint against every role (685 tests, about 5 minutes) |
+| Screen tests | `client/` | `npm test` | Components in a simulated browser: booking panel, checkout, check-in (33 tests) |
+| End-to-end tests | `e2e/` | `npm install` (first time), then `npm test` | The whole system in Chrome: login, booking, paying for a class, check-in, phone layout, front page (14 tests, about 1 minute) |
+
+The API tests use their own database (`gymflow_test`) and refuse to run on any database whose name does not end in `_test`. The end-to-end tests build the website, fill a third database (`gymflow_e2e`) with fresh demo data and start the server in production mode on port 4300 – just like online. On Windows, run the tests from PowerShell (in Git Bash Vitest can stop with "failed to find the current suite").
+
+Which test proves which requirement: [docs/traceability.md](docs/traceability.md).
+
+## Usage
+
+All demo accounts use the password `demo1234` (after `npm run db:seed:demo`, or on the live demo):
+
+| Account | Role | Good for trying |
+| --- | --- | --- |
+| `elif@demo.gymflow.local` | Member (Premium) | Home, QR code, classes, rewards, food, workouts, progress |
+| `can@demo.gymflow.local` | Member (Basic) | Paying for a single class (the membership ends 3 days after the demo data is loaded) |
+| `mert@demo.gymflow.local` | Trainer | Own classes, attendance QR, workout plans |
+| the `SEED_ADMIN_EMAIL` account | Admin | Dashboard, people, plans, payments, check-in desk |
+
+**Example workflow – a member books a class and checks in**
+
+1. Log in as **Elif**. The home page shows her membership, points and next class.
+2. Open **Classes**, pick a class and tap **Book this class**. The page shows "You're booked", one spot less, and one class less in her monthly allowance. Booking the same class again is refused (409).
+3. Open **My QR**: her personal QR code and member number (e.g. `GF-00460`).
+4. In another browser, log in as the **Admin** and open **Check-in**. Scan the QR code or type the member number and press **Check in**: GymFlow shows "Welcome, Elif!", her membership and +10 points – or a clear reason why entry is refused (for example an expired membership).
+5. To pay for a class, log in as **Can** (Basic) and book a class: the checkout accepts the test card `4242 4242 4242 4242` (any future date, any CVC); `4000 0000 0000 0002` is declined.
+
+The API is documented in [docs/api.md](docs/api.md) (61 endpoints, status codes, error format, test cards).
+
+## Screenshots / Demo
+
+**Live demo:** <https://gymflow-bw46.onrender.com>
+
+| | |
 | --- | --- |
-| ![Member home page](docs/screenshots/member-home.png) | ![Classes page](docs/screenshots/classes.png) |
+| ![Member home](docs/screenshots/02-member-home.webp) **Member home** – membership, points and gym numbers | ![Class detail](docs/screenshots/03-class-detail.webp) **A class** before booking: spots left, what to bring, health notes |
+| ![Class booked](docs/screenshots/04-class-booked.webp) **After booking** – "You're booked" | ![Membership](docs/screenshots/05-membership.webp) **Buy or renew** with the loyalty discount |
+| ![Admin dashboard](docs/screenshots/06-admin-dashboard.webp) **Admin dashboard** – members, revenue, class attendance | ![Check-in desk](docs/screenshots/07-check-in-desk.webp) **Check-in desk** – QR camera or member number |
+| ![Payments](docs/screenshots/08-payments.webp) **Payments** – paid, declined and refunded | ![Phone QR](docs/screenshots/10-phone-qr.webp) **On a phone** – the member's QR code |
 
-## Photo credits
+More phone screens: [home](docs/screenshots/09-phone-home.webp) · [progress](docs/screenshots/11-phone-progress.webp) · [workouts](docs/screenshots/12-phone-workouts.webp).
 
-The class category photos in `client/src/assets/classes/` are from [Unsplash](https://unsplash.com) and are used under the [Unsplash License](https://unsplash.com/license) (free to use, no permission needed). They are resized and stored in the project, so the app does not depend on an external website.
+## Repository Structure
 
-| Category | Unsplash photo |
-| --- | --- |
-| Running | [photo-1739368732843-800f36a9b7d0](https://images.unsplash.com/photo-1739368732843-800f36a9b7d0) |
-| Yoga | [photo-1544367567-0f2fcb009e0b](https://images.unsplash.com/photo-1544367567-0f2fcb009e0b) |
-| HIIT | [photo-1599058917212-d750089bc07e](https://images.unsplash.com/photo-1599058917212-d750089bc07e) |
-| Cycling | [photo-1520877880798-5ee004e3f11e](https://images.unsplash.com/photo-1520877880798-5ee004e3f11e) |
-| Pilates | [photo-1747238415033-b74eec07eb59](https://images.unsplash.com/photo-1747238415033-b74eec07eb59) |
-| Boxing | [photo-1517438322307-e67111335449](https://images.unsplash.com/photo-1517438322307-e67111335449) |
-| Strength | [photo-1641337221253-fdc7237f6b61](https://images.unsplash.com/photo-1641337221253-fdc7237f6b61) |
-| Mobility | [photo-1607914660217-754fdd90041d](https://images.unsplash.com/photo-1607914660217-754fdd90041d) |
+```
+gymflow/
+├── client/                  # React website (Vite + Tailwind)
+│   ├── public/              # service worker, app manifest, icons
+│   └── src/
+│       ├── api/             # one function per API endpoint (adds the login token)
+│       ├── auth/ theme/     # logged-in user; light and dark mode
+│       ├── components/      # design system (ui/) and feature components
+│       ├── pages/           # one component per screen
+│       └── utils/ hooks/    # formatting, gym time zone, data loading
+├── server/                  # Express REST API
+│   ├── prisma/              # schema, 18 migrations, admin seed, demo data
+│   ├── src/
+│   │   ├── routes/          # URL → middleware → controller
+│   │   ├── validation/      # Zod schemas
+│   │   ├── middleware/      # security, authentication, authorization, errors
+│   │   ├── controllers/     # HTTP layer
+│   │   ├── services/        # business rules and transactions
+│   │   └── config/ lib/ utils/
+│   └── tests/               # API tests (Vitest + Supertest) and unit tests
+├── e2e/                     # end-to-end tests (Playwright)
+├── docs/
+│   ├── diagrams/            # architecture and ER diagram
+│   ├── screenshots/         # final screenshots
+│   ├── reports/             # weekly reports, project report, test evidence
+│   ├── user-testing/        # user-testing script, peer installation sheet
+│   ├── api.md · business-rules.md · traceability.md
+│   └── development-log.md   # what was built each week, problems and decisions
+├── docker-compose.yml       # local PostgreSQL
+└── package.json             # build and start commands for hosting
+```
 
-## Development log
+## Known Limitations
 
-See [docs/development-log.md](docs/development-log.md).
+- **Payments use a test gateway.** Card checkout works end to end with test cards, but no real money moves: Stripe is not available in Turkey and iyzico declined the project.
+- **Food scanner values are estimates** from Google's AI model; their accuracy was not measured. The feature needs a Gemini API key and depends on Google's service being available.
+- **Camera scanning is not covered by automated tests** (the tests use a stand-in for the camera), and installing the app on a real phone has not been tested yet.
+- **One gym.** GymFlow manages one gym with partner locations; there is no support for several independent gyms.
+- **Free hosting.** The live demo sleeps when unused and needs up to a minute to wake up; its demo classes must be refreshed every 14 days.
+- **One npm advisory** remains in a build-time tool (inside the Prisma command-line tool); it does not run in the live server and is waiting for a Prisma update.
+
+## Future Improvements
+
+- A real payment provider for Turkey, with recurring monthly payments.
+- Email or push reminders before a membership expires or a booked class starts.
+- Native installation tests on Android and iOS, and a full automatic accessibility scan.
+- Several gyms (branches) with their own staff in one installation.
+- Measuring the food scanner against known meals, and showing the uncertainty to the member.
+
+## Authors
+
+**Yousif Al-Samrre** – design, implementation, testing and documentation of the whole system. Graduation project, Software Engineering, Altınbaş University. Supervisor: Dr. F. Kuzey Edes Huyal.
+
+The development history is in [docs/development-log.md](docs/development-log.md); weekly reports are in [docs/reports/](docs/reports/).
+
+## References
+
+- React – <https://react.dev> · Vite – <https://vite.dev> · Tailwind CSS – <https://tailwindcss.com/docs>
+- Node.js – <https://nodejs.org/docs/latest-v24.x/api/> · Express – <https://expressjs.com> · Zod – <https://zod.dev>
+- Prisma ORM – <https://www.prisma.io/docs> · PostgreSQL 16 – <https://www.postgresql.org/docs/16/>
+- Vitest – <https://vitest.dev> · Testing Library – <https://testing-library.com> · Playwright – <https://playwright.dev>
+- OWASP Cheat Sheet Series (authentication, passwords, security headers) – <https://cheatsheetseries.owasp.org>
+- Web Content Accessibility Guidelines (WCAG) 2.2 – <https://www.w3.org/TR/WCAG22/>
+- Google Gemini API – <https://ai.google.dev/gemini-api/docs> · Leaflet – <https://leafletjs.com> · OpenStreetMap tile usage policy – <https://operations.osmfoundation.org/policies/tiles/>
+- Render – <https://render.com/docs> · Neon – <https://neon.com/docs> · Docker Compose – <https://docs.docker.com/compose/>
+
+**Photo credits.** The class category photos in `client/src/assets/classes/` are from [Unsplash](https://unsplash.com) under the [Unsplash License](https://unsplash.com/license): running [1739368732843](https://images.unsplash.com/photo-1739368732843-800f36a9b7d0), yoga [1544367567](https://images.unsplash.com/photo-1544367567-0f2fcb009e0b), HIIT [1599058917212](https://images.unsplash.com/photo-1599058917212-d750089bc07e), cycling [1520877880798](https://images.unsplash.com/photo-1520877880798-5ee004e3f11e), pilates [1747238415033](https://images.unsplash.com/photo-1747238415033-b74eec07eb59), boxing [1517438322307](https://images.unsplash.com/photo-1517438322307-e67111335449), strength [1641337221253](https://images.unsplash.com/photo-1641337221253-fdc7237f6b61), mobility [1607914660217](https://images.unsplash.com/photo-1607914660217-754fdd90041d). They are stored in the project, so the app does not depend on an outside website.
