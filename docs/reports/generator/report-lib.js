@@ -59,6 +59,14 @@ function cell(text, width, { header = false, fill, bold = false, mono = false, s
   });
 }
 
+// Green for pass / done, orange for partial / not tested, red for anything else (fail).
+function statusColour(text) {
+  const t = String(text).toLowerCase();
+  if (/^(pass|done)/.test(t)) return '2E7D32';
+  if (/^(partial|not)/.test(t)) return 'B45309';
+  return 'C62828';
+}
+
 // rows[0] is the header row. Options: boldFirst / boldLast column, monospace columns, font size,
 // statusCol: a column whose PASS / FAIL is coloured.
 function table(widths, rows, { boldFirst = false, boldLast = false, mono = [], size = 20, statusCol = -1 } = {}) {
@@ -73,7 +81,7 @@ function table(widths, rows, { boldFirst = false, boldLast = false, mono = [], s
         header: r === 0,
         fill: r % 2 === 0 ? ZEBRA : 'FFFFFF',
         bold: (boldFirst && c === 0) || (boldLast && c === cells.length - 1) || (r > 0 && c === statusCol),
-        color: r > 0 && c === statusCol ? (String(text).startsWith('PASS') ? '2E7D32' : 'C62828') : undefined,
+        color: r > 0 && c === statusCol ? statusColour(text) : undefined,
         mono: mono.includes(c),
         size,
       })),
